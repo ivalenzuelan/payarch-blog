@@ -1,530 +1,425 @@
 ---
-title: 'How an AI agent executes a transaction: a complete technical breakdown'
-description: 'HTTP signatures, agent-bound tokens, ISO 8583 field modifications, the VIC API call sequence, and the protocol ecosystem (x402, TAP, AP2).'
+title: 'How an AI agent buys something: the complete technical breakdown'
+description: 'HTTP signatures, agent-bound tokens, ISO 8583 field modifications, the VIC API call sequence, and the protocol ecosystem — TAP, x402, AP2.'
 pubDate: 'Mar 21 2026'
 tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payments', 'x402', 'mcp']
 ---
 
 import AgenticArchitecture from '../../components/agentic-architecture.jsx';
-import PayarchDiagram from '../../components/PayarchDiagram.tsx';
 import TapHandshake from '../../components/tap-handshake-diagram.jsx';
 import Iso8583Diagram from '../../components/iso8583-diagram.jsx';
 import Callout from '../../components/Callout.tsx';
-import { agenticCheckoutE2E } from '@payarch/core';
-
-{/* ── HERO STATS ─────────────────────────────────────────────────── */}
 
 <div className="grid grid-cols-3 gap-3 my-8 not-prose">
-  <div className="bg-slate-900 border border-slate-800 text-white rounded-xl p-5 text-center">
-    <div className="text-2xl font-semibold text-slate-100 font-mono tabular-nums">1,100ms</div>
-    <div className="text-xs text-slate-400 mt-2 uppercase tracking-wide font-medium">Clearance Latency</div>
+  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+    <div className="text-2xl font-semibold text-slate-800 font-mono tabular-nums">1,100ms</div>
+    <div className="text-xs text-slate-500 mt-2 uppercase tracking-wide">End-to-end latency</div>
   </div>
-  <div className="bg-slate-900 border border-slate-800 text-white rounded-xl p-5 text-center">
-    <div className="text-2xl font-semibold text-slate-100 font-mono tabular-nums">4,700%</div>
-    <div className="text-xs text-slate-400 mt-2 uppercase tracking-wide font-medium">Retail Traffic Growth</div>
+  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+    <div className="text-2xl font-semibold text-slate-800 font-mono tabular-nums">4,700%</div>
+    <div className="text-xs text-slate-500 mt-2 uppercase tracking-wide">AI retail traffic growth</div>
   </div>
-  <div className="bg-slate-900 border border-slate-800 text-white rounded-xl p-5 text-center">
-    <div className="text-2xl font-semibold text-slate-100 font-mono tabular-nums">$40B</div>
-    <div className="text-xs text-slate-400 mt-2 uppercase tracking-wide font-medium">Fraud Mitigated (2023)</div>
+  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+    <div className="text-2xl font-semibold text-slate-800 font-mono tabular-nums">$40B</div>
+    <div className="text-xs text-slate-500 mt-2 uppercase tracking-wide">Fraud blocked in 2023</div>
   </div>
 </div>
+
+You say "buy me those Bose headphones." Your AI assistant does it. 1,100 milliseconds later, the purchase is confirmed — no checkout page, no card number entered, no CAPTCHA solved.
+
+This already happened. In December 2025, a consumer dispatched an AI agent to find the best headphones at the best price. The agent evaluated options on Consumer Reports, navigated to Bose.com, authenticated itself using Skyfire's KYAPay protocol and Visa's Trusted Agent Protocol, and completed the checkout. The consumer received a confirmation email automatically.
+
+This post breaks down every technical layer of what happened: the new identity protocol Visa and Cloudflare built, the exact changes to ISO 8583 for agent-initiated transactions, the VIC API sequence, and the competitive landscape across TAP, x402, and AP2.
 
 <AgenticArchitecture client:load />
 
-In December 2025, a consumer successfully delegated an autonomous AI agent to evaluate, select, and purchase electronics on their behalf. The agent authenticated itself as a legitimate execution environment using Skyfire's KYAPay protocol and Visa's Trusted Agent Protocol, completing the checkout flow in 1,100 milliseconds without direct human intervention or traditional credential entry.
-
-This explicitly demonstrates production-grade infrastructure operating at scale, introducing a fundamental shift in how digital payments are authenticated and authorized. 
-
-<Callout type="tldr">
-  <ul style={{ margin: 0, paddingLeft: '1.2em', lineHeight: '2' }}>
-    <li><strong>Visa Intelligent Commerce (VIC)</strong> — a comprehensive API specification for agentic payments encompassing tokenization, authentication, payment instructions, personalization, and commerce signals.</li>
-    <li><strong>Trusted Agent Protocol (TAP)</strong> — an implementation of cryptographic HTTP signatures enabling merchants to verify requests originating from registered AI agents.</li>
-    <li><strong>ISO 8583 Modifications</strong> — the introduction of POS Entry Mode <code>F022=81</code>, signaling downstream systems to process transactions using agent-specific authorization logic.</li>
-    <li><strong>Ecosystem Protocols</strong> — a comparative analysis of TAP, x402, and AP2, delineating their respective architectures and optimal use cases.</li>
-  </ul>
-</Callout>
-
-This analysis examines the underlying technical specifications: the Visa and Cloudflare identity protocol, the modifications to the ISO 8583 standard, the VIC API execution sequence, the complexities of automated fraud detection, and the current protocol landscape.
-
 ---
 
-## The Authentication Challenge in Agentic Commerce
+## Why this is genuinely hard
 
-For decades, payment infrastructure has modeled fraud detection on human behavioral baselines. Signals such as typing cadence, cursor trajectory, device fingerprinting, and geolocation anomalies form the basis of modern risk scoring.
+The payment industry has spent 50 years building fraud systems around one assumption: the entity initiating a transaction is a human being. Fraud signals — typing cadence, mouse movement, device fingerprinting, geolocation patterns — all rely on human behavioral baselines.
 
-Autonomous agents inherently bypass these heuristics:
+An AI agent destroys every one of those signals simultaneously. It moves at machine speed. It has no mouse. Its IP is a server in AWS `us-east-1`. Its device fingerprint looks like a headless Chrome instance. Its purchasing patterns are algorithmically optimal, which looks nothing like human impulse buying.
 
-<div className="grid grid-cols-2 gap-3 my-6 not-prose">
+<div className="grid grid-cols-2 gap-4 my-6 not-prose text-sm">
   <div className="border border-slate-200 bg-slate-50 rounded-xl p-4">
-    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3">Traditional Fraud Signals</div>
-    <ul className="text-sm text-slate-700 space-y-1.5 list-none m-0 p-0">
-      <li>Mouse trajectory and velocity</li>
-      <li>Typing cadence inconsistencies</li>
-      <li>Document Object Model (DOM) interaction latency</li>
-      <li>Standard residential IP origination</li>
+    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3 font-mono">Human fraud signals</div>
+    <ul className="text-slate-600 space-y-1.5 list-none m-0 p-0">
+      <li>Mouse trajectory and typing cadence</li>
+      <li>DOM interaction timing</li>
+      <li>Residential IP origin</li>
       <li>Organic conversion funnel timing</li>
+      <li>Device fingerprint consistency</li>
     </ul>
   </div>
-  <div className="border border-slate-300 bg-white rounded-xl p-4 shadow-sm">
-    <div className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-3">Agent Execution Profile</div>
-    <ul className="text-sm text-slate-700 space-y-1.5 list-none m-0 p-0">
-      <li>Programmatic, near-instantaneous requests</li>
-      <li>Absence of cursor or keystroke events</li>
-      <li>Execution within data center environments (e.g., AWS)</li>
-      <li>Headless browser fingerprints</li>
-      <li>Algorithmically optimized execution patterns</li>
+  <div className="border border-slate-200 bg-white rounded-xl p-4">
+    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-3 font-mono">Agent execution profile</div>
+    <ul className="text-slate-600 space-y-1.5 list-none m-0 p-0">
+      <li>Instantaneous programmatic requests</li>
+      <li>No cursor or keystroke events</li>
+      <li>AWS / GCP data center IP</li>
+      <li>Headless browser fingerprint</li>
+      <li>Algorithmically optimized patterns</li>
     </ul>
   </div>
 </div>
 
-<Callout type="insight">
-  From the perspective of conventional fraud systems, legitimate agent-driven purchasing behavior is technically indistinguishable from credential-stuffing or automated enumeration attacks.
-</Callout>
-
-<Callout type="stat">
-  Analytics firms recorded a 4,700% surge in AI-driven traffic to US retail websites over the past twelve months. During peak commercial periods, such as Cyber Monday 2024, agent-generated traffic increased by 1,950% year-over-year. Adapting existing heuristics is insufficient; the infrastructure requires deterministic cryptographic identity.
-</Callout>
-
-To address this vector, Visa engineered an overarching identity verification layer designed specifically for programmatic actors.
-
-<PayarchDiagram diagram={agenticCheckoutE2E} client:load />
-
-The schematic above illustrates the process. Toggle between **business**, **technical**, and **ISO 8583** perspectives to inspect the data exchange at each node.
+From the perspective of every fraud system built since 2000, a legitimate AI agent shopping on your behalf is indistinguishable from a credential-stuffing attack. That's the problem Visa's Trusted Agent Protocol was built to solve.
 
 ---
 
-## Architecture Specification: Visa Intelligent Commerce
+## The architecture: Visa Intelligent Commerce
 
-Visa Intelligent Commerce (VIC), introduced in April 2025, constitutes a full-stack infrastructure for agentic transactions. It comprises five core API modules.
+Visa Intelligent Commerce (VIC), launched April 2025, is Visa's complete infrastructure stack for agentic payments. Five API modules, each solving a different part of the problem.
 
 <div className="not-prose my-6 space-y-3">
-  <div className="border border-slate-200 rounded-xl p-5 flex gap-4 items-start bg-white">
-    <div className="w-8 h-8 rounded border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-sm flex items-center justify-center shrink-0">1</div>
+  <div className="border border-slate-200 rounded-xl p-4 flex gap-4 items-start bg-white">
+    <div className="w-7 h-7 rounded border border-slate-200 bg-slate-50 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">01</div>
     <div>
-      <div className="font-semibold text-slate-900 mb-1">Tokenization</div>
-      <div className="text-sm text-slate-600 leading-relaxed">Substitutes the primary account number (PAN) with an agent-specific network token. Provisioned during initial consumer authorization, the token remains cryptographically bound to the designated agent.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Tokenization</div>
+      <div className="text-sm text-slate-600 leading-relaxed">Replaces the consumer's 16-digit PAN with an agent-specific network token. Provisioned at enrollment, not at checkout. Bound to the agent — cannot be used by a different agent or extracted from the secure enclave.</div>
     </div>
   </div>
-  <div className="border border-slate-200 rounded-xl p-5 flex gap-4 items-start bg-white">
-    <div className="w-8 h-8 rounded border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-sm flex items-center justify-center shrink-0">2</div>
+  <div className="border border-slate-200 rounded-xl p-4 flex gap-4 items-start bg-white">
+    <div className="w-7 h-7 rounded border border-slate-200 bg-slate-50 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">02</div>
     <div>
-      <div className="font-semibold text-slate-900 mb-1">Authentication</div>
-      <div className="text-sm text-slate-600 leading-relaxed">Leverages payment passkeys (FIDO2 credentials) bound to the consumer's secure enclave to authorize isolated payment instructions. The signed assertion cryptographically guarantees explicit consumer intent.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Authentication</div>
+      <div className="text-sm text-slate-600 leading-relaxed">Payment passkeys — FIDO2 credentials tied to the consumer's device — authorize individual payment instructions. When you say "buy this," the agent requests a Passkey assertion. That signed assertion proves you authorized this specific purchase.</div>
     </div>
   </div>
-  <div className="border border-slate-200 rounded-xl p-5 flex gap-4 items-start bg-white">
-    <div className="w-8 h-8 rounded border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-sm flex items-center justify-center shrink-0">3</div>
+  <div className="border border-slate-200 rounded-xl p-4 flex gap-4 items-start bg-white">
+    <div className="w-7 h-7 rounded border border-slate-200 bg-slate-50 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">03</div>
     <div>
-      <div className="font-semibold text-slate-900 mb-1">Payment Instructions</div>
-      <div className="text-sm text-slate-600 leading-relaxed">Constitutes the control layer. Consumers establish rigid parameters: transaction limits, acceptable merchant category codes (MCCs), and velocity thresholds. These are enforced at the network level rather than by the agent.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Payment Instructions</div>
+      <div className="text-sm text-slate-600 leading-relaxed">The control layer. The consumer pre-configures guardrails: spending limits, merchant categories, velocity thresholds. These load directly into VisaNet — the agent cannot exceed them programmatically.</div>
     </div>
   </div>
-  <div className="border border-slate-200 rounded-xl p-5 flex gap-4 items-start bg-white">
-    <div className="w-8 h-8 rounded border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-sm flex items-center justify-center shrink-0">4</div>
+  <div className="border border-slate-200 rounded-xl p-4 flex gap-4 items-start bg-white">
+    <div className="w-7 h-7 rounded border border-slate-200 bg-slate-50 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">04</div>
     <div>
-      <div className="font-semibold text-slate-900 mb-1">Personalization (Data Tokens)</div>
-      <div className="text-sm text-slate-600 leading-relaxed">An opt-in framework transmitting isolated consumer preferences (e.g., brand affinity, logistical parameters) to the agent as structured data, without exposing aggregate transaction histories.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Personalization</div>
+      <div className="text-sm text-slate-600 leading-relaxed">Opt-in behavioral signals — preferred brands, hotel tiers, merchant categories — shared with the agent as structured hints. Raw transaction history never leaves Visa.</div>
     </div>
   </div>
-  <div className="border border-slate-200 rounded-xl p-5 flex gap-4 items-start bg-white">
-    <div className="w-8 h-8 rounded border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-sm flex items-center justify-center shrink-0">5</div>
+  <div className="border border-slate-200 rounded-xl p-4 flex gap-4 items-start bg-white">
+    <div className="w-7 h-7 rounded border border-slate-200 bg-slate-50 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0 font-mono">05</div>
     <div>
-      <div className="font-semibold text-slate-900 mb-1">Commerce Signals</div>
-      <div className="text-sm text-slate-600 leading-relaxed">Creates an immutable audit trail. Following execution, the agent transmits a fulfillment payload back to the VIC network, enabling programmatic dispute resolution and risk modeling.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Commerce Signals</div>
+      <div className="text-sm text-slate-600 leading-relaxed">After each transaction, the agent reports the outcome to VIC. These signals feed into dispute resolution and help risk models distinguish legitimate agent behavior from fraud patterns. Not optional.</div>
     </div>
   </div>
 </div>
 
-Visa maintains an open-source Model Context Protocol (MCP) server at `github.com/visa/mcp`, exposing these capabilities to LLM-driven architectures via standardized tool schemas.
+Visa published an open-source MCP server at `github.com/visa/mcp` — any Claude or GPT-based agent can trigger a complete VIC payment through a standard MCP tool call, no custom integration required.
 
 ---
 
-## The Credential Model: Agent-Bound Tokenization
+## Agent-specific tokenization: how the credential model works
 
-When a consumer integrates their payment instrument with an agent platform, the ensuing provisioning flow requires three sequential operations.
+When a consumer onboards their Visa card to an agent platform, three things happen.
 
 <div className="not-prose my-6 space-y-0">
   <div className="flex gap-4">
     <div className="flex flex-col items-center">
-      <div className="w-7 h-7 rounded bg-slate-800 text-white font-semibold text-xs flex items-center justify-center shrink-0">1</div>
+      <div className="w-7 h-7 rounded-full border-2 border-slate-300 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0">1</div>
       <div className="w-px bg-slate-200 flex-1 mt-2"></div>
     </div>
     <div className="pb-6 pt-0.5">
-      <div className="font-semibold text-slate-900 text-sm mb-1">Step-up verification</div>
-      <div className="text-sm text-slate-600">The issuing institution authenticates the consumer via existing protocols (e.g., 3-D Secure, biometric evaluation). This is executed strictly once per integration.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Visa performs step-up verification</div>
+      <div className="text-sm text-slate-600">The issuing bank confirms the cardholder's identity — 3DS, biometric, OTP. One-time event per card-agent pairing.</div>
     </div>
   </div>
   <div className="flex gap-4">
     <div className="flex flex-col items-center">
-      <div className="w-7 h-7 rounded bg-slate-800 text-white font-semibold text-xs flex items-center justify-center shrink-0">2</div>
+      <div className="w-7 h-7 rounded-full border-2 border-slate-300 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0">2</div>
       <div className="w-px bg-slate-200 flex-1 mt-2"></div>
     </div>
     <div className="pb-6 pt-0.5">
-      <div className="font-semibold text-slate-900 text-sm mb-1">Token issuance</div>
-      <div className="text-sm text-slate-600">Visa generates an agent-specific pass-through network token. Metadata explicitly restricts authorization exclusively to requests originating from the registered agent.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Visa Token Service issues an agent-bound VCN</div>
+      <div className="text-sm text-slate-600">A Virtual Card Number bound exclusively to this agent. The real PAN never leaves Visa's Token Service — not the agent, not the merchant, not the acquirer.</div>
     </div>
   </div>
   <div className="flex gap-4">
     <div className="flex flex-col items-center">
-      <div className="w-7 h-7 rounded bg-slate-800 text-white font-semibold text-xs flex items-center justify-center shrink-0">3</div>
+      <div className="w-7 h-7 rounded-full border-2 border-slate-300 text-slate-500 font-semibold text-xs flex items-center justify-center shrink-0">3</div>
     </div>
     <div className="pb-2 pt-0.5">
-      <div className="font-semibold text-slate-900 text-sm mb-1">Passkey instantiation</div>
-      <div className="text-sm text-slate-600">A targeted FIDO2 credential is generated dynamically on the consumer's local hardware. All subsequent network executions necessitate a valid signature from this enclave.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Consumer creates a FIDO2 Passkey</div>
+      <div className="text-sm text-slate-600">Stored in the device's secure enclave. Every future payment instruction requires a Passkey assertion — the agent cannot activate the token without it.</div>
     </div>
   </div>
 </div>
 
 ```text
-Provisioning trace:
-
-consumer → VIC enroll_card({
-             card_number,
-             agent_id: "skyfire-001",
-             controls: { limit_per_txn: 50000, categories: ["retail"] }
-           })
+consumer → VIC enroll_card({ card_number, agent_id: "skyfire-001",
+             controls: { limit_per_txn: 50000, categories: ["retail"] } })
          ↓
-Visa VTS → step_up_verification(issuer)
+Visa VTS → step_up_verification(issuer) → identity_confirmed
          ↓
-issuer   → identity_confirmed: true
+Visa VTS → issue_agent_token({ token: "4111xxxxxxxxAGNT",
+             binding: { agent_id: "skyfire-001" },
+             controls: { limit: $500, require_passkey: true } })
          ↓
-Visa VTS → issue_agent_token({
-             token: "4111xxxxxxxxAGNT",
-             binding: { agent_id: "skyfire-001", consumer_did: "did:web:..." },
-             controls: { limit: 500, category: "retail", require_passkey: true }
-           })
-         ↓
-consumer → create_passkey(agent_token_ref)
-         ↓
-device   → fido2_credential_stored
+consumer → create_passkey(agent_token_ref) → fido2_credential_stored
 ```
 
-During execution, the agent calls `retrieve_payment_credentials` via VIC with the required Passkey assertion. VIC responds with the transacting token. The agent remains entirely isolated from the unmasked PAN.
-
-<Callout type="insight" title="Credential Attack Surface Constraints">
-  Compromising the agent's remote infrastructure exposes only an agent-bound token. Intercepting the token yields a payload lacking the required Passkey assertion. Compromising the physical device requires bypassing the secure enclave to synthesize a valid instruction. The architecture ensures failure domains remain isolated.
-</Callout>
+The result: the agent holds a token it cannot use without consumer authentication at instruction time. If the agent's session is compromised, the attacker has a token with no valid Passkey — useless.
 
 ---
 
-## The Trusted Agent Protocol: HTTP Layer Cryptography
+## The Trusted Agent Protocol: identity at the HTTP layer
 
-Prior to token utilization, merchant infrastructure must deterministicly distinguish registered agents from unauthenticated bot traffic. This requirement is addressed by the Trusted Agent Protocol (TAP).
+Tokenization solves the credential problem. But the merchant still needs to know the incoming HTTP request is from a legitimate agent — before payment even begins. That's TAP.
 
-Developed collaboratively by Visa and Cloudflare, TAP is standardized upon **HTTP Message Signatures** (IETF RFC 9421) and **Web Bot Auth**. Participating agents persist their public keys in the Visa registration directory (`https://tap.visa.com/.well-known/agents/`).
+Launched October 14, 2025, developed by Visa and Cloudflare, built on two open standards: **HTTP Message Signatures** (IETF RFC 9421) and **Web Bot Auth**. Every participating agent registers a public key in Visa's directory at `tap.visa.com/.well-known/agents/`.
 
 <TapHandshake client:load />
 
-### Protocol Construction
-
-A registered agent computes an Ed25519 (or RSA-PSS) signature covering specific request attributes. Below is an example of the resulting payload:
+The signed HTTP request looks like this:
 
 ```http
 POST /checkout/complete HTTP/1.1
 Host: bose.com
-Authorization: TAP-1.0 eyJhbGci...
 Signature-Input: tap-sig=("@method" "@target-uri" "@authority"
-  "content-digest" "x-tap-agent-id"
-  "x-tap-consumer-token" "x-tap-intent");
-  keyid="skyfire-agent-001";
-  tag="tap-purchase";
-  created=1742518234;
-  nonce="a3f8c2e1d9b7"
+  "content-digest" "x-tap-agent-id" "x-tap-intent");
+  keyid="skyfire-agent-001"; tag="tap-purchase";
+  created=1742518234; nonce="a3f8c2e1d9b7"
 Signature: tap-sig=:MEQCIBx7zK...base64==:
 X-Tap-Agent-Id: skyfire-agent-001
 X-Tap-Intent: purchase
 X-Tap-Consumer-Token: eyJhbGciOiJFUzI1NiJ9...
-Content-Digest: sha-256=:RK/0qy18MlB...==:
 ```
 
+Four things in this request matter:
+
 <div className="not-prose my-4 space-y-2">
-  <div className="flex gap-3 text-sm">
-    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700">tag="tap-purchase"</code>
-    <span className="text-slate-600">Differentiates transaction logic (<code>tap-purchase</code>) from standard indexing or catalog scraping (<code>tap-browse</code>).</span>
+  <div className="flex gap-3 text-sm items-start">
+    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700 mt-0.5">tag="tap-purchase"</code>
+    <span className="text-slate-600">Signals purchase intent vs. catalog browsing. Merchants can gate checkout flows on this field specifically.</span>
   </div>
-  <div className="flex gap-3 text-sm">
-    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700">nonce</code>
-    <span className="text-slate-600">High-entropy cryptographic string evaluated by the merchant to mitigate replay attacks.</span>
+  <div className="flex gap-3 text-sm items-start">
+    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700 mt-0.5">nonce</code>
+    <span className="text-slate-600">Cryptographically random, unique per request. Stored permanently after use — prevents replay attacks.</span>
   </div>
-  <div className="flex gap-3 text-sm">
-    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700">created</code>
-    <span className="text-slate-600">Timestamp enforcing strict TTL logic (maximum 60 seconds) to bound the exposure window.</span>
+  <div className="flex gap-3 text-sm items-start">
+    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700 mt-0.5">created</code>
+    <span className="text-slate-600">Unix timestamp. Requests older than 60 seconds are rejected — limits the window for intercepted requests.</span>
   </div>
-  <div className="flex gap-3 text-sm">
-    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700">x-tap-consumer-token</code>
-    <span className="text-slate-600">A JSON Web Token resolving the payment instruction reference and hashing the consumer identity.</span>
+  <div className="flex gap-3 text-sm items-start">
+    <code className="shrink-0 text-xs font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700 mt-0.5">x-tap-consumer-token</code>
+    <span className="text-slate-600">JWT from VIC containing the consumer's hashed identity, merchant relationship, and payment instruction reference.</span>
   </div>
 </div>
 
-### Edge Verification
-
-The merchant's edge infrastructure or application server evaluates the request systematically:
+The merchant's TAP SDK validates three things locally in under 5ms — no external call needed:
 
 ```text
-1. Key Material Resolution:
-   GET https://tap.visa.com/.well-known/agents/skyfire-agent-001
-   → { public_key: "ed25519:MCowBQYDK2Vd...", status: "active" }
+1. Fetch agent public key from tap.visa.com/.well-known/agents/skyfire-agent-001
+   (cached 5 minutes)
 
-2. Signature Validation:
-   - Compute the required canonical signature base.
-   - Validate Ed25519 signature against the registry.
-   - Verify timestamp bounds and nonce novelty.
-   → Result: valid
+2. Verify Ed25519 signature over canonical request form
+   Check: created within 60s ✓  nonce unused ✓  agent registered ✓
 
-3. Token Authorization:
-   - Validate JWT cryptographic signature.
-   - Ensure the audience claim ('aud') matches the merchant origin.
-   → Result: consumer_recognized
+3. Validate consumer token JWT against Visa's public key
+   Check: exp > now ✓  aud === merchant ✓  amount matches cart ✓
 ```
 
-<Callout type="stat" title="Execution Overhead">
-  Complete verification introduces approximately <strong>40–80 milliseconds</strong> in latency. Furthermore, network edges (e.g., Cloudflare and Akamai) process proprietary behavioral intelligence concurrently. Both cryptographic validation and behavioral metrics must coalesce to authorize the request.
-</Callout>
+Total TAP handshake latency: ~60ms. Cloudflare and Akamai run behavioral analysis in parallel — both signals must pass.
 
 ---
 
-## ISO 8583 Integration: Data Model Expansion
+## How ISO 8583 changes for agent transactions
 
-Following TAP validation, the merchant processor generates an ISO 8583 MTI 0100 authorization transaction. The agent context is encoded via precise modifications to four data elements:
+Once the merchant accepts the TAP-verified request, the acquirer builds an ISO 8583 MTI 0100 authorization message. This is where the agent context enters the rail that has existed since 1987.
 
 <Iso8583Diagram client:load />
 
-```text
-Standard Authorization (MTI 0100):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-F002  Primary Account Number  4111000000001111 
-F003  Processing Code         000000          
-F004  Transaction Amount      000000008999    
-F011  System Trace (STAN)     123456
-F022  POS Entry Mode          01              
-F048  Additional Data         [empty]
-F126  Private Use             [empty]
+The critical change is `F022 = 81` — a new POS Entry Mode value that propagates through the entire authorization chain. Every downstream system that sees `F022=81` applies agent-specific risk rules instead of human behavioral models.
 
-Agent Authorization (MTI 0100):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-F002  Primary Account Number  4111xxxxxxxxAGNT     ← Network token
-F003  Processing Code         000000
-F004  Transaction Amount      000000008999
-F011  System Trace (STAN)     123456
-F022  POS Entry Mode          81                   ← Automated agent initiator
-F025  POS Condition Code      59                   
-F048  Additional Data         AGNT:skyfire-001     ← Agent registry ID
-F049  Currency Code           840                 
-F126  Private Use             pi-abc123:sha256hash ← Instruction reference lock
-```
-
-<Callout type="insight" title="Systemic Impact of F022 Modifications">
-  Deploying <code>F022 = 81</code> re-routes the transaction through an alternate logic flow across the entire settlement chain. VisaNet and issuer endpoints evaluate the request utilizing agent-oriented parameters, disregarding human-interaction heuristics completely.
-</Callout>
-
-Element `F126` enforces transaction integrity. VisaNet structurally validates the `F126` instruction reference against the initial payload verified by the consumer's Passkey; deviations in currency, amount, or merchant identity guarantee an immediate decline.
+`F126` carries the TAP payment instruction reference. VisaNet validates this against its registry — if the amount or merchant was tampered in transit, this check fails and the transaction is declined before reaching the issuer.
 
 ```text
-Response Processing (MTI 0110):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-F002  PAN            4111xxxxxxxxAGNT     
-F004  Amount         000000008999         
-F011  STAN           000123               
-F038  Auth Code      123456               
-F039  Response Code  00                   ← Transaction authorized
-F126  Private Use    agent-confirmed      ← Validation acknowledgment
-// Total round-trip latency: ~180 milliseconds
+Response (MTI 0110):
+F038: 123456    ← authorization code
+F039: 00        ← approved
+F126: agent-confirmed  ← TAP reference echoed
+// Total VisaNet round-trip: ~180ms
 ```
 
 ---
 
-## API Execution Sequence
-
-For architects implementing deep integration rather than delegating to enabling platforms, the complete execution requires synchronizing the five modules. Visa provides bindings via the Model Context Protocol (StreamableHTTP) and via native REST interfaces.
+## The complete VIC API sequence
 
 ```typescript
-// Stage 1: Enrollment (Asynchronous preprocessing)
+// 1. Enroll card — one time per consumer-agent pairing
 const enrollment = await vic.tools.enroll_card({
   user_id: "consumer-123",
   card_number: "4111000000001111",
   expiration_date: "12/27",
   cvv: "123"
-});
+})
 // → { token_ref: "vts-AGNT-001", passkey_challenge: "..." }
 
-// Client-side execution bridging FIDO2 specifications
+// 2. Consumer creates Passkey — client side, FIDO2
 const passkey = await navigator.credentials.create({
   publicKey: parsePasskeyChallenge(enrollment.passkey_challenge)
-});
+})
 
-// Stage 2: Intent Origination (At transaction juncture)
-// Consumer triggers agent; agent formulates explicit instruction parameters
+// 3. Initiate payment instruction — when consumer says "buy this"
 const instruction = await vic.tools.initiate_purchase_instruction({
   user_id: "consumer-123",
   merchant_id: "bose-com",
-  amount: 279.99,
+  amount: 89.99,
   currency: "USD",
   item_ref: "bose-qc45",
-  passkey_assertion: await signWithPasskey(passkey, {
-    merchant: "bose-com",
-    amount: 279.99,
-    timestamp: Date.now()
-  })
-});
+  passkey_assertion: await signWithPasskey(passkey, instructionPayload)
+})
 // → { instruction_ref: "pi-abc123", status: "authorized" }
 
-// Stage 3: TAP Exchange & Credential Injection
-// Assuming TAP handshake succeeds via HTTP signatures
-const credentials = await vic.tools.retrieve_payment_credentials({
+// 4. Retrieve payment credentials at checkout
+const creds = await vic.tools.retrieve_payment_credentials({
   instruction_ref: "pi-abc123",
-  tap_context: tapSignedRequestContext
-});
+  tap_context: tapSignedContext
+})
+// → { tokenized_pan: "4111xxxxAGNT", expiry: "12/27" }
 
-// Stage 4: Resolution & Telemetry
-// Required to finalize audit and enable programmatic reversals
+// 5. Submit commerce signal — not optional
 await vic.tools.submit_commerce_signal({
   instruction_ref: "pi-abc123",
   outcome: "success",
-  order_id: "bose-order-78234",
-  merchant_confirmation: "conf-abc"
-});
+  order_id: "bose-order-78234"
+})
 ```
 
-<Callout type="tip" title="Commerce Signal Integration">
-  Bypassing the <code>submit_commerce_signal</code> endpoint corrupts the dispute validation chain. Financial institutions require the initial intent parameters, the TAP signature, the ISO 8583 response, and the agent's signal telemetry to adjudicate liability correctly.
-</Callout>
+Step 5 is not optional. It creates the audit trail that makes disputes solvable: the original Passkey-authenticated instruction, the TAP credential, the ISO 8583 authorization, and the fulfillment confirmation. Without it, dispute resolution has no evidence chain.
 
 ---
 
-## Production Deployments
+## Real deployments
 
-The following patterns detail active architectural implementations as of December 2025:
+**Skyfire + Consumer Reports + Bose.com** is the most complete example. Skyfire's KYAPay protocol sits on top of VIC and TAP. The agent queried Consumer Reports via MCP, evaluated headphone options, navigated to Bose.com, presented TAP credentials, and completed checkout — no consumer interaction required after the initial "find me headphones" instruction.
 
-<div className="not-prose my-6 space-y-4">
-  <div className="border border-slate-200 bg-white rounded-xl p-5 shadow-sm">
-    <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-      <span className="font-semibold text-slate-800 text-sm">Platform: Skyfire + Consumer Reports</span>
-    </div>
-    <p className="text-sm text-slate-600 leading-relaxed m-0">The agent queried structured product data via MCP, performed comparative analysis, navigated directly to Bose.com, generated TAP signatures utilizing the KYAPay distributed identity architecture, and concluded execution without consumer context switching.</p>
-  </div>
-  <div className="border border-slate-200 bg-white rounded-xl p-5 shadow-sm">
-    <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-      <span className="font-semibold text-slate-800 text-sm">Platform: Nekuda / Gensmo</span>
-    </div>
-    <p className="text-sm text-slate-600 leading-relaxed m-0">Demonstrates distributed parallel execution. A single consumer command ("procure this look") establishes concurrent agent-initiated checkout sequences across discrete merchants via the Rye API abstraction layer, validating each leg via uniform TAP credentialing.</p>
-  </div>
-  <div className="border border-slate-200 bg-white rounded-xl p-5 shadow-sm">
-    <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-      <span className="font-semibold text-slate-800 text-sm">B2B Application: Ramp</span>
-    </div>
-    <p className="text-sm text-slate-600 leading-relaxed m-0">Replaces per-transaction Passkey requirements with overarching, pre-authorized spending logic. Access controls (category limits, maximum drawdowns, geographical restrictions) are evaluated strictly at the gateway. This remains the definitive architecture for high-velocity enterprise procurement.</p>
-  </div>
-</div>
+**Nekuda on Gensmo** demonstrates multi-merchant checkout. When the AI stylist assembles an outfit, Nekuda's payment layer executes purchases across multiple merchants simultaneously from a single agent instruction — each leg independently TAP-verified.
+
+**Ramp's B2B implementation** is architecturally different. Corporate agents operate with pre-authorized spending policies instead of per-transaction Passkey assertions. The policy is configured once: allowed MCCs, per-transaction limits, daily velocity. The agent then pays invoices and subscriptions autonomously within policy, capturing cashback automatically by selecting the correct card per merchant category.
 
 ---
 
-## Fraud Mitigation: Defense in Depth
-
-The integration of TAP and VIC manifests a profound shift in risk segmentation:
+## Four layers of defense
 
 <div className="not-prose my-6 space-y-3">
-  <div className="flex gap-4 items-start bg-slate-50 border border-slate-200 p-4 rounded-xl">
-    <div className="w-6 h-6 bg-slate-200 text-slate-700 rounded text-xs font-semibold flex items-center justify-center shrink-0">1</div>
+  <div className="flex gap-4 items-start border border-slate-200 bg-white p-4 rounded-xl">
+    <div className="w-6 h-6 bg-slate-100 text-slate-600 rounded text-xs font-semibold flex items-center justify-center shrink-0 font-mono">1</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm mb-1">Cryptographic Binding</div>
-      <div className="text-sm text-slate-600">Forging an HTTP Message Signature requires extracting an Ed25519 private key from secure hardware. Implementing rigorous Nonce checking and strict TTL parameters (maximum 60 seconds) nullifies replication vectors.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Cryptographic signature</div>
+      <div className="text-sm text-slate-600">Ed25519 signature stored in a secure enclave. Computationally infeasible to forge. Nonce prevents replay. 60-second window limits intercepted request attacks.</div>
     </div>
   </div>
-  <div className="flex gap-4 items-start bg-slate-50 border border-slate-200 p-4 rounded-xl">
-    <div className="w-6 h-6 bg-slate-200 text-slate-700 rounded text-xs font-semibold flex items-center justify-center shrink-0">2</div>
+  <div className="flex gap-4 items-start border border-slate-200 bg-white p-4 rounded-xl">
+    <div className="w-6 h-6 bg-slate-100 text-slate-600 rounded text-xs font-semibold flex items-center justify-center shrink-0 font-mono">2</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm mb-1">Infrastructure Profiling</div>
-      <div className="text-sm text-slate-600">Application firewalls (e.g., Cloudflare, Akamai) execute secondary state inspection to corroborate the physical origin of the agent request, filtering geographical incongruity or IP anomalies prior to TAP evaluation.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Behavioral intelligence</div>
+      <div className="text-sm text-slate-600">Cloudflare and Akamai run independent behavioral analysis at the edge. Both must pass alongside the cryptographic check.</div>
     </div>
   </div>
-  <div className="flex gap-4 items-start bg-slate-50 border border-slate-200 p-4 rounded-xl">
-    <div className="w-6 h-6 bg-slate-200 text-slate-700 rounded text-xs font-semibold flex items-center justify-center shrink-0">3</div>
+  <div className="flex gap-4 items-start border border-slate-200 bg-white p-4 rounded-xl">
+    <div className="w-6 h-6 bg-slate-100 text-slate-600 rounded text-xs font-semibold flex items-center justify-center shrink-0 font-mono">3</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm mb-1">Enclave Authority</div>
-      <div className="text-sm text-slate-600">The core VCN remains inert without a mathematically verified assertion executed by the consumer's local hardware enclave. Extraction requires hardware exploitation combined with simultaneous interception of the agent's programmatic state.</div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Agent-bound tokenization</div>
+      <div className="text-sm text-slate-600">The VCN activates only with a Passkey assertion from the consumer's enrolled device. A stolen token without device access is useless.</div>
+    </div>
+  </div>
+  <div className="flex gap-4 items-start border border-slate-200 bg-white p-4 rounded-xl">
+    <div className="w-6 h-6 bg-slate-100 text-slate-600 rounded text-xs font-semibold flex items-center justify-center shrink-0 font-mono">4</div>
+    <div>
+      <div className="font-semibold text-slate-800 text-sm mb-1">Payment instruction controls</div>
+      <div className="text-sm text-slate-600">Spending limits and category restrictions enforced by VisaNet — not the agent. Even a fully compromised agent cannot exceed the consumer's configured guardrails.</div>
     </div>
   </div>
 </div>
 
 ---
 
-## The Protocol Ecosystem: Analyzing TAP, x402, and AP2
+## TAP vs x402 vs MCP vs AP2
 
-Current engineering efforts have produced multiple frameworks designed for intersecting use cases:
+2025 produced four competing approaches. They are not mutually exclusive — they solve different problems.
 
-### Visa Trusted Agent Protocol (TAP) + VIC
-Employs HTTP signatures combined with standard Visa network tokenization. Optimized for large-scale retail commerce, executing on legacy rails via ISO 8583. Supported by major processors (Stripe, Adyen, Worldpay).
+**TAP + VIC** is the most complete stack for card-network payments. Agent-bound tokens, Passkey auth, spending controls, commerce signals, MCP server, VIC sandbox. ISO 8583 carries agent context through existing rails. Best for consumer retail where buyer protection matters.
 
-### x402 (Coinbase)
-Facilitates programmatic compensation via HTTP 402 ("Payment Required") responses resolving to smart contracts. Settles deterministically via stablecoins (USDC/EURC). Contains zero inherent reversal or chargeback mechanisms. Highly performant for API orchestration and sub-dollar machine-to-machine licensing.
+**x402** (Coinbase, launched May 2025) is HTTP-native stablecoin payments. The server responds with HTTP 402 Payment Required, the client pays in USDC on Base or Solana, receives proof of payment, re-requests the resource. No accounts, no subscriptions, no chargebacks — which is the point. By December 2025 it had processed 75M transactions worth $24M. Best for API micro-payments and agent-to-agent billing. Not a competitor to TAP — complementary.
 
-### Agentic Commerce Protocol (AP2)
-Supported primarily by OpenAI and Google. Leverages established OAuth scopes rather than bespoke cryptographic payload definitions. Less demanding computationally, though susceptible to friction during initialization within headless environments where standard single-sign-on (SSO) contexts do not persist.
+**MCP Payments** is not a competing protocol. It's VIC wrapped in the MCP transport layer. Visa published a remote MCP server at `github.com/visa/mcp` — any Claude-based agent accesses full VIC capabilities through standard MCP tool calls.
 
-| Architectural Need | Optimal Specification |
+**AP2** (OpenAI, Google, Stripe, Salesforce) uses OAuth-based identity rather than public key cryptography. Better for agents operating within existing OAuth ecosystems, less suitable for headless browser automation where no SSO context exists.
+
+| Use case | Best protocol |
 |---|---|
-| Large-basket commerce, chargeback dependencies | TAP + VIC |
-| Corporate API utilization, high-volume transactions | x402 |
-| Corporate card invoicing, strict velocity limits | VIC (Instruction Layer) |
-| Environments requiring standard OAuth implementations | AP2 |
+| Consumer retail, Visa card, chargeback needed | TAP + VIC |
+| B2B invoicing, corporate cards | VIC payment instructions |
+| API billing, per-call micro-payments | x402 |
+| Agents built on Claude / ChatGPT | MCP → VIC |
+| Existing OAuth ecosystem | AP2 |
 
 ---
 
-## Deployment Guidance for Engineering Teams
+## What's not solved yet
 
-<div className="not-prose my-6 space-y-4">
-  <div className="border border-slate-200 bg-white rounded-xl px-5 py-4">
-    <div className="font-semibold text-slate-800 text-sm mb-2">Architecting Consumer Infrastructure</div>
-    <p className="text-sm text-slate-600 leading-relaxed m-0">Rely on integration partners like Skyfire or Nekuda to manage the complexity of KYC verification and TAP registration. Direct integration entails substantial implementation overhead regarding cross-device FIDO2 execution. See <code>github.com/visa/mcp</code> for raw API abstractions.</p>
-  </div>
-  <div className="border border-slate-200 bg-white rounded-xl px-5 py-4">
-    <div className="font-semibold text-slate-800 text-sm mb-2">Enterprise B2B Environments</div>
-    <p className="text-sm text-slate-600 leading-relaxed m-0">Adopt stateful, pre-configured authorization per Ramp's methodology. Program restrictions (whitelists, aggregate limits) once per administrative entity. Avoid per-transaction assertion requirements to guarantee asynchronous execution efficiency.</p>
-  </div>
-  <div className="border border-slate-200 bg-white rounded-xl px-5 py-4">
-    <div className="font-semibold text-slate-800 text-sm mb-2">Micro-transaction Arbitrage</div>
-    <p className="text-sm text-slate-600 leading-relaxed m-0">Standardize upon x402. The associated latency properties and lack of interchange modeling make it uniquely suited for programmatic data acquisition.</p>
-  </div>
-</div>
+**Multi-agent authorization** — when a supervisor agent orchestrates subagents, who holds the TAP credential? The current spec doesn't address this. AWS AgentCore hints at a supervisor pattern but it's not standardized.
+
+**Cross-network interoperability** — TAP and Mastercard Agent Pay launched the same week with near-identical architectures but different key directory formats. An agent building for multi-network acceptance today needs to implement both.
+
+**Consumer loyalty** — whether an agent is acting for the consumer's interest or the merchant's is not formally defined or measurable. Identity and consent can be logged; loyalty cannot.
 
 ---
 
-## Sources and Technical Documentation
+## If you're building agents right now
 
-- **Visa Intelligent Commerce SDK:** `developer.visa.com/capabilities/visa-intelligent-commerce`
-- **Cloudflare Verified Bots Cryptography Spec:** `blog.cloudflare.com/verified-bots-with-cryptography`
-- **x402 Specification Validation:** `x402.org`
-- **KYAPay Identity Handshake:** Skyfire Documentation Group
-- **IETF Draft: HTTP Message Signatures:** RFC 9421
+**Consumer shopping:** fastest path is Skyfire or Nekuda — they handle TAP registration, VIC integration, and browser automation. Direct integration: start at `developer.visa.com/capabilities/visa-intelligent-commerce` and `github.com/visa/mcp`. Budget more time for FIDO2 Passkey integration than for the payment API itself.
+
+**B2B procurement:** Ramp's architecture is the reference. Pre-authorized spending policies, not per-transaction Passkeys. Define the policy once, let the agent execute autonomously within it.
+
+**API monetization:** x402. Four lines of Express middleware, first 1,000 transactions free on Coinbase's facilitator.
+
+**Merchant checkout:** TAP SDK is a no-code embed. The harder work is updating your bot detection to pass TAP-verified agents rather than blocking them.
 
 ---
 
-## Upcoming Architectural Deep Dives
+## Sources
+
+- Visa Intelligent Commerce: `developer.visa.com/capabilities/visa-intelligent-commerce`
+- Visa MCP Server: `github.com/visa/mcp`
+- Cloudflare TAP + Web Bot Auth: `blog.cloudflare.com/secure-agentic-commerce`
+- Trusted Agent Protocol announcement (Oct 14, 2025): Visa investor relations
+- x402 spec: `x402.org` · `github.com/coinbase/x402`
+- Skyfire KYAPay: BusinessWire, December 18, 2025
+- Consumer Reports agentic commerce prototypes: `innovation.consumerreports.org`
+
+---
+
+## Coming next
 
 <div className="not-prose my-6 border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 bg-white">
   <div className="p-4 flex items-center gap-4">
-    <div className="font-mono font-semibold text-slate-400">02</div>
+    <div className="font-mono font-semibold text-slate-300 text-sm w-6">02</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm">Validating the TAP Specification</div>
-      <div className="text-xs text-slate-500 mt-0.5">Key directory formatting, deterministic nonces, and mitigating distributed replay attacks.</div>
+      <div className="font-semibold text-slate-800 text-sm">The Trusted Agent Protocol spec, line by line</div>
+      <div className="text-xs text-slate-500 mt-0.5">Ed25519 key registration, nonce store design, why replay protection is harder than it looks.</div>
     </div>
   </div>
   <div className="p-4 flex items-center gap-4">
-    <div className="font-mono font-semibold text-slate-400">03</div>
+    <div className="font-mono font-semibold text-slate-300 text-sm w-6">03</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm">ISO 8583 Modifications In-Depth</div>
-      <div className="text-xs text-slate-500 mt-0.5">Validating <code>F022=81</code> compliance, <code>F126</code> hash constraints, and MTI 0220 clearings for autonomous agents.</div>
+      <div className="font-semibold text-slate-800 text-sm">ISO 8583 for agents: the complete field reference</div>
+      <div className="text-xs text-slate-500 mt-0.5">Every modified field, valid values, how issuers interpret F022=81, what T+1 clearing looks like.</div>
     </div>
   </div>
   <div className="p-4 flex items-center gap-4">
-    <div className="font-mono font-semibold text-slate-400">04</div>
+    <div className="font-mono font-semibold text-slate-300 text-sm w-6">04</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm">x402 Scalability Testing</div>
-      <div className="text-xs text-slate-500 mt-0.5">Configuring facilitators, L2 scaling strategies, and analyzing performance degradation curves under heavy concurrent load.</div>
+      <div className="font-semibold text-slate-800 text-sm">x402 in depth</div>
+      <div className="text-xs text-slate-500 mt-0.5">The payment flow, facilitator architecture, V2 spec changes, when to use it over TAP.</div>
     </div>
   </div>
 </div>
 
----
-
-All technical architecture diagrams are rendered via [payarch](https://github.com/payarch-dev/payarch). Source configurations are located at `packages/diagrams/agentic-checkout-e2e.ts`.
+All diagrams built with [payarch](https://github.com/payarch-dev/payarch) — open source tool for visualizing agentic payment architectures.
