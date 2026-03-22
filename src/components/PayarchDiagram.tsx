@@ -229,7 +229,16 @@ export default function PayarchDiagram() {
   }
 
   return (
-    <div style={{ width: '100%', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ 
+      width: '100vw', 
+      maxWidth: '1040px', 
+      position: 'relative', 
+      left: '50%', 
+      transform: 'translateX(-50%)', 
+      padding: '0 24px',
+      boxSizing: 'border-box',
+      fontFamily: 'system-ui, -apple-system, sans-serif' 
+    }}>
 
       {/* ── HEADER ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
