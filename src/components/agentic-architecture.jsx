@@ -179,7 +179,7 @@ export default function AgenticArchitecture() {
   const SVG_H = 700
 
   return (
-    <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", maxWidth: 820 }}>
+    <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", width: "100vw", maxWidth: 1040, position: "relative", left: "50%", transform: "translateX(-50%)", margin: "2rem 0" }}>
 
       {/* Header */}
       <div style={{ padding: "20px 28px 16px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
