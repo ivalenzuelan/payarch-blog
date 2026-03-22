@@ -8,9 +8,9 @@ const ACTORS = {
   wallet:   { id: "wallet",   label: "AgentWallet",               sub: "Visa VCN · spend limits · passkey",     layer: 1, col: 2 },
   tap:      { id: "tap",      label: "Trusted Agent Protocol",    sub: "Visa + Cloudflare · Ed25519 · 90s JWT", layer: 2, col: 0 },
   vic:      { id: "vic",      label: "Visa Intelligent Commerce", sub: "VIC · VisaNet · Token Service",         layer: 2, col: 2 },
-  issuer:   { id: "issuer",   label: "Issuer Bank",               sub: "Chase · Amex · Barclays",               layer: 3, col: 1 },
+  issuer:   { id: "issuer",   label: "Issuer Bank",               sub: "Chase · Amex · Barclays",               layer: 3, col: 2 },
   acquirer: { id: "acquirer", label: "Acquirer",                  sub: "Stripe · Adyen · Fiserv",               layer: 4, col: 1 },
-  merchant: { id: "merchant", label: "Merchant",                  sub: "Bose.com · Shopify · Jomashop",         layer: 5, col: 1 },
+  merchant: { id: "merchant", label: "Merchant",                  sub: "Bose.com · Shopify · Jomashop",         layer: 5, col: 0 },
 }
 
 const CONNECTIONS = [
@@ -123,10 +123,20 @@ function getEdge(fromId, toId) {
   let x1 = fx, y1 = fy, x2 = tx, y2 = ty
 
   const isVertical = fa.layer !== ta.layer;
+  const isVicIssuer = (fromId === "vic" && toId === "issuer") || (fromId === "issuer" && toId === "vic");
 
   if (isVertical) {
     y1 = dy > 0 ? fy + NODE_H / 2 : fy - NODE_H / 2
     y2 = dy > 0 ? ty - NODE_H / 2 : ty + NODE_H / 2
+    
+    // Offset bidirectional edges to prevent overlaps
+    if (isVicIssuer) {
+      if (dy > 0) {
+        x1 -= 20; x2 -= 20;
+      } else {
+        x1 += 20; x2 += 20;
+      }
+    }
   } else {
     x1 = dx > 0 ? fx + NODE_W / 2 : fx - NODE_W / 2
     x2 = dx > 0 ? tx - NODE_W / 2 : tx + NODE_W / 2
