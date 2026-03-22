@@ -8,7 +8,7 @@ import Header from '../components/Header.astro';
 
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.props as Props & { tags?: string[] };
 ---
 
 <html lang="en">
@@ -30,32 +30,109 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				box-shadow: var(--box-shadow);
 			}
 			.prose {
-				width: 720px;
+				width: 860px;
 				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 1em;
+				padding: 1em 1em 4em;
 				color: rgb(var(--gray-dark));
 			}
 			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
+				margin-bottom: 2em;
+				padding: 1.5em 0 1em;
 				text-align: center;
 				line-height: 1;
 			}
 			.title h1 {
-				margin: 0 0 0.5em 0;
+				margin: 0 0 0.6em 0;
+				font-size: 2.6em;
+				line-height: 1.15;
+				letter-spacing: -0.02em;
 			}
 			.date {
-				margin-bottom: 0.5em;
+				margin-bottom: 0.6em;
 				color: rgb(var(--gray));
+				font-size: 0.85em;
+				letter-spacing: 0.03em;
+				text-transform: uppercase;
+			}
+			.tags {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 0.4em;
+				margin: 1em 0 0.5em;
+			}
+			.tag {
+				display: inline-block;
+				background: rgb(var(--gray-light));
+				color: rgb(var(--gray-dark));
+				font-size: 0.7em;
+				font-weight: 600;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				padding: 0.25em 0.7em;
+				border-radius: 999px;
+			}
+			.description {
+				font-size: 1.1em;
+				color: rgb(var(--gray));
+				line-height: 1.5;
+				max-width: 640px;
+				margin: 0.5em auto 0;
+				text-align: center;
 			}
 			.last-updated-on {
 				font-style: italic;
+			}
+			/* Code blocks — slightly wider feel */
+			.prose pre {
+				font-size: 0.82em;
+				line-height: 1.6;
+				overflow-x: auto;
+			}
+			/* Better table styling */
+			.prose table {
+				font-size: 0.9em;
+				border-collapse: collapse;
+			}
+			.prose table th {
+				background: rgb(var(--gray-light));
+				padding: 0.5em 0.8em;
+				text-align: left;
+				font-weight: 700;
+				font-size: 0.85em;
+				letter-spacing: 0.03em;
+				text-transform: uppercase;
+			}
+			.prose table td {
+				padding: 0.5em 0.8em;
+				border-bottom: 1px solid rgb(var(--gray-light));
+				vertical-align: top;
+			}
+			.prose table tr:last-child td {
+				border-bottom: none;
+			}
+			/* Smooth section separator */
+			.prose hr {
+				margin: 3em 0;
+				border-top: 1px solid rgb(var(--gray-light));
+			}
+			/* Reading progress bar */
+			#reading-progress {
+				position: fixed;
+				top: 0;
+				left: 0;
+				height: 3px;
+				background: var(--accent);
+				z-index: 100;
+				transition: width 0.1s linear;
+				width: 0%;
 			}
 		</style>
 	</head>
 
 	<body>
+		<div id="reading-progress"></div>
 		<Header />
 		<main>
 			<article>
@@ -75,6 +152,12 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 							}
 						</div>
 						<h1>{title}</h1>
+						{description && <p class="description">{description}</p>}
+						{tags && tags.length > 0 && (
+							<div class="tags">
+								{tags.map((tag) => <span class="tag">{tag}</span>)}
+							</div>
+						)}
 						<hr />
 					</div>
 					<slot />
@@ -82,5 +165,16 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			</article>
 		</main>
 		<Footer />
+		<script>
+			const bar = document.getElementById('reading-progress');
+			if (bar) {
+				window.addEventListener('scroll', () => {
+					const doc = document.documentElement;
+					const scrolled = doc.scrollTop;
+					const total = doc.scrollHeight - doc.clientHeight;
+					bar.style.width = total > 0 ? (scrolled / total) * 100 + '%' : '0%';
+				});
+			}
+		</script>
 	</body>
 </html>
