@@ -5,7 +5,20 @@ import HeaderLink from './HeaderLink.astro';
 
 <header>
 	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
+		<a href="/" class="logo-lockup">
+			<svg width="46" height="32" viewBox="0 0 52 36" aria-hidden="true">
+				<defs><path id="ha" d="M 5 28 Q 26 3 47 28"/></defs>
+				<path d="M 5 28 Q 26 3 47 28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+				<circle cx="5" cy="28" r="3.5" fill="currentColor"/>
+				<circle cx="47" cy="28" r="3.5" fill="currentColor"/>
+				<circle r="3" fill="var(--accent)">
+					<animateMotion dur="2.2s" repeatCount="indefinite">
+						<mpath href="#ha"/>
+					</animateMotion>
+				</circle>
+			</svg>
+			<div class="wordmark"><span class="pay">pay</span><span class="arch">arch</span></div>
+		</a>
 		<div class="internal-links">
 			<HeaderLink href="/">Home</HeaderLink>
 			<HeaderLink href="/blog">Blog</HeaderLink>
@@ -113,4 +126,28 @@ import HeaderLink from './HeaderLink.astro';
 			display: none;
 		}
 	}
+	
+	@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500&display=swap');
+	
+	.logo-lockup {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		text-decoration: none !important;
+		color: rgb(var(--black));
+		transition: opacity 0.2s ease;
+	}
+	.logo-lockup:hover {
+		opacity: 0.8;
+	}
+	.wordmark {
+		font-family: 'Outfit', sans-serif;
+		font-size: 24px;
+		letter-spacing: -0.03em;
+		display: flex;
+		align-items: center;
+		transform: translateY(1px); /* optical alignment with arch */
+	}
+	.wordmark .pay { font-weight: 300; }
+	.wordmark .arch { font-weight: 500; }
 </style>
