@@ -1,0 +1,21 @@
+---
+title: 'How an AI agent buys something'
+description: 'A deep dive into the end-to-end architecture of Agentic Checkout using Payarch.'
+pubDate: 'Mar 21 2026'
+heroImage: '../../assets/blog-placeholder-3.jpg'
+---
+
+import PayarchDiagram from '../../components/PayarchDiagram.tsx';
+import { agenticCheckoutE2E } from '@payarch/core';
+
+Agentic checkout is not just a buzzword. It requires a robust, technical orchestration layer capable of translating natural language intents into actual iso8583 financial messages on the Visa and Mastercard networks.
+
+In this interactive diagram, we explain exactly what happens under the hood when an Agent Wallet initiates a checkout flow. Notice how the intent moves through the network and settles on the issuer side.
+
+<PayarchDiagram diagram={agenticCheckoutE2E} defaultLayer="technical" client:load autoPlay={true} />
+
+### The Architecture explained
+
+As you can see, the Agent Wallet does not hold actual fiat directly; instead, it maintains an intent ledger that eventually reconciles via traditional `0100` Authorization requests.
+
+(Content continues...)
