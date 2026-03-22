@@ -1,148 +1,902 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 ---
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			.hero {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				text-align: center;
-				gap: 2rem;
-				padding: 6rem 1rem 4rem;
-			}
-			.hero h1 {
-				font-size: 4rem;
-				line-height: 1.1;
-				margin-bottom: 1rem;
-				letter-spacing: -0.04em;
-				max-width: 800px;
-			}
-			.text-gradient {
-				background: linear-gradient(90deg, var(--accent), #3b82f6);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.hero p {
-				font-size: 1.3rem;
-				color: rgb(var(--gray));
-				margin-bottom: 2rem;
-				line-height: 1.5;
-				max-width: 600px;
-			}
-			.btn-primary {
-				background: rgb(var(--black));
-				color: white;
-				padding: 0.8em 1.8em;
-				border-radius: 99px;
-				font-weight: 500;
-				font-size: 1.1rem;
-				box-shadow: var(--box-shadow);
-				transition: transform 0.2s, box-shadow 0.2s;
-			}
-			.btn-primary:hover {
-				transform: translateY(-2px);
-				box-shadow: var(--box-shadow-hover);
-				color: white;
-			}
-			.btn-secondary {
-				background: white;
-				color: rgb(var(--black));
-				padding: 0.8em 1.8em;
-				border-radius: 99px;
-				font-weight: 500;
-				font-size: 1.1rem;
-				border: 1px solid var(--border-color);
-				transition: background 0.2s;
-			}
-			.btn-secondary:hover {
-				background: var(--bg-subtle);
-			}
-			.latest-section {
-				margin-top: 4rem;
-				width: 100%;
-				text-align: left;
-			}
-			.section-title {
-				margin-bottom: 1.5rem;
-				font-size: 0.9rem;
-				font-weight: 600;
-				color: rgb(var(--gray));
-				text-transform: uppercase;
-				letter-spacing: 0.08em;
-			}
-			.featured-card {
-				display: flex;
-				flex-direction: column;
-				padding: 2.5rem;
-				border-radius: 20px;
-				border: 1px solid var(--border-color);
-				background: white;
-				color: inherit;
-				transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-				box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-			}
-			.featured-card:hover {
-				transform: translateY(-3px);
-				box-shadow: var(--box-shadow-hover);
-				border-color: #d4d4d4;
-			}
-			.featured-label {
-				color: var(--accent);
-				font-family: 'Courier New', monospace;
-				font-size: 0.85rem;
-				font-weight: 600;
-				margin-bottom: 0.8rem;
-				letter-spacing: 0.05em;
-			}
-			.featured-card h2 {
-				font-size: 2rem;
-				margin: 0 0 0.8rem 0;
-			}
-			.featured-card p {
-				margin: 0;
-				color: rgb(var(--gray-dark));
-				font-size: 1.15rem;
-				line-height: 1.6;
-			}
-			@media (max-width: 720px) {
-				.hero h1 { font-size: 2.8rem; }
-				.hero p { font-size: 1.1rem; }
-				.featured-card { padding: 1.8rem; }
-				.featured-card h2 { font-size: 1.6rem; }
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section class="hero">
-				<h1>The architecture of <span class="text-gradient">Agentic Payments</span></h1>
-				<p>
-					Deep-dive technical explorations for designing autonomous payment flows. From business intent to ISO 8583.
-				</p>
-				<div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-					<a href="/blog" class="btn-primary">Read the Specs</a>
-					<a href="https://github.com/ivalenzuelan/payarch-blog" target="_blank" class="btn-secondary">View on GitHub</a>
-				</div>
-			</section>
+<head>
+<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style is:global>
+:root {
+  --cream: #faf9f6;
+  --cream2: #f5f3ee;
+  --cream3: #ede9e2;
+  --ink: #1a1814;
+  --ink2: #4a4840;
+  --ink3: #8a8278;
+  --ink4: #b8b3a8;
+  --ink5: #d8d3c8;
+  --orange: #c05020;
+  --orange2: #e07040;
+  --blue: #1a4a90;
+  --border: #e0dbd0;
+}
 
-			<section class="latest-section">
-				<h3 class="section-title">Latest Deep Dive</h3>
-				<a href="/blog/agentic-checkout-e2e" class="featured-card">
-					<div class="featured-label">CASE STUDY</div>
-					<h2>Agentic Checkout E2E: How an AI agent buys a $90 headphone</h2>
-					<p>HTTP signatures, agent-bound tokens, ISO 8583 field modifications, the VIC API call sequence, and the protocol ecosystem — TAP, x402, AP2.</p>
-				</a>
-			</section>
-		</main>
-		<Footer />
-	</body>
+* { box-sizing: border-box; margin: 0; padding: 0 }
+
+html { scroll-behavior: smooth }
+
+body {
+  background: var(--cream) !important;
+  color: var(--ink) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── NAV ─────────────────────────────── */
+nav#landing-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 56px;
+  background: rgba(250,249,246,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color .3s;
+}
+nav#landing-nav.scrolled { border-bottom-color: var(--border) }
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.nav-wordmark {
+  font-family: 'Outfit', sans-serif;
+  font-size: 17px;
+  letter-spacing: -0.03em;
+}
+.nav-wordmark .pay { font-weight: 300 }
+.nav-wordmark .arch { font-weight: 500 }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+  margin: 0;
+}
+.nav-links a {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink3);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color .15s;
+}
+.nav-links a:hover { color: var(--ink) }
+.nav-links .nav-cta {
+  color: var(--orange);
+  border: 1px solid var(--orange);
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.nav-links .nav-cta:hover { background: #fff6f2; color: var(--orange) }
+
+/* ── HERO ────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid texture */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Fade grid at edges */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%,
+    transparent 30%,
+    var(--cream) 100%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* Mark */
+.hero-mark {
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp .8s ease .1s forwards;
+}
+
+/* Eyebrow */
+.hero-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp .7s ease .3s forwards;
+}
+
+/* Title */
+.hero-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp .8s ease .4s forwards;
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--orange);
+}
+
+/* Subtitle */
+.hero-sub {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--ink3);
+  line-height: 1.65;
+  max-width: 520px;
+  margin: 0 auto 36px;
+  opacity: 0;
+  animation: fadeUp .8s ease .55s forwards;
+}
+
+/* CTA row */
+.hero-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+  animation: fadeUp .7s ease .7s forwards;
+}
+.btn-primary {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: var(--ink);
+  border: none;
+  border-radius: 5px;
+  padding: 12px 24px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, transform .15s;
+}
+.btn-primary:hover { background: var(--ink2); transform: translateY(-1px) }
+.btn-secondary {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 12px 24px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color .15s, color .15s;
+}
+.btn-secondary:hover { border-color: var(--ink3); color: var(--ink) }
+
+/* Scroll indicator */
+.scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeIn .6s ease 1.2s forwards;
+}
+.scroll-hint span {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink5);
+}
+.scroll-line {
+  width: 1px;
+  height: 32px;
+  background: var(--ink5);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: .3; transform: scaleY(1) }
+  50% { opacity: 1; transform: scaleY(0.6) }
+}
+
+/* ── SECTION COMMON ──────────────────── */
+section {
+  padding: 96px 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  max-width: 120px;
+}
+
+/* ── POSTS ───────────────────────────── */
+.posts-section {
+  border-top: 1px solid var(--border);
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.post-card {
+  background: var(--cream);
+  padding: 36px 32px;
+  text-decoration: none;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: background .15s;
+  position: relative;
+}
+.post-card:hover { background: var(--cream2) }
+
+.post-card.featured {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: start;
+  padding: 44px 40px;
+}
+.post-card.featured .post-meta-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.post-number {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink5);
+}
+.post-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: #fff6f2;
+  border: 1px solid #f0d0c0;
+  border-radius: 3px;
+  padding: 2px 7px;
+  display: inline-block;
+}
+
+.post-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.post-card.featured .post-title {
+  font-size: 28px;
+}
+
+.post-desc {
+  font-size: 14px;
+  color: var(--ink3);
+  line-height: 1.65;
+  font-weight: 300;
+  max-width: 480px;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.post-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--ink4);
+}
+.post-reading {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--ink5);
+}
+
+/* Diagram preview chip */
+.diagram-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--ink4);
+  background: var(--cream3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* Coming soon cards */
+.post-card.soon {
+  opacity: 0.5;
+  cursor: default;
+}
+.post-card.soon:hover { background: var(--cream) }
+.soon-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--ink4);
+  background: var(--cream3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+
+/* Arrow on hover */
+.post-card::after {
+  content: '→';
+  position: absolute;
+  bottom: 32px;
+  right: 28px;
+  font-size: 14px;
+  color: var(--ink5);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity .2s, transform .2s;
+}
+.post-card.soon::after { display: none }
+.post-card:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── MANIFESTO ───────────────────────── */
+.manifesto-section {
+  border-top: 1px solid var(--border);
+}
+
+.manifesto-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.manifesto-item {}
+.manifesto-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink5);
+  margin-bottom: 14px;
+}
+.manifesto-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.manifesto-body {
+  font-size: 14px;
+  color: var(--ink3);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* ── ABOUT ───────────────────────────── */
+.about-section {
+  border-top: 1px solid var(--border);
+}
+
+.about-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.about-text {}
+.about-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.about-role {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.about-bio {
+  font-size: 15px;
+  color: var(--ink3);
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 28px;
+}
+.about-links {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: 16px;
+}
+.about-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink3);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color .15s;
+}
+.about-link:hover { color: var(--ink) }
+
+.about-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.stat-cell {
+  background: var(--cream);
+  padding: 24px 20px;
+}
+.stat-val {
+  font-family: 'Instrument Serif', serif;
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink4);
+}
+
+/* ── FOOTER ──────────────────────────── */
+footer#landing-footer {
+  border-top: 1px solid var(--border);
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.footer-copy {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--ink5);
+  letter-spacing: 0.05em;
+}
+.footer-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+.footer-links a {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  text-decoration: none;
+  transition: color .15s;
+}
+.footer-links a:hover { color: var(--ink) }
+
+/* ── ANIMATIONS ──────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to   { opacity: 1 }
+}
+
+/* ── RESPONSIVE ──────────────────────── */
+@media (max-width: 768px) {
+  nav#landing-nav { padding: 0 20px }
+  .nav-links { gap: 16px }
+  section { padding: 64px 20px }
+  .posts-grid { grid-template-columns: 1fr }
+  .post-card.featured { grid-column: span 1; grid-template-columns: 1fr }
+  .post-card.featured .post-meta-right { display: none }
+  .manifesto-grid { grid-template-columns: 1fr }
+  .about-inner { grid-template-columns: 1fr }
+  .about-stats { order: -1 }
+  footer { flex-direction: column; gap: 20px; text-align: center }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="landing-nav">
+  <a href="/" class="nav-logo">
+    <svg width="36" height="24" viewBox="0 0 36 24">
+      <defs><path id="np" d="M 3 19 Q 18 2 33 19"/></defs>
+      <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="#1a1814" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="3" cy="19" r="2.5" fill="#1a1814"/>
+      <circle cx="33" cy="19" r="2.5" fill="#1a1814"/>
+      <circle r="2" fill="#c05020">
+        <animateMotion dur="2.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.37 0 0.63 1" keyTimes="0;1">
+          <mpath href="#np"/>
+        </animateMotion>
+      </circle>
+    </svg>
+    <div class="nav-wordmark"><span class="pay">pay</span><span class="arch">arch</span></div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#posts">Writing</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="https://github.com/payarch-dev/payarch" target="_blank">GitHub</a></li>
+    <li><a href="/app" class="nav-cta">Open editor →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+
+    <!-- Animated mark -->
+    <div class="hero-mark">
+      <svg width="96" height="64" viewBox="0 0 96 64">
+        <defs><path id="hp" d="M 8 52 Q 48 5 88 52"/></defs>
+        <path d="M 8 52 Q 48 5 88 52" fill="none" stroke="#1a1814" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="8"  cy="52" r="5" fill="#1a1814"/>
+        <circle cx="88" cy="52" r="5" fill="#1a1814"/>
+        <circle r="4" fill="#c05020">
+          <animateMotion dur="2.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.37 0 0.63 1" keyTimes="0;1">
+            <mpath href="#hp"/>
+          </animateMotion>
+        </circle>
+      </svg>
+    </div>
+
+    <div class="hero-eyebrow">agentic payments infrastructure</div>
+
+    <h1 class="hero-title">
+      The technical reference<br>
+      for <em>AI-native</em> payments
+    </h1>
+
+    <p class="hero-sub">
+      Deep dives into Visa Intelligent Commerce, Trusted Agent Protocol,
+      ISO 8583 modifications, and the full stack of protocols that let
+      AI agents pay for things autonomously.
+    </p>
+
+    <div class="hero-cta">
+      <a href="#posts" class="btn-primary">Read the posts</a>
+      <a href="https://github.com/payarch-dev/payarch" class="btn-secondary" target="_blank">Star on GitHub</a>
+    </div>
+
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- POSTS -->
+<section class="posts-section" id="posts">
+  <div class="section-label">Writing</div>
+
+  <div class="posts-grid">
+
+    <!-- Featured post 1 (live) -->
+    <a href="/blog/agentic-checkout-e2e" class="post-card featured">
+      <div>
+        <div class="post-number">01</div>
+        <div style="display:flex;gap:6px;margin:10px 0 16px">
+          <span class="post-tag">live</span>
+          <span class="chip">TAP</span>
+          <span class="chip">VIC</span>
+          <span class="chip">ISO 8583</span>
+          <span class="chip">x402</span>
+        </div>
+        <div class="post-title">How an AI agent buys something: the complete technical breakdown</div>
+        <div class="post-desc" style="margin-top:12px">
+          HTTP signatures, agent-bound tokens, ISO 8583 field modifications,
+          the VIC API sequence, and the protocol landscape across TAP, x402, and AP2.
+          Four interactive diagrams.
+        </div>
+        <div class="post-meta">
+          <span class="post-date">Mar 21, 2026</span>
+          <span class="post-reading">· 18 min read</span>
+        </div>
+      </div>
+      <div class="post-meta-right">
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--ink5);text-transform:uppercase">Diagrams</div>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+            <div class="chip">architecture overview</div>
+            <div class="chip">TAP handshake</div>
+            <div class="chip">ISO 8583 anatomy</div>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- Post 2 (coming) -->
+    <div class="post-card soon">
+      <div class="post-number">02</div>
+      <span class="soon-badge">Apr 4 · coming soon</span>
+      <div class="post-title">The Trusted Agent Protocol spec, line by line</div>
+      <div class="post-desc">
+        Ed25519 key registration, nonce store design, the 60-second window,
+        and why replay protection is harder than it looks.
+      </div>
+      <div class="diagram-chips" style="margin-top:auto">
+        <span class="chip">TAP spec</span>
+        <span class="chip">Ed25519</span>
+        <span class="chip">RFC 9421</span>
+      </div>
+    </div>
+
+    <!-- Post 3 (coming) -->
+    <div class="post-card soon">
+      <div class="post-number">03</div>
+      <span class="soon-badge">Apr 18 · coming soon</span>
+      <div class="post-title">ISO 8583 for agents: the complete field reference</div>
+      <div class="post-desc">
+        Every modified field, valid values, how issuers interpret F022=81,
+        and what T+1 clearing looks like for agent transactions.
+      </div>
+      <div class="diagram-chips" style="margin-top:auto">
+        <span class="chip">ISO 8583</span>
+        <span class="chip">F022=81</span>
+        <span class="chip">MTI 0220</span>
+      </div>
+    </div>
+
+    <!-- Post 4 (coming) -->
+    <div class="post-card soon">
+      <div class="post-number">04</div>
+      <span class="soon-badge">May 2 · coming soon</span>
+      <div class="post-title">x402 in depth: HTTP-native payments for agents</div>
+      <div class="post-desc">
+        The payment flow, facilitator architecture, V2 spec changes,
+        and when to use x402 over TAP.
+      </div>
+      <div class="diagram-chips" style="margin-top:auto">
+        <span class="chip">x402</span>
+        <span class="chip">USDC</span>
+        <span class="chip">Base / Solana</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section class="manifesto-section">
+  <div class="section-label">Why this exists</div>
+  <div class="manifesto-grid">
+
+    <div class="manifesto-item">
+      <div class="manifesto-num">01</div>
+      <div class="manifesto-title">The documentation gap is real</div>
+      <div class="manifesto-body">
+        Visa's VIC sandbox has 30+ active partners. None of them has
+        published a clear explanation of how ISO 8583 changes for agent
+        transactions. This is that resource.
+      </div>
+    </div>
+
+    <div class="manifesto-item">
+      <div class="manifesto-num">02</div>
+      <div class="manifesto-title">Diagrams as primary source</div>
+      <div class="manifesto-body">
+        Every post ships a new interactive diagram built with payarch.
+        The architecture is the explanation — text annotates what
+        the diagram already shows.
+      </div>
+    </div>
+
+    <div class="manifesto-item">
+      <div class="manifesto-num">03</div>
+      <div class="manifesto-title">Written by someone building it</div>
+      <div class="manifesto-body">
+        Not summarized from press releases. The protocol analysis comes
+        from reading the specs, the GitHub repos, and the
+        primary documentation — then explaining it clearly.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section" id="about">
+  <div class="section-label">About</div>
+  <div class="about-inner">
+
+    <div class="about-text">
+      <div class="about-name">Your Name</div>
+      <div class="about-role">Agentic Payments · Visa · 2026</div>
+      <div class="about-bio">
+        Engineer joining Visa's agentic payments team in October 2026.
+        Before that — documenting the infrastructure being built right now,
+        post by post, diagram by diagram.
+        <br><br>
+        payarch started as a side project to understand Visa Intelligent
+        Commerce deeply enough to write about it accurately. It became
+        the clearest technical reference in the space.
+      </div>
+      <div class="about-links">
+        <a href="https://linkedin.com" class="about-link" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="4"/><line x1="8" y1="11" x2="8" y2="17"/><line x1="8" y1="7" x2="8" y2="8"/><path d="M12 17v-4.5a2.5 2.5 0 015 0V17"/><line x1="12" y1="11" x2="12" y2="17"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://github.com/payarch-dev" class="about-link" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+          GitHub
+        </a>
+        <a href="mailto:hello@payarch.dev" class="about-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
+          hello@payarch.dev
+        </a>
+      </div>
+    </div>
+
+    <div class="about-stats">
+      <div class="stat-cell">
+        <div class="stat-val">1</div>
+        <div class="stat-label">Post published</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val">12</div>
+        <div class="stat-label">Posts planned</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val">4</div>
+        <div class="stat-label">Diagrams in post 1</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-val">Oct</div>
+        <div class="stat-label">Joining Visa</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="landing-footer">
+  <div class="footer-left">
+    <svg width="28" height="20" viewBox="0 0 36 24">
+      <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="#b8b3a8" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="3" cy="19" r="2" fill="#b8b3a8"/>
+      <circle cx="33" cy="19" r="2" fill="#b8b3a8"/>
+    </svg>
+    <span class="footer-copy">© 2026 payarch.dev</span>
+  </div>
+  <ul class="footer-links">
+    <li><a href="#posts">Writing</a></li>
+    <li><a href="https://github.com/payarch-dev/payarch" target="_blank">GitHub</a></li>
+    <li><a href="mailto:hello@payarch.dev">Contact</a></li>
+  </ul>
+</footer>
+
+<script is:inline>
+const nav = document.getElementById('landing-nav')
+window.addEventListener('scroll', () => {
+  if (nav) nav.classList.toggle('scrolled', window.scrollY > 20)
+})
+</script>
+
+</body>
 </html>
