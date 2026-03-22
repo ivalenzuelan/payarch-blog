@@ -2,12 +2,15 @@
 title: 'How an AI agent executes a transaction: a complete technical breakdown'
 description: 'HTTP signatures, agent-bound tokens, ISO 8583 field modifications, the VIC API call sequence, and the protocol ecosystem (x402, TAP, AP2).'
 pubDate: 'Mar 21 2026'
-heroImage: '../../assets/blog-placeholder-3.jpg'
 tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payments', 'x402', 'mcp']
 ---
 
+import AgenticArchitecture from '../../components/agentic-architecture.jsx';
 import PayarchDiagram from '../../components/PayarchDiagram.tsx';
+import TapHandshake from '../../components/tap-handshake-diagram.jsx';
+import Iso8583Diagram from '../../components/iso8583-diagram.jsx';
 import Callout from '../../components/Callout.tsx';
+import { agenticCheckoutE2E } from '@payarch/core';
 
 {/* ── HERO STATS ─────────────────────────────────────────────────── */}
 
@@ -25,6 +28,8 @@ import Callout from '../../components/Callout.tsx';
     <div className="text-xs text-slate-400 mt-2 uppercase tracking-wide font-medium">Fraud Mitigated (2023)</div>
   </div>
 </div>
+
+<AgenticArchitecture client:load />
 
 In December 2025, a consumer successfully delegated an autonomous AI agent to evaluate, select, and purchase electronics on their behalf. The agent authenticated itself as a legitimate execution environment using Skyfire's KYAPay protocol and Visa's Trusted Agent Protocol, completing the checkout flow in 1,100 milliseconds without direct human intervention or traditional credential entry.
 
@@ -82,7 +87,7 @@ Autonomous agents inherently bypass these heuristics:
 
 To address this vector, Visa engineered an overarching identity verification layer designed specifically for programmatic actors.
 
-<PayarchDiagram client:load />
+<PayarchDiagram diagram={agenticCheckoutE2E} client:load />
 
 The schematic above illustrates the process. Toggle between **business**, **technical**, and **ISO 8583** perspectives to inspect the data exchange at each node.
 
@@ -208,6 +213,8 @@ Prior to token utilization, merchant infrastructure must deterministicly disting
 
 Developed collaboratively by Visa and Cloudflare, TAP is standardized upon **HTTP Message Signatures** (IETF RFC 9421) and **Web Bot Auth**. Participating agents persist their public keys in the Visa registration directory (`https://tap.visa.com/.well-known/agents/`).
 
+<TapHandshake client:load />
+
 ### Protocol Construction
 
 A registered agent computes an Ed25519 (or RSA-PSS) signature covering specific request attributes. Below is an example of the resulting payload:
@@ -279,6 +286,8 @@ The merchant's edge infrastructure or application server evaluates the request s
 ## ISO 8583 Integration: Data Model Expansion
 
 Following TAP validation, the merchant processor generates an ISO 8583 MTI 0100 authorization transaction. The agent context is encoded via precise modifications to four data elements:
+
+<Iso8583Diagram client:load />
 
 ```text
 Standard Authorization (MTI 0100):
