@@ -108,7 +108,6 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   overflow: hidden;
 }
 
-/* Subtle grid texture */
 .hero::before {
   content: '';
   position: absolute;
@@ -121,7 +120,6 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   pointer-events: none;
 }
 
-/* Fade grid at edges */
 .hero::after {
   content: '';
   position: absolute;
@@ -139,19 +137,16 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   margin: 0 auto;
 }
 
-/* Mark */
 .hero-mark {
   margin-bottom: 32px;
   opacity: 0;
   animation: fadeUp .8s ease .1s forwards;
 }
 
-/* Eyebrow */
 .hero-eyebrow {
   font-family: 'DM Mono', monospace;
   font-size: 11px;
   letter-spacing: 0.12em;
-  margin-right: -0.12em; /* Optical alignment fix for letter-spacing */
   text-transform: uppercase;
   color: var(--ink4);
   margin-bottom: 20px;
@@ -159,7 +154,6 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   animation: fadeUp .7s ease .3s forwards;
 }
 
-/* Title */
 .hero-title {
   font-family: 'Instrument Serif', serif;
   font-size: clamp(40px, 6vw, 64px);
@@ -176,7 +170,6 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   color: var(--orange);
 }
 
-/* Subtitle */
 .hero-sub {
   font-size: 17px;
   font-weight: 300;
@@ -188,7 +181,6 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   animation: fadeUp .8s ease .55s forwards;
 }
 
-/* CTA row */
 .hero-cta {
   display: flex;
   align-items: center;
@@ -228,7 +220,6 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
 }
 .btn-secondary:hover { border-color: var(--ink3); color: var(--ink) }
 
-/* Scroll indicator */
 .scroll-hint {
   position: absolute;
   bottom: 32px;
@@ -260,7 +251,7 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   50% { opacity: 1; transform: scaleY(0.6) }
 }
 
-/* ── SECTION COMMON ──────────────────── */
+/* ── SECTIONS ────────────────────────── */
 section {
   padding: 96px 40px;
   max-width: 1100px;
@@ -287,9 +278,7 @@ section {
 }
 
 /* ── POSTS ───────────────────────────── */
-.posts-section {
-  border-top: 1px solid var(--border);
-}
+.posts-section { border-top: 1px solid var(--border) }
 
 .posts-grid {
   display: grid;
@@ -356,9 +345,7 @@ section {
   letter-spacing: -0.01em;
   color: var(--ink);
 }
-.post-card.featured .post-title {
-  font-size: 28px;
-}
+.post-card.featured .post-title { font-size: 28px }
 
 .post-desc {
   font-size: 14px;
@@ -386,12 +373,7 @@ section {
   color: var(--ink5);
 }
 
-/* Diagram preview chip */
-.diagram-chips {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
+.diagram-chips { display: flex; gap: 4px; flex-wrap: wrap }
 .chip {
   font-family: 'DM Mono', monospace;
   font-size: 9px;
@@ -403,11 +385,7 @@ section {
   padding: 2px 6px;
 }
 
-/* Coming soon cards */
-.post-card.soon {
-  opacity: 0.5;
-  cursor: default;
-}
+.post-card.soon { opacity: 0.5; cursor: default }
 .post-card.soon:hover { background: var(--cream) }
 .soon-badge {
   font-family: 'DM Mono', monospace;
@@ -420,7 +398,6 @@ section {
   padding: 2px 7px;
 }
 
-/* Arrow on hover */
 .post-card::after {
   content: '→';
   position: absolute;
@@ -433,15 +410,10 @@ section {
   transition: opacity .2s, transform .2s;
 }
 .post-card.soon::after { display: none }
-.post-card:hover::after {
-  opacity: 1;
-  transform: translateX(0);
-}
+.post-card:hover::after { opacity: 1; transform: translateX(0) }
 
 /* ── MANIFESTO ───────────────────────── */
-.manifesto-section {
-  border-top: 1px solid var(--border);
-}
+.manifesto-section { border-top: 1px solid var(--border) }
 
 .manifesto-grid {
   display: grid;
@@ -449,7 +421,6 @@ section {
   gap: 40px;
 }
 
-.manifesto-item {}
 .manifesto-num {
   font-family: 'DM Mono', monospace;
   font-size: 10px;
@@ -473,9 +444,7 @@ section {
 }
 
 /* ── ABOUT ───────────────────────────── */
-.about-section {
-  border-top: 1px solid var(--border);
-}
+.about-section { border-top: 1px solid var(--border) }
 
 .about-inner {
   display: grid;
@@ -484,7 +453,6 @@ section {
   align-items: center;
 }
 
-.about-text {}
 .about-name {
   font-family: 'Instrument Serif', serif;
   font-size: 32px;
@@ -537,10 +505,7 @@ section {
   border-radius: 12px;
   overflow: hidden;
 }
-.stat-cell {
-  background: var(--cream);
-  padding: 24px 20px;
-}
+.stat-cell { background: var(--cream); padding: 24px 20px }
 .stat-val {
   font-family: 'Instrument Serif', serif;
   font-size: 36px;
@@ -568,22 +533,14 @@ footer#landing-footer {
   max-width: 1100px;
   margin: 0 auto;
 }
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.footer-left { display: flex; align-items: center; gap: 12px }
 .footer-copy {
   font-family: 'DM Mono', monospace;
   font-size: 10px;
   color: var(--ink5);
   letter-spacing: 0.05em;
 }
-.footer-links {
-  display: flex;
-  gap: 24px;
-  list-style: none;
-}
+.footer-links { display: flex; gap: 24px; list-style: none }
 .footer-links a {
   font-family: 'DM Mono', monospace;
   font-size: 10px;
@@ -616,7 +573,7 @@ footer#landing-footer {
   .manifesto-grid { grid-template-columns: 1fr }
   .about-inner { grid-template-columns: 1fr }
   .about-stats { order: -1 }
-  footer { flex-direction: column; gap: 20px; text-align: center }
+  footer#landing-footer { flex-direction: column; gap: 20px; text-align: center }
 }
 </style>
 </head>
@@ -641,8 +598,8 @@ footer#landing-footer {
   <ul class="nav-links">
     <li><a href="#posts">Writing</a></li>
     <li><a href="#about">About</a></li>
-    <li><a href="https://github.com/payarch-dev/payarch" target="_blank">GitHub</a></li>
-    <li><a href="/app" class="nav-cta">Open editor →</a></li>
+    <li><a href="https://github.com/ivalenzuelan" target="_blank">GitHub</a></li>
+    <li><a href="/blog" class="nav-cta">Read posts →</a></li>
   </ul>
 </nav>
 
@@ -650,7 +607,6 @@ footer#landing-footer {
 <section class="hero">
   <div class="hero-inner">
 
-    <!-- Animated mark -->
     <div class="hero-mark">
       <svg width="96" height="64" viewBox="0 0 96 64">
         <defs><path id="hp" d="M 8 52 Q 48 5 88 52"/></defs>
@@ -680,7 +636,7 @@ footer#landing-footer {
 
     <div class="hero-cta">
       <a href="#posts" class="btn-primary">Read the posts</a>
-      <a href="https://github.com/payarch-dev/payarch" class="btn-secondary" target="_blank">Star on GitHub</a>
+      <a href="https://github.com/ivalenzuelan" class="btn-secondary" target="_blank">GitHub →</a>
     </div>
 
   </div>
@@ -697,7 +653,6 @@ footer#landing-footer {
 
   <div class="posts-grid">
 
-    <!-- Featured post 1 (live) -->
     <a href="/blog/agentic-checkout-e2e" class="post-card featured">
       <div>
         <div class="post-number">01</div>
@@ -731,7 +686,6 @@ footer#landing-footer {
       </div>
     </a>
 
-    <!-- Post 2 (coming) -->
     <div class="post-card soon">
       <div class="post-number">02</div>
       <span class="soon-badge">Apr 4 · coming soon</span>
@@ -747,7 +701,6 @@ footer#landing-footer {
       </div>
     </div>
 
-    <!-- Post 3 (coming) -->
     <div class="post-card soon">
       <div class="post-number">03</div>
       <span class="soon-badge">Apr 18 · coming soon</span>
@@ -763,7 +716,6 @@ footer#landing-footer {
       </div>
     </div>
 
-    <!-- Post 4 (coming) -->
     <div class="post-card soon">
       <div class="post-number">04</div>
       <span class="soon-badge">May 2 · coming soon</span>
@@ -826,25 +778,29 @@ footer#landing-footer {
   <div class="about-inner">
 
     <div class="about-text">
-      <div class="about-name">Iñigo V</div>
-      <div class="about-role">engineer</div>
+      <div class="about-name">Iñigo</div>
+      <div class="about-role">Software Engineer</div>
       <div class="about-bio">
-        payarch is a project to map the architecture of the AI agent payments ecosystem — the protocols, the rails, and the infrastructure being built right now.
+        payarch is a project to map the architecture of the AI agent
+        payments ecosystem — the protocols, the rails, and the
+        infrastructure being built right now.
         <br><br>
-        Each post ships a new interactive diagram. The goal is simple: make this space legible to the engineers and founders building in it.
+        Each post ships a new interactive diagram. The goal is simple:
+        make this space legible to the engineers and founders building in it.
       </div>
       <div class="about-links">
-        <a href="https://linkedin.com" class="about-link" target="_blank">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="4"/><line x1="8" y1="11" x2="8" y2="17"/><line x1="8" y1="7" x2="8" y2="8"/><path d="M12 17v-4.5a2.5 2.5 0 015 0V17"/><line x1="12" y1="11" x2="12" y2="17"/></svg>
-          LinkedIn
+        <a href="https://github.com/ivalenzuelan" class="about-link" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/>
+          </svg>
+          ivalenzuelan
         </a>
-        <a href="https://github.com/payarch-dev" class="about-link" target="_blank">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
-          GitHub
-        </a>
-        <a href="mailto:vn.iniog@gmail.com" class="about-link">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
-          vn.iniog@gmail.com
+        <a href="mailto:vn.inigo@gmail.com" class="about-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M2 7l10 7 10-7"/>
+          </svg>
+          vn.inigo@gmail.com
         </a>
       </div>
     </div>
@@ -883,8 +839,8 @@ footer#landing-footer {
   </div>
   <ul class="footer-links">
     <li><a href="#posts">Writing</a></li>
-    <li><a href="https://github.com/payarch-dev/payarch" target="_blank">GitHub</a></li>
-    <li><a href="mailto:vn.iniog@gmail.com">Contact</a></li>
+    <li><a href="https://github.com/ivalenzuelan" target="_blank">GitHub</a></li>
+    <li><a href="mailto:vn.inigo@gmail.com">Contact</a></li>
   </ul>
 </footer>
 
