@@ -189,7 +189,7 @@ export default function TapHandshake() {
       </div>
 
       {/* Sequence */}
-      <div style={{ padding: "6px 20px 16px", position: "relative" }}>
+      <div style={{ padding: "6px 0 16px", position: "relative" }}>
 
         {/* Lifelines */}
         {[16.666, 50, 83.333].map((pos, i) => (
@@ -221,81 +221,79 @@ export default function TapHandshake() {
             <div key={i} style={{ position: "relative", zIndex: 1, marginTop: 4 }}>
 
               {/* Arrow row */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+              <div style={{ position: "relative", height: isSelf ? 40 : 28, marginBottom: 2 }}>
 
                 {/* Time label */}
-                <div style={{ width: 70, flexShrink: 0, textAlign: "right", fontFamily: "'Courier New',monospace", fontSize: 9, color: "#c8c3b8" }}>
+                <div style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", width: 70, textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, color: "#c8c3b8" }}>
                   {s.time}
                 </div>
 
                 {/* Arrow SVG */}
-                <div style={{ flex: 1, position: "relative", height: isSelf ? 40 : 28 }}>
-                  <svg width="100%" height="100%" style={{ overflow: "visible", display: "block" }}>
-                    <defs>
-                      <marker id={`arr-${i}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                        <path d="M1 1.5L6.5 4L1 6.5" fill="none" stroke={isActive ? s.color : "#d0cbc0"} strokeWidth="1.5" strokeLinecap="round" />
-                      </marker>
-                    </defs>
+                <svg width="100%" height="100%" style={{ overflow: "visible", display: "block", position: "absolute", left: 0, top: 0 }}>
+                  <defs>
+                    <marker id={`arr-${i}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                      <path d="M1 1.5L6.5 4L1 6.5" fill="none" stroke={isActive ? s.color : "#d0cbc0"} strokeWidth="1.5" strokeLinecap="round" />
+                    </marker>
+                  </defs>
 
-                    {isSelf ? (
-                      // Self-loop (internal processing)
-                      <path
-                        d={`M ${x1}% 4 C ${x1 + 8}% 4, ${x1 + 8}% 36, ${x1}% 36`}
-                        fill="none"
-                        stroke={isActive ? s.color : "#d0cbc0"}
-                        strokeWidth={isCurrent ? 1.8 : 1.2}
-                        strokeDasharray={isActive ? "none" : "3 4"}
-                        markerEnd={`url(#arr-${i})`}
-                      />
-                    ) : (
-                      <line
-                        x1={`${x1}%`} y1="50%"
-                        x2={`${x2 + (goingLeft ? 1.5 : -1.5)}%`} y2="50%"
-                        stroke={isActive ? s.color : "#d0cbc0"}
-                        strokeWidth={isCurrent ? 1.8 : 1.2}
-                        strokeDasharray={isActive ? "none" : "3 4"}
-                        markerEnd={`url(#arr-${i})`}
-                      />
-                    )}
+                  {isSelf ? (
+                    // Self-loop (internal processing)
+                    <path
+                      d={`M ${x1}% 4 C ${x1 + 8}% 4, ${x1 + 8}% 36, ${x1}% 36`}
+                      fill="none"
+                      stroke={isActive ? s.color : "#d0cbc0"}
+                      strokeWidth={isCurrent ? 1.8 : 1.2}
+                      strokeDasharray={isActive ? "none" : "3 4"}
+                      markerEnd={`url(#arr-${i})`}
+                    />
+                  ) : (
+                    <line
+                      x1={`${x1}%`} y1="50%"
+                      x2={`${x2 + (goingLeft ? 1.5 : -1.5)}%`} y2="50%"
+                      stroke={isActive ? s.color : "#d0cbc0"}
+                      strokeWidth={isCurrent ? 1.8 : 1.2}
+                      strokeDasharray={isActive ? "none" : "3 4"}
+                      markerEnd={`url(#arr-${i})`}
+                    />
+                  )}
 
-                    {/* Label chip on arrow */}
-                    <foreignObject
-                      x={isSelf ? `${x1 + 3}%` : `${Math.min(x1, x2) + Math.abs(x2 - x1) / 2 - 12}%`}
-                      y={isSelf ? "22%" : "18%"}
-                      width="24%"
-                      height="60%"
-                      style={{ overflow: "visible" }}
-                    >
-                      <div
-                        onClick={() => goTo(i)}
-                        style={{
-                          display: "inline-block",
-                          background: isActive ? "#faf9f6" : "#f5f3ee",
-                          border: `1px solid ${isActive ? s.color : "#d8d3c8"}`,
-                          borderRadius: 4,
-                          padding: "2px 7px",
-                          fontSize: 9.5,
-                          fontFamily: "'Courier New',monospace",
-                          color: isActive ? s.color : "#b8b3a8",
-                          whiteSpace: "nowrap",
-                          cursor: "pointer",
-                          fontWeight: isCurrent ? 600 : 400,
-                          boxShadow: isCurrent ? `0 1px 4px ${s.color}25` : "none",
-                          transition: "all .2s",
-                          userSelect: "none",
-                          transform: "translateX(-50%)",
-                        }}>
-                        {s.label}
-                      </div>
-                    </foreignObject>
-                  </svg>
-                </div>
+                  {/* Label chip on arrow */}
+                  <foreignObject
+                    x={isSelf ? `${x1 + 5}%` : `${Math.min(x1, x2) + Math.abs(x2 - x1) / 2}%`}
+                    y={isSelf ? "24%" : "10%"}
+                    width="10"
+                    height="10"
+                    style={{ overflow: "visible" }}
+                  >
+                    <div
+                      onClick={() => goTo(i)}
+                      style={{
+                        display: "inline-block",
+                        background: isActive ? "#faf9f6" : "#f5f3ee",
+                        border: `1px solid ${isActive ? s.color : "#d8d3c8"}`,
+                        borderRadius: 4,
+                        padding: "2px 7px",
+                        fontSize: 9.5,
+                        fontFamily: "'Courier New',monospace",
+                        color: isActive ? s.color : "#b8b3a8",
+                        whiteSpace: "nowrap",
+                        cursor: "pointer",
+                        fontWeight: isCurrent ? 600 : 400,
+                        boxShadow: isCurrent ? `0 1px 4px ${s.color}25` : "none",
+                        transition: "all .2s",
+                        userSelect: "none",
+                        transform: "translateX(-50%)",
+                      }}>
+                      {s.label}
+                    </div>
+                  </foreignObject>
+                </svg>
               </div>
 
               {/* Expanded detail */}
               {openStep === i && (
                 <div style={{
-                  margin: "2px 0 6px 78px",
+                  margin: "2px 20px 6px 120px",
                   background: actor.bg,
                   border: `1px solid ${s.color}40`,
                   borderLeft: `3px solid ${s.color}`,
