@@ -45,18 +45,14 @@ import HeaderLink from './HeaderLink.astro';
 <style>
 	header {
 		margin: 0;
-		padding: 0 1em;
-		background: white;
-		box-shadow: 0 2px 8px rgba(var(--black), 5%);
-	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-	}
-
-	h2 a,
-	h2 a.active {
-		text-decoration: none;
+		padding: 0;
+		background: rgba(255, 255, 255, 0.85);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border-bottom: 1px solid var(--border-color);
+		position: sticky;
+		top: 0;
+		z-index: 50;
 	}
 	nav {
 		display: flex;
@@ -64,20 +60,53 @@ import HeaderLink from './HeaderLink.astro';
 		justify-content: space-between;
 		max-width: 860px;
 		margin: 0 auto;
+		padding: 0 1em;
+		height: 70px;
 	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
+	h2 {
+		margin: 0;
+		font-size: 1.2em;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+	h2 a {
 		text-decoration: none;
+		color: rgb(var(--black));
+	}
+	.internal-links {
+		display: flex;
+		gap: 0.5em;
+	}
+	nav a.link-item {
+		padding: 0.5em 0.8em;
+		color: rgb(var(--gray-dark));
+		text-decoration: none;
+		font-size: 0.95em;
+		font-weight: 500;
+		border-radius: 6px;
+		transition: all 0.2s ease;
+	}
+	nav a.link-item:hover {
+		background: var(--bg-subtle);
+		color: rgb(var(--black));
 	}
 	nav a.active {
-		text-decoration: none;
-		border-bottom-color: var(--accent);
+		color: var(--accent);
+		background: var(--accent-light);
 	}
-	.social-links,
-	.social-links a {
+	.social-links {
 		display: flex;
+		gap: 0.5em;
+	}
+	.social-links a {
+		color: rgb(var(--gray));
+		transition: color 0.2s;
+		display: flex;
+		align-items: center;
+		padding: 0.5em;
+	}
+	.social-links a:hover {
+		color: rgb(var(--black));
 	}
 	@media (max-width: 720px) {
 		.social-links {

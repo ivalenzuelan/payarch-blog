@@ -9,25 +9,139 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 <html lang="en">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			.hero {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				text-align: center;
+				gap: 2rem;
+				padding: 6rem 1rem 4rem;
+			}
+			.hero h1 {
+				font-size: 4rem;
+				line-height: 1.1;
+				margin-bottom: 1rem;
+				letter-spacing: -0.04em;
+				max-width: 800px;
+			}
+			.text-gradient {
+				background: linear-gradient(90deg, var(--accent), #3b82f6);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.hero p {
+				font-size: 1.3rem;
+				color: rgb(var(--gray));
+				margin-bottom: 2rem;
+				line-height: 1.5;
+				max-width: 600px;
+			}
+			.btn-primary {
+				background: rgb(var(--black));
+				color: white;
+				padding: 0.8em 1.8em;
+				border-radius: 99px;
+				font-weight: 500;
+				font-size: 1.1rem;
+				box-shadow: var(--box-shadow);
+				transition: transform 0.2s, box-shadow 0.2s;
+			}
+			.btn-primary:hover {
+				transform: translateY(-2px);
+				box-shadow: var(--box-shadow-hover);
+				color: white;
+			}
+			.btn-secondary {
+				background: white;
+				color: rgb(var(--black));
+				padding: 0.8em 1.8em;
+				border-radius: 99px;
+				font-weight: 500;
+				font-size: 1.1rem;
+				border: 1px solid var(--border-color);
+				transition: background 0.2s;
+			}
+			.btn-secondary:hover {
+				background: var(--bg-subtle);
+			}
+			.latest-section {
+				margin-top: 4rem;
+				width: 100%;
+				text-align: left;
+			}
+			.section-title {
+				margin-bottom: 1.5rem;
+				font-size: 0.9rem;
+				font-weight: 600;
+				color: rgb(var(--gray));
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+			}
+			.featured-card {
+				display: flex;
+				flex-direction: column;
+				padding: 2.5rem;
+				border-radius: 20px;
+				border: 1px solid var(--border-color);
+				background: white;
+				color: inherit;
+				transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+				box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+			}
+			.featured-card:hover {
+				transform: translateY(-3px);
+				box-shadow: var(--box-shadow-hover);
+				border-color: #d4d4d4;
+			}
+			.featured-label {
+				color: var(--accent);
+				font-family: 'Courier New', monospace;
+				font-size: 0.85rem;
+				font-weight: 600;
+				margin-bottom: 0.8rem;
+				letter-spacing: 0.05em;
+			}
+			.featured-card h2 {
+				font-size: 2rem;
+				margin: 0 0 0.8rem 0;
+			}
+			.featured-card p {
+				margin: 0;
+				color: rgb(var(--gray-dark));
+				font-size: 1.15rem;
+				line-height: 1.6;
+			}
+			@media (max-width: 720px) {
+				.hero h1 { font-size: 2.8rem; }
+				.hero p { font-size: 1.1rem; }
+				.featured-card { padding: 1.8rem; }
+				.featured-card h2 { font-size: 1.6rem; }
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<h1>🚀 Visualizing Agentic Payments</h1>
-			<p>
-				Welcome to <strong>payarch.dev</strong>. We are building open-source tools and deep-dive technical explorations for designing agentic payment architectures. 
-			</p>
-			<p>
-				Financial infrastructure is complex. When you introduce autonomous AI agents acting on behalf of users—negotiating, holding funds, and settling ledgers—it becomes even harder to visualize. We break down these flows step-by-step from business intent, to technical API calls, all the way down to ISO 8583.
-			</p>
-			<p>Check out our interactive diagrams:</p>
-			<ul>
-				<li><a href="/blog/agentic-checkout-e2e">Agentic Checkout E2E: How an AI agent buys a $90 headphone</a></li>
-			</ul>
-			<p>
-				Built with Astro, React Flow, and TailwindCSS. <br/>
-				Explore the core schemas and source code on <a href="https://github.com/ivalenzuelan/payarch-blog">GitHub</a>.
-			</p>
+			<section class="hero">
+				<h1>The architecture of <span class="text-gradient">Agentic Payments</span></h1>
+				<p>
+					Deep-dive technical explorations for designing autonomous payment flows. From business intent to ISO 8583.
+				</p>
+				<div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+					<a href="/blog" class="btn-primary">Read the Specs</a>
+					<a href="https://github.com/ivalenzuelan/payarch-blog" target="_blank" class="btn-secondary">View on GitHub</a>
+				</div>
+			</section>
+
+			<section class="latest-section">
+				<h3 class="section-title">Latest Deep Dive</h3>
+				<a href="/blog/agentic-checkout-e2e" class="featured-card">
+					<div class="featured-label">CASE STUDY</div>
+					<h2>Agentic Checkout E2E: How an AI agent buys a $90 headphone</h2>
+					<p>HTTP signatures, agent-bound tokens, ISO 8583 field modifications, the VIC API call sequence, and the protocol ecosystem — TAP, x402, AP2.</p>
+				</a>
+			</section>
 		</main>
 		<Footer />
 	</body>
