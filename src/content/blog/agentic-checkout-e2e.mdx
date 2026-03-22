@@ -7,7 +7,6 @@ tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payment
 ---
 
 import PayarchDiagram from '../../components/PayarchDiagram.tsx';
-import { agenticCheckoutE2E } from '@payarch/core';
 
 You say "buy me those Bose headphones." Your AI assistant does it. Eleven hundred milliseconds later, the purchase is confirmed — no checkout page, no card number entered, no CAPTCHA solved.
 
@@ -25,7 +24,7 @@ An AI agent destroys every one of those signals simultaneously. It moves at mach
 
 From the perspective of every fraud system built since 2000, a legitimate AI agent shopping on your behalf is indistinguishable from a credential-stuffing attack.
 
-<PayarchDiagram diagram={agenticCheckoutE2E} defaultLayer="technical" client:load autoPlay={false} />
+<PayarchDiagram client:load />
 
 This is the problem Visa's Trusted Agent Protocol was built to solve. Not the payment part — the payment rails already work. The problem is identity: how does a merchant's server know that the HTTP request it just received is a legitimate AI agent authorized by a real consumer, and not a bot farm testing stolen card numbers?
 
