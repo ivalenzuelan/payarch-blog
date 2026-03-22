@@ -89,10 +89,10 @@ const NODE_ICON_TINT = {
 
 // Layer band fills + labels
 const LAYER_BANDS = [
-  { y: 22,  h: 106, label: "Consumer",                color: "rgba(180,83,9,0.05)",  border: "rgba(180,83,9,0.18)"   },
-  { y: 138, h: 118, label: "Agent Layer",              color: "rgba(109,40,217,0.05)", border: "rgba(109,40,217,0.18)" },
-  { y: 266, h: 118, label: "Trust & Payment Network",  color: "rgba(29,78,216,0.05)", border: "rgba(29,78,216,0.18)"  },
-  { y: 394, h: 310, label: "Payment Rails & Merchant", color: "rgba(6,95,70,0.05)",   border: "rgba(6,95,70,0.15)"    },
+  { y: 20,  h: 130, label: "Consumer",                color: "rgba(180,83,9,0.05)",  border: "rgba(180,83,9,0.18)"   },
+  { y: 166, h: 130, label: "Agent Layer",             color: "rgba(109,40,217,0.05)", border: "rgba(109,40,217,0.18)" },
+  { y: 312, h: 130, label: "Trust & Payment Network", color: "rgba(29,78,216,0.05)", border: "rgba(29,78,216,0.18)"  },
+  { y: 458, h: 460, label: "Payment Rails & Merchant",color: "rgba(6,95,70,0.05)",   border: "rgba(6,95,70,0.15)"    },
 ]
 
 // Edge types
@@ -106,11 +106,11 @@ const EDGE_STYLE = {
 // ─── Layout ────────────────────────────────────────────────────────────────
 
 const COL_X   = { 0: 58,  1: 278, 2: 498 }
-const LAYER_Y = { 0: 38,  1: 150, 2: 278, 3: 410, 4: 508, 5: 606 }
+const LAYER_Y = { 0: 50,  1: 196, 2: 342, 3: 493, 4: 653, 5: 813 }
 const NODE_W  = 202
 const NODE_H  = 70
 const SVG_W   = 760
-const SVG_H   = 718
+const SVG_H   = 940
 
 function cx(a) { return COL_X[a.col]    + NODE_W / 2 }
 function cy(a) { return LAYER_Y[a.layer] + NODE_H / 2 }
