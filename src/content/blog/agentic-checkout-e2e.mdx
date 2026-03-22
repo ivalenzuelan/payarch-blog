@@ -1,16 +1,20 @@
 ---
 title: 'How an AI agent buys something: the complete technical breakdown'
-description: 'The most detailed technical breakdown of Visa Intelligent Commerce and the Trusted Agent Protocol available anywhere. HTTP signatures, agent-bound tokens, ISO 8583 field modifications, and every step of the auth flow — animated and interactive.'
+description: 'The most detailed technical breakdown of Visa Intelligent Commerce and the Trusted Agent Protocol available anywhere. HTTP signatures, agent-bound tokens, ISO 8583 field modifications, the VIC API call sequence, x402 vs TAP vs AP2, and every step of the auth flow — animated and interactive.'
 pubDate: 'Mar 21 2026'
 heroImage: '../../assets/blog-placeholder-3.jpg'
-tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payments']
+tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payments', 'x402', 'mcp']
 ---
 
 import PayarchDiagram from '../../components/PayarchDiagram.tsx';
 
 You say "buy me those Bose headphones." Your AI assistant does it. Eleven hundred milliseconds later, the purchase is confirmed — no checkout page, no card number entered, no CAPTCHA solved.
 
-That eleven hundred milliseconds is the most technically interesting thing happening in payments right now. This post breaks down every step: the new identity layer Visa and Cloudflare built, exactly how the ISO 8583 authorization message changes for a non-human initiator, what agent-specific tokenization means at the credential level, and why the fraud problem is harder than it looks.
+That sentence describes something that has already happened. In December 2025, a consumer dispatched an AI agent to find the best headphones at the best price. The agent evaluated options on Consumer Reports, navigated to Bose.com, authenticated itself as a legitimate agent using Skyfire's KYAPay protocol and Visa's Trusted Agent Protocol, and completed the checkout — without the consumer entering a single piece of payment information. The consumer received a confirmation email automatically.
+
+This is not a demo. It is production infrastructure, and it is being deployed at global scale.
+
+This post breaks down every technical layer of what happened: the identity protocol Visa and Cloudflare built, the exact changes to ISO 8583 for agent-initiated transactions, the VIC API sequence, how the fraud problem is genuinely harder than it sounds, and the competitive landscape across TAP, x402, MCP Payments, and AP2.
 
 This is not a summary of press releases. It is a technical walkthrough with real HTTP headers, real API call sequences, and a live animated diagram you can step through at three levels of abstraction.
 
@@ -20,31 +24,35 @@ This is not a summary of press releases. It is a technical walkthrough with real
 
 The payment industry has spent 50 years building fraud systems around one assumption: the entity initiating a transaction is a human being. Fraud signals — typing cadence, mouse movement, device fingerprinting, geolocation patterns, transaction velocity — all rely on human behavioral baselines.
 
-An AI agent destroys every one of those signals simultaneously. It moves at machine speed. It has no mouse. Its IP is a server in AWS us-east-1. Its device fingerprint looks like a headless Chrome instance (because it is). Its purchasing patterns are algorithmically optimal, which looks nothing like human impulse buying.
+An AI agent destroys every one of those signals simultaneously. It moves at machine speed. It has no mouse. Its IP is a server in AWS `us-east-1`. Its device fingerprint looks like a headless Chrome instance (because it is). Its purchasing patterns are algorithmically optimal, which looks nothing like human impulse buying.
 
 From the perspective of every fraud system built since 2000, a legitimate AI agent shopping on your behalf is indistinguishable from a credential-stuffing attack.
 
+Over the past year, AI-driven traffic to US retail websites surged 4,700%. On Cyber Monday 2024, AI-generated traffic spiked 1,950% year-over-year. Deloitte measured a 37% quarterly increase in fraudulent traffic during the same period. The attackers immediately recognized that agent-shaped traffic would be harder to block without blocking legitimate agents.
+
+Visa's response was not to patch the fraud system. It was to build an entirely new identity layer.
+
 <PayarchDiagram client:load />
 
-This is the problem Visa's Trusted Agent Protocol was built to solve. Not the payment part — the payment rails already work. The problem is identity: how does a merchant's server know that the HTTP request it just received is a legitimate AI agent authorized by a real consumer, and not a bot farm testing stolen card numbers?
+Step through the diagram above. Switch between **business**, **technical**, and **ISO 8583** views. Everything below is the deep explanation of what you just watched.
 
 ---
 
-## The architecture: five layers
+## The architecture: Visa Intelligent Commerce
 
-Before going step by step, here is how the full system is structured. Visa Intelligent Commerce (VIC), launched in April 2025, has five distinct API modules that each solve a different part of the problem:
+Visa Intelligent Commerce (VIC), launched in April 2025, is Visa's complete infrastructure stack for agentic payments. It has five distinct API modules, each solving a different part of the problem.
 
-**Tokenization** replaces the consumer's 16-digit PAN with an agent-specific network token bound to that particular agent. The token is provisioned during onboarding, not at checkout. It activates only when the consumer authenticates a payment instruction. It cannot be used by any other agent or at any other merchant unless explicitly scoped.
+**Tokenization** replaces the consumer's 16-digit PAN with an agent-specific network token bound to that particular agent. The token is provisioned during onboarding, not at checkout. It activates only when the consumer authenticates a payment instruction with a Passkey. It cannot be reused by a different agent or at a different merchant unless explicitly scoped. If the agent session is compromised, the attacker has a token with no valid Passkey assertion — useless.
 
-**Authentication** introduces payment passkeys — FIDO2 credentials tied to the consumer's device — as the mechanism for authorizing individual payment instructions. When you tell your agent "buy this," the agent requests a Passkey authentication from you. That signed assertion is what proves you actually authorized this specific purchase.
+**Authentication** introduces payment passkeys — FIDO2 credentials tied to the consumer's device — as the mechanism for authorizing individual payment instructions. When the consumer says "buy this," the agent requests a Passkey assertion. That signed assertion is the proof that the consumer authorized this specific purchase, on this specific device, at this specific moment.
 
-**Payment Instructions** are the control layer. The consumer sets guardrails: spending limits per transaction, merchant category restrictions, time windows, required approval thresholds. These instructions load directly into VisaNet before any transaction occurs. The agent cannot exceed them.
+**Payment Instructions** are the control layer. The consumer pre-configures guardrails: spending limits per transaction, merchant category codes, time windows, velocity limits. These instructions load directly into VisaNet before any transaction occurs. The agent cannot exceed them programmatically — they are enforced at the network level, not the agent level.
 
-**Personalization (Data Tokens)** is opt-in. With consent, Visa shares behavioral signals — preferred brands, hotel tiers, dining categories — with the agent as privacy-preserving hints. The raw transaction history never leaves Visa. The agent gets structured preferences like `{ hotel_tier: "boutique", airline: "prefers_direct" }`.
+**Personalization (Data Tokens)** is opt-in. With consent, Visa shares behavioral signals — preferred brands, hotel tiers, dining categories — with the agent as privacy-preserving structured hints. The raw transaction history never leaves Visa's systems. The agent receives structured preferences like `{ hotel_tier: "boutique", airline: "prefers_direct" }`.
 
-**Commerce Signals** close the loop. After each transaction, the agent reports the outcome back to VIC. These signals feed into dispute resolution and help the risk models distinguish legitimate agent behavior from fraud patterns.
+**Commerce Signals** close the loop. After each transaction, the agent reports the outcome back to VIC. These signals feed into dispute resolution and help risk models distinguish legitimate agent behavior from fraud patterns. This step is not optional — it is what makes disputes solvable.
 
-The most important of these for the trust problem is tokenization. Here is exactly how it works.
+The MCP integration is the most developer-friendly path. Visa launched its open-source MCP server at `github.com/visa/mcp` in September 2025, exposing all five VIC capabilities as MCP tools. Any Claude-based agent can trigger a complete agentic payment through a standard MCP tool call without writing custom API integration code.
 
 ---
 
@@ -52,288 +60,384 @@ The most important of these for the trust problem is tokenization. Here is exact
 
 When a consumer onboards their Visa card to an agent platform, three things happen in sequence.
 
-First, Visa performs step-up verification — the issuing bank confirms the cardholder's identity using existing authentication rails (3DS, biometrics, OTP). This is a one-time event per card-agent pairing.
+**Step one:** Visa performs step-up verification — the issuing bank confirms the cardholder's identity using existing authentication rails (3DS, biometrics, OTP). This is a one-time event per card-agent pairing.
 
-Second, Visa issues a **pass-through network token** specific to this agent. This token is structurally identical to standard network tokens (same field placement in ISO 8583, same tokenized PAN format) but carries an agent binding in the token metadata. It cannot be reused by a different agent, cannot be extracted from the agent's secure enclave, and expires if the consumer revokes the agent's access.
+**Step two:** Visa issues a pass-through network token specific to this agent. From Visa's developer documentation: "A new pass-through payment token, specific to agents, that is intended for use at Visa-accepting merchant locations." This token carries an agent binding in the token metadata. It cannot be reused by a different agent, cannot be extracted from the agent's secure enclave, and expires if the consumer revokes access.
 
-Third, the consumer's device creates a Passkey (a FIDO2 credential) associated with this agent-token pairing. Future payment instructions require a Passkey assertion to activate the token for a specific purchase.
-
-The result: the agent holds a token it cannot use without consumer authentication at instruction time, and the token itself is bound to the agent's identity. If the agent's session is compromised, the attacker has a token with no valid Passkey assertion — useless.
+**Step three:** The consumer's device creates a Passkey (FIDO2 credential) associated with this agent-token pairing. Future payment instructions require a Passkey assertion.
 
 ```
 Token provisioning flow:
 
-consumer → onboard_card(card_number, agent_id)
+consumer → VIC enroll_card({
+             card_number,
+             agent_id: "skyfire-001",
+             controls: { limit_per_txn: 50000, categories: ["retail"] }
+           })
          ↓
-Visa VTS → step_up_verification(issuer)
+Visa VTS → step_up_verification(issuer)   // 3DS or biometric
          ↓
 issuer   → identity_confirmed: true
          ↓
-Visa VTS → issue_agent_token(
-             pan_token: "4111-xxxx-xxxx-AGNT",
+Visa VTS → issue_agent_token({
+             token: "4111xxxxxxxxAGNT",
              binding: { agent_id: "skyfire-001", consumer_did: "did:web:..." },
-             controls: { limit: 500, category: "retail" }
-           )
+             controls: { limit: 500, category: "retail", require_passkey: true }
+           })
          ↓
-consumer → create_passkey(agent_token_ref)
+consumer → create_passkey(agent_token_ref)  // FIDO2, device-bound
          ↓
 device   → fido2_credential_stored
 ```
 
-At checkout, the agent calls `retrieve_payment_credentials` against VIC with a valid Passkey assertion. VIC returns the tokenized credential for this specific instruction. The agent never sees the real PAN. The merchant never sees anything except the tokenized PAN.
+At checkout, the agent calls `retrieve_payment_credentials` against VIC with a valid Passkey assertion for the current payment instruction. VIC returns the tokenized credential for this specific transaction. The agent never sees the real PAN. The merchant never sees anything except the tokenized PAN.
+
+This architecture means there is no single point of credential compromise. Stealing the agent's session gives you a bound token. Stealing the token gives you a credential with no Passkey. Stealing the device gives you a Passkey with no valid payment instruction. Breaking all three simultaneously, in the right sequence, within a 90-second validity window, is the attack surface — and that is the design intent.
 
 ---
 
 ## The Trusted Agent Protocol: cryptographic identity at the HTTP layer
 
-Tokenization solves the credential problem. But the merchant still needs to know that the incoming HTTP request is from a legitimate agent — before it even gets to the payment step. This is what the Trusted Agent Protocol (TAP) solves.
+Tokenization solves the credential problem. But before the token is ever used, the merchant needs to know that the incoming HTTP request is from a legitimate agent — not a malicious bot. This is what the Trusted Agent Protocol (TAP) solves.
 
-TAP was launched October 14, 2025, built on two open standards: **HTTP Message Signatures** (IETF RFC 9421) and **Web Bot Auth** (Cloudflare's IETF draft). Here is how it works technically.
+TAP was launched October 14, 2025, developed by Visa in collaboration with Cloudflare, with initial partners including Microsoft, Nuvei, Shopify, Stripe, Worldpay, and Adyen. It is available on GitHub and the Visa Developer Center.
 
-### Agent registration
-
-Every agent that wants to participate in TAP must register with Visa. During registration, the agent generates an asymmetric key pair and submits the public key to Visa's agent registry. Visa stores the public key indexed by a stable agent identifier.
-
-```
-Agent registration:
-1. Generate Ed25519 key pair (or RSA-PSS)
-2. POST /tap/v1/agents/register {
-     agent_id: "skyfire-agent-001",
-     public_key: "ed25519:MCowBQYDK2Vd...",
-     agent_name: "Skyfire Shopping Assistant",
-     agent_operator: "Skyfire Labs Inc"
-   }
-3. Visa stores in well-known directory:
-   https://tap.visa.com/.well-known/agents/skyfire-agent-001
-```
+The protocol is built on two open standards: **HTTP Message Signatures** (IETF RFC 9421) and **Web Bot Auth** (Cloudflare's IETF draft). Every agent that wants to participate must register with Visa, submit a public key, and appear in Visa's well-known agent directory at `https://tap.visa.com/.well-known/agents/`.
 
 ### The signed HTTP request
 
-When the registered agent makes a request to a merchant, it signs the request using HTTP Message Signatures. The signature covers a canonical subset of the request — method, URL, timestamp, body hash, and agent-specific fields. The `Signature-Input` header specifies which components are included and which key was used:
+When a registered agent makes a request to a merchant, it signs the HTTP request using Ed25519 (or RSA-PSS). The `Signature-Input` header specifies which fields are signed:
 
 ```http
-GET /product/bose-qc45 HTTP/1.1
-Host: jomashop.com
-Signature-Input: tap-sig=("@method" "@target-uri" "@authority" \
-  "content-digest" "x-tap-agent-id" "x-tap-consumer-token" \
-  "x-tap-intent");keyid="skyfire-agent-001"; \
-  tag="tap-purchase";created=1742518234;nonce="a3f8c2e1d"
-Signature: tap-sig=:MEQCIBx7zK...base64-encoded-sig...:
+POST /checkout/complete HTTP/1.1
+Host: bose.com
+Authorization: TAP-1.0 eyJhbGci...
+Signature-Input: tap-sig=("@method" "@target-uri" "@authority"
+  "content-digest" "x-tap-agent-id"
+  "x-tap-consumer-token" "x-tap-intent");
+  keyid="skyfire-agent-001";
+  tag="tap-purchase";
+  created=1742518234;
+  nonce="a3f8c2e1d9b7"
+Signature: tap-sig=:MEQCIBx7zK...base64==:
 X-Tap-Agent-Id: skyfire-agent-001
-X-Tap-Consumer-Token: eyJhbGciOiJFUzI1NiJ9...
 X-Tap-Intent: purchase
-Content-Digest: sha-256=:RK/0qy18MlBSVnWgjwz...==:
+X-Tap-Consumer-Token: eyJhbGciOiJFUzI1NiJ9...
+Content-Digest: sha-256=:RK/0qy18MlB...==:
 ```
 
-Key fields in this request:
+Key fields:
 
-- `tag="tap-purchase"` tells the merchant this agent intends to purchase, not just browse. This is the mechanism that lets merchants decide whether to accept the request without additional friction.
-- `nonce` is a cryptographically random value unique to this request. The merchant validates that it has never seen this nonce before, preventing replay attacks.
-- `created` is a Unix timestamp. The merchant rejects signatures older than 60 seconds, preventing delayed replay.
-- `x-tap-consumer-token` is a JWT issued by VIC that contains the consumer's identity (hashed), their relationship with this merchant (returning customer or new), and the payment instruction reference.
+- `tag="tap-purchase"` signals intent to purchase (vs. `tag="tap-browse"` for catalog browsing). Merchants can gate purchase flows differently from browse flows.
+- `nonce` is a cryptographically random value unique to this request. The merchant stores used nonces and rejects duplicates, preventing replay attacks.
+- `created` is a Unix timestamp. Requests older than 60 seconds are rejected, limiting the window for delayed replay.
+- `x-tap-consumer-token` is a JWT from VIC containing the consumer's hashed identity, merchant relationship status (returning or new), and the payment instruction reference.
 
 ### Merchant-side verification
 
-The merchant's TAP SDK (a Cloudflare-distributed no-code embed, or a library for custom implementations) validates the request in three steps:
+The TAP SDK (a no-code embed for most merchants, or a library for custom implementations) validates three things:
 
 ```
 1. Fetch agent public key:
-   GET https://tap.visa.com/.well-known/agents/{keyid}
+   GET https://tap.visa.com/.well-known/agents/skyfire-agent-001
    → { public_key: "ed25519:MCowBQYDK2Vd...", status: "active" }
    (cached with 5-minute TTL)
 
 2. Verify HTTP Message Signature:
-   reconstruct canonical signature base from headers
+   reconstruct canonical signature base from Signature-Input
    verify Ed25519 signature against fetched public key
+   check: created within 60s ✓, nonce unused ✓
    → valid: true
 
 3. Validate consumer token JWT:
-   verify JWT signature against Visa's public key (cached)
-   check exp, iat, nonce claims
-   → consumer_recognized: true, payment_instruction_ref: "pi-abc123"
+   verify signature against Visa's public key (cached)
+   check: exp > now ✓, aud === merchant_id ✓
+   → consumer_recognized: true
+   → payment_instruction_ref: "pi-abc123"
 ```
 
-If all three pass, the merchant accepts the request as a legitimate TAP-verified agent transaction. The whole process adds approximately 40-80ms of latency — the time to fetch and validate the JWT and verify the signature.
+The entire validation adds 40–80ms of latency — the time to check the key cache and verify the JWT. At the Cloudflare edge, behavioral intelligence runs in parallel: bot traffic pattern analysis, request rate anomalies, TLS fingerprinting. This provides a second independent signal that reinforces the cryptographic verification.
 
-At the Cloudflare edge, behavioral intelligence runs in parallel: bot traffic pattern analysis, request rate anomalies, TLS fingerprinting. This provides a second independent signal that reinforces the cryptographic verification.
+Akamai also integrated with TAP in December 2025, adding its edge-based behavioral intelligence and bot protection on top of the cryptographic layer. The result is two independent trust signals: you need to pass both the crypto check (hard to forge) and the behavioral check (hard to fake) to complete a purchase.
 
 ---
 
 ## The ISO 8583 authorization message: what changes
 
-Once the merchant accepts the TAP-verified request and initiates payment, the acquirer (Stripe, Adyen, Fiserv) builds an ISO 8583 MTI 0100 authorization request. This is where the agent context enters the traditional payment rail.
+Once the merchant accepts the TAP-verified request and initiates payment, the acquirer (Stripe, Adyen, Fiserv) builds an ISO 8583 MTI 0100 authorization request. This is where the agent context enters the payment rail that has existed since 1987.
 
-ISO 8583 was designed in 1987 for physical POS terminals. The message format has field definitions for everything about a card-present transaction, and a set of private-use fields for custom data. Three existing fields are modified for agent transactions, and one private-use field carries the TAP context:
+Three existing fields are modified, and one private-use field carries the TAP context:
 
 ```
 Standard human checkout (MTI 0100):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-F002  PAN            4111000000001111         ← real PAN
-F003  Processing     000000                   ← purchase
-F004  Amount         000000008999             ← $89.99
-F011  STAN           123456                   ← sequence number
-F022  POS Entry Mode 01                       ← manual keyed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+F002  PAN            4111000000001111      ← real PAN
+F003  Processing     000000               ← purchase
+F004  Amount         000000008999         ← $89.99
+F011  STAN           123456
+F022  POS Entry Mode 01                   ← manual keyed
 F048  Add'l Data     [empty]
 F126  Private Use    [empty]
 
 Agent-initiated checkout (MTI 0100):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-F002  PAN            4111xxxxxxxxAGNT         ← agent-bound token ★
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+F002  PAN            4111xxxxxxxxAGNT     ← agent-bound token  ★
 F003  Processing     000000
 F004  Amount         000000008999
 F011  STAN           123456
-F022  POS Entry Mode 81                       ← agent-initiated ★
-F048  Add'l Data     AGNT:skyfire-001         ← agent identifier ★
-F126  Private Use    TAP:pi-abc123:hash       ← TAP context ★
+F022  POS Entry Mode 81                   ← agent-initiated    ★
+F025  POS Condition  59                   ← agent present
+F048  Add'l Data     AGNT:skyfire-001     ← agent identifier   ★
+F049  Currency       840                  ← USD
+F126  Private Use    pi-abc123:sha256hash ← TAP instruction ref ★
 ```
 
-The most important change is `F022 = 81`. This is a new POS Entry Mode value that propagates through the entire authorization chain — acquirer, Visa VisaNet, issuer. Every downstream system that sees F022=81 knows to apply agent-specific risk rules instead of human-behavioral fraud models.
+The most important change is `F022 = 81`. This new POS Entry Mode value propagates through the entire authorization chain. Every downstream system that sees `F022=81` knows to apply agent-specific risk rules instead of human-behavioral fraud models. The issuer loads the consumer's agent spending policy. VisaNet applies its agent risk ruleset. The acquirer's fraud engine does not flag the machine-speed transaction.
 
-`F126` carries the payment instruction reference and a hash of the TAP consumer token. When Visa's VisaNet receives the authorization request, it validates the payment instruction reference against the one stored in VIC when the consumer issued the instruction. If they don't match — if someone tried to swap the payment instruction or replay a previous transaction — the authorization fails before it reaches the issuer.
+`F126` carries the payment instruction reference from VIC. When VisaNet receives the message, it validates the instruction reference against its payment instruction registry — checking that the amount, merchant, and currency match what the consumer authorized when they issued the instruction. If they don't match — if someone tried to replay a previous transaction or modify the amount — the authorization fails before it reaches the issuer.
 
-At the issuer, `F022=81` triggers the agent spending controls: the issuer checks that the transaction amount is within the consumer's configured per-transaction limit, that the merchant category matches the allowed categories, and that the agent's token is in active status. If all pass, the issuer returns `F039=00` (approved).
+The authorization response (MTI 0110) echoes `F126` with an `agent-confirmed` flag, giving the entire chain an auditable record that this was processed as an agent-initiated transaction.
 
-The authorization response (MTI 0110) echoes `F126` with an agent-confirmation flag, giving the acquirer an auditable proof that the issuer processed this as an agent-initiated transaction.
-
----
-
-## Real deployments in production
-
-Four partners were executing real transactions in closed beta as of December 2025:
-
-**Skyfire** built the agent for Consumer Reports' product recommendation service. When the recommendation engine selects a product, Skyfire's agent — registered in TAP, carrying a VIC-provisioned token — navigates to the merchant via browser automation, presents its TAP credentials, and completes the purchase. The consumer receives a push notification after the fact. No checkout interaction required.
-
-**Nekuda** powers the fashion platform Gensmo. When the AI stylist assembles an outfit, Nekuda's payment layer connects to Rye's checkout API — which has TAP integration — and executes the purchase for each item. The consumer's single "buy this look" tap triggers multiple agent-initiated transactions across different merchants.
-
-**PayOS** provides payment infrastructure for BeyondStyle, enabling agent-driven checkout at Jomashop. Their integration uses VIC's `initiate_purchase_instruction` API with the consumer's pre-authorized spending policy, then calls `retrieve_payment_credentials` at checkout time.
-
-**Ramp** applied VIC to B2B bill payment automation. Corporate agents with authorized spending policies pay vendor invoices, recurring subscriptions, and utility bills without human approval for amounts under configured thresholds. The cashback capture is automatic — the agent selects the card with the best rewards for each merchant category before authorizing.
+```
+Authorization response (MTI 0110):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+F002  PAN            4111xxxxxxxxAGNT     ← echoed
+F004  Amount         000000008999         ← echoed
+F011  STAN           000123               ← echoed
+F038  Auth Code      123456               ← issued by issuer   ★
+F039  Response Code  00                   ← approved           ★
+F126  Private Use    agent-confirmed      ← TAP echoed         ★
+// Total round-trip: ~180ms
+```
 
 ---
 
-## The VIC API call sequence
+## The complete VIC API call sequence
 
-For engineers building on VIC directly (rather than through an agent-enabler), here is the complete call sequence using the MCP integration approach. Visa published an open-source MCP server at `github.com/visa/mcp` that exposes all VIC capabilities as MCP tools:
+For engineers building on VIC directly (rather than through an agent-enabler like Skyfire), here is the full sequence. Visa provides two integration paths: MCP-based (using StreamableHTTP transport) and direct REST API (using X-Pay token authentication and Message Level Encryption). Both provide the same capabilities.
 
 ```typescript
-// 1. Enroll the consumer's card (one-time setup)
-await vic.tools.enroll_card({
+// VIC MCP tool calls — equivalent REST endpoints are also available
+
+// ── ONBOARDING (one-time per consumer-agent pairing) ────────────
+const enrollment = await vic.tools.enroll_card({
   user_id: "consumer-123",
   card_number: "4111000000001111",
   expiration_date: "12/27",
   cvv: "123",
   card_type: "credit"
 })
-// → { token_ref: "vts-token-abc", passkey_challenge: "..." }
+// → { token_ref: "vts-AGNT-001", passkey_challenge: "..." }
 
-// 2. Consumer creates Passkey (client-side, FIDO2)
+// Consumer creates FIDO2 Passkey on their device (client-side)
 const passkey = await navigator.credentials.create({
-  publicKey: parsePasskeyChallenge(token.passkey_challenge)
+  publicKey: parsePasskeyChallenge(enrollment.passkey_challenge)
 })
+// → credential stored in device secure enclave
 
-// 3. Initiate a purchase instruction (when user says "buy this")
-await vic.tools.initiate_purchase_instruction({
+// ── AT PURCHASE TIME ────────────────────────────────────────────
+// Consumer says "buy this" → agent initiates payment instruction
+const instruction = await vic.tools.initiate_purchase_instruction({
   user_id: "consumer-123",
-  merchant_id: "jomashop",
-  amount: 89.99,
+  merchant_id: "bose-com",
+  amount: 279.99,
   currency: "USD",
   item_ref: "bose-qc45",
-  passkey_assertion: signWithPasskey(passkey, instructionPayload)
+  // Consumer's Passkey assertion proves authorization
+  passkey_assertion: await signWithPasskey(passkey, {
+    merchant: "bose-com",
+    amount: 279.99,
+    timestamp: Date.now()
+  })
 })
-// → { instruction_ref: "pi-abc123", status: "authorized" }
+// → { instruction_ref: "pi-abc123", status: "authorized", ttl: 300 }
 
-// 4. Retrieve payment credentials at checkout
-const creds = await vic.tools.retrieve_payment_credentials({
+// Agent presents TAP credential at merchant checkout
+// (TAP validation happens automatically via HTTP Message Signatures)
+
+// Retrieve tokenized credentials when merchant accepts
+const credentials = await vic.tools.retrieve_payment_credentials({
   instruction_ref: "pi-abc123",
-  tap_context: tapSignedContext
+  tap_context: tapSignedRequestContext // from TAP handshake
 })
 // → { tokenized_pan: "4111xxxxAGNT", expiry: "12/27", cvv_token: "..." }
 
-// 5. Submit commerce signal after purchase
+// Credentials are placed in ISO 8583 F002 by the acquirer
+// F022=81 is set by the acquirer
+// VisaNet and issuer authorize using agent-specific rules
+
+// ── POST-PURCHASE ────────────────────────────────────────────────
+// Submit commerce signal — enables dispute resolution
 await vic.tools.submit_commerce_signal({
   instruction_ref: "pi-abc123",
   outcome: "success",
-  order_id: "jomashop-order-789",
-  merchant_confirmation: "..."
+  order_id: "bose-order-78234",
+  merchant_confirmation: "conf-abc"
 })
+// This creates the audit trail that makes disputes resolvable
 ```
 
-The `submit_commerce_signal` step is not optional — it is what enables dispute resolution. If the consumer later disputes the transaction ("I didn't authorize this"), VIC has a full audit trail: the original payment instruction, the Passkey assertion that authorized it, the TAP context at checkout, and the commerce signal confirming fulfillment. The agent effectively becomes a witness to the transaction, not just an executor.
+The `submit_commerce_signal` call is not optional. If a consumer later disputes a transaction, VIC has the full chain: the original payment instruction with its Passkey assertion, the TAP context at checkout, the ISO 8583 authorization record, and the commerce signal confirming fulfillment. The agent is a witness to the transaction, not just an executor.
 
 ---
 
-## The fraud problem: why agents look like attacks
+## Real deployments in production
 
-AI-driven traffic to US retail websites surged 4,700% in 2025. Deloitte measured a 37% quarterly increase in fraudulent traffic during the same period. These two trends are not coincidental — attackers immediately recognized that agent-shaped traffic would be harder to block without blocking legitimate agents.
+Four partners executed real transactions in closed beta as of December 2025, each illuminating a different use case.
 
-The TAP system's defense against this is layered. The cryptographic signature is the first layer: it is computationally infeasible to forge a valid signature without the private key, and private keys are stored in agent operator secure enclaves. The nonce field prevents replay. The short signature validity window (60 seconds) limits the attack surface.
+**Skyfire + Consumer Reports + Bose.com** is the most technically complete example. Skyfire built the integration using their open KYAPay protocol layered on top of VIC and TAP. The agent queried Consumer Reports' product data (via MCP server), evaluated headphone options, navigated to Bose.com, presented TAP credentials using KYAPay's identity verification, and completed checkout — providing Bose with verified information that the agent was acting on behalf of a real, authorized user. Skyfire is backed by a16z CSX, Coinbase Ventures, and Evolution Equity Partners. Their open KYAPay protocol is what sits between the agent identity layer and VIC.
 
-The Cloudflare behavioral layer is the second layer. Even if an attacker somehow obtained a TAP-registered agent's credentials, Cloudflare's edge intelligence would detect behavioral anomalies — request patterns inconsistent with legitimate shopping behavior, geographic impossibilities, timing correlations.
+**Nekuda on Gensmo** demonstrates multi-merchant checkout. When Gensmo's AI stylist assembles an outfit, Nekuda's payment layer connects to Rye's checkout API — which has TAP integration — and executes purchases across multiple fashion merchants from a single agent instruction. The consumer's "buy this look" tap triggers multiple concurrent agent-initiated ISO 8583 messages. Nekuda also powers Henry Labs' one-click checkout at Price.com for purchases at Honeylove.
 
-The agent-bound token is the third layer. Even if the identity layer is bypassed, the token itself can only be activated with a valid Passkey assertion from the consumer's enrolled device. An attacker cannot use a stolen token without physical access to the consumer's device.
+**PayOS on BeyondStyle** provides infrastructure for Jomashop checkout. Their integration demonstrates the `initiate_purchase_instruction` → `retrieve_payment_credentials` sequence cleanly, with the consumer's spending policy enforced at the VisaNet level.
 
-The fourth layer is the payment instruction controls. The consumer's spending limits and category restrictions are enforced by VisaNet, not the agent. Even a compromised agent cannot exceed the consumer's configured guardrails.
-
----
-
-## What's not solved yet
-
-This infrastructure is impressive but early. Three problems remain open:
-
-**Multi-agent authorization** — when one agent orchestrates multiple subagents (a supervisor directing a shopping agent and a payment agent), the authorization chain becomes complex. Who holds the TAP credential? Does each subagent need its own registration? The current spec doesn't address this cleanly. AWS's AgentCore architecture hints at a solution (the supervisor holds the credential, subagents operate within the supervisor's context) but it is not yet standardized.
-
-**Cross-network interoperability** — TAP is a Visa standard. Mastercard launched Agent Pay in the same week with near-identical architecture but different key directory formats. American Express is adopting Web Bot Auth for its own program. Coinbase and Visa are collaborating on x402 interoperability. The standards are converging but haven't converged. An agent building for multi-network acceptance needs to implement multiple credential formats.
-
-**Consumer recourse** — if an agent makes a purchase the consumer disputes not because of fraud but because the agent misunderstood intent ("I said get me headphones for the gym, not studio headphones"), existing dispute resolution wasn't designed for this. The commerce signals help, but the liability model for agent-initiated transactions is still being worked out by the card networks and regulators.
+**Ramp's B2B implementation** is architecturally different from the consumer use cases. Corporate agents operate with pre-authorized spending policies rather than per-transaction Passkey assertions. The policy is configured once at agent onboarding: allowed vendor categories, per-transaction limits, approval thresholds. The agent then pays vendor invoices, recurring subscriptions, and utility bills autonomously within policy. Cashback is captured automatically — the agent selects the card with the best rewards for each merchant category before authorizing. This is the architecture that scales: one policy configuration, thousands of autonomous transactions.
 
 ---
 
-## The competitive landscape in 90 seconds
+## The fraud problem: four layers of defense
 
-**Visa Intelligent Commerce + TAP** — the most complete infrastructure stack. Agent-bound tokens, passkey auth, spending controls, commerce signals, MCP server, VIC sandbox. TAP available on GitHub and Visa Developer Center. Deployed in production with 100+ partners.
+The TAP + VIC architecture provides defense in depth. Understanding why this matters requires understanding what the attacks look like.
 
-**Mastercard Agent Pay** — parallel launch, same week as TAP. Structurally identical: HTTP Message Signatures, Web Bot Auth, key directory at Mastercard. Less ecosystem traction in the initial months but same underlying architecture.
+**Layer 1: Cryptographic identity.** The HTTP Message Signature is computationally unforgeable without the agent's Ed25519 private key, which is stored in a secure enclave. The nonce prevents replay. The 60-second signature validity window limits the attack surface for intercepted requests. An attacker who intercepts a TAP-signed request cannot reuse it 61 seconds later.
 
-**x402** — HTTP-native payment protocol originally from the crypto/stablecoin world. Uses HTTP 402 Payment Required responses as a native payment signaling mechanism. Visa and Coinbase are collaborating on x402 interoperability, suggesting it may become a complementary protocol for micro-payments and API billing rather than a competitor to TAP.
+**Layer 2: Cloudflare behavioral intelligence.** Even if an attacker somehow obtained a TAP-registered agent's private key, Cloudflare's edge intelligence would detect behavioral anomalies — geographic impossibilities, request patterns inconsistent with legitimate shopping behavior, TLS fingerprint mismatches. Akamai provides a second independent behavioral signal. Both must be satisfied to complete a transaction.
 
-**MCP Payments** — Anthropic's Model Context Protocol defines how agents invoke tools. Visa published a remote MCP server that exposes VIC APIs as MCP tools, meaning any Claude-based agent can trigger a VIC payment through a standard MCP tool call. This is not a competing protocol — it is VIC wrapped in MCP.
+**Layer 3: Agent-bound tokenization.** Even if both identity layers are bypassed, the VCN token can only be activated by a Passkey assertion from the consumer's enrolled device. An attacker cannot use a stolen token without physical access to the consumer's device, and even with device access, they still need the correct biometric or PIN to generate the Passkey assertion.
 
-**Agentic Commerce Protocol (AP2)** — the OpenAI/PayPal/Salesforce/Stripe protocol. Uses a different identity model (OAuth-based rather than public key cryptography). Better fit for agents operating within existing OAuth ecosystems. Less suitable for headless browser automation use cases.
+**Layer 4: Payment instruction controls.** The consumer's spending limits and category restrictions are enforced by VisaNet, not the agent. Even a completely compromised agent cannot exceed the consumer's configured guardrails. VisaNet validates the payment instruction reference in F126 against its registry — amount tampering in transit is detected and declined.
 
-The current bet from most infrastructure teams: TAP wins for agent-to-merchant identity, VIC wins for the credential/token layer, and MCP becomes the tool-call interface that everything wraps. x402 finds a niche in machine-to-machine micro-payments.
-
----
-
-## What this means if you're building agents right now
-
-If you are building a consumer shopping agent:
-
-The fastest path to production is through an agent-enabler — Skyfire, Nekuda, or PayOS. They handle TAP registration, VIC integration, and browser automation. You get a payment tool call and they absorb the compliance and integration complexity.
-
-If you want direct VIC integration: the sandbox is open, the MCP server is on GitHub, and the five core API operations are well-documented. The non-obvious step is the Passkey integration on the consumer side — budget more time for this than for the payment API itself.
-
-If you are building a B2B procurement agent:
-
-Ramp's architecture is the reference implementation. The key insight is that B2B agent payments work better with pre-authorized spending policies than with per-transaction consumer authentication. Define the policy once at agent onboarding, then let the agent execute within it autonomously. The Passkey step applies to policy changes, not individual transactions.
-
-If you are a merchant preparing for agent traffic:
-
-The TAP SDK is a no-code embed. You can be TAP-compatible in an afternoon. The harder work is updating your bot detection rules to recognize and pass TAP-verified agents rather than blocking them. Cloudflare has specific guidance for this in their Verified Bots documentation.
+Visa has three decades of AI infrastructure for fraud: the network analyzes over 500 data points on up to 83,000 transactions per second and blocked over $40 billion in fraud in 2023. The agent-aware extensions to this system do not replace the existing fraud models — they add a new input (F022=81 + agent identity) that feeds into the existing scoring system with agent-specific behavioral baselines.
 
 ---
 
-## The next posts in this series
+## The protocol landscape: TAP vs x402 vs MCP vs AP2
 
-This post covered the complete E2E flow. The next posts go deeper on individual components:
+2025 produced four competing approaches to agentic payments. They are not mutually exclusive — they solve different problems — but understanding the distinctions matters if you are building agents.
 
-**Post 2: The Trusted Agent Protocol spec, line by line** — the exact HTTP Message Signature format, the key directory spec, how nonces work, and why Ed25519 was chosen over RSA.
+### Visa Trusted Agent Protocol (TAP) + Visa Intelligent Commerce
 
-**Post 3: ISO 8583 for agents — the field reference** — every modified field, what values are valid, how acquirers should format the message, and how issuers should interpret `F022=81`.
+The most complete infrastructure stack for card-network payments. TAP provides merchant-side identity verification. VIC provides the token, authentication, and instruction management. ISO 8583 carries the agent context through existing rails. Partners include Microsoft, Shopify, Stripe, Worldpay, Adyen, Cloudflare, Akamai.
 
-**Post 4: x402 vs TAP vs MCP payments** — when to use each protocol, the interoperability story, and what a multi-network agent architecture looks like.
+Best for: Consumer retail purchases, B2B payments where Visa cards are involved, any use case where you need the consumer's real payment credentials.
 
-**Post 5: B2B agentic payments** — the Ramp use case in depth, multi-agent treasury flows, and how spending policy management works at scale.
+### x402
+
+Launched May 2025 by Coinbase. By December 2025, had processed 75–100 million transactions worth $24 million. The Coinbase + Cloudflare x402 Foundation launched in September 2025. x402 V2 launched December 2025 with multi-network support, pluggable facilitators, and wallet hooks.
+
+The mechanism: a client requests a resource. The server responds with HTTP 402 Payment Required plus machine-readable payment terms (amount, asset, network, recipient). The client pays via stablecoin (USDC on Base or Solana), receives a signed payment authorization, and re-requests the resource with proof of payment. No accounts, no subscriptions, no API keys. The Coinbase-hosted facilitator is currently free with 1,000 transactions per month.
+
+x402 is not competing with TAP — it is solving a different problem. TAP is about authorizing consumer retail purchases using existing card credentials. x402 is about enabling agents to pay for API access, compute, data feeds, and content in real-time without pre-established accounts. The two are complementary: Visa and Coinbase are collaborating on x402 interoperability for micro-payment use cases.
+
+Critical technical difference: x402 has no network-level reversal. There is no chargeback mechanism. Merchants send compensating transfers manually. This makes x402 closer to cash than card payments — ideal for high-frequency API calls where chargebacks would be ruinous, but a liability for consumer purchases that need buyer protection.
+
+```
+x402 flow (simplified):
+1. Agent: GET /api/market-data
+2. Server: 402 Payment Required
+   { amount: "0.001", asset: "USDC", network: "eip155:8453", recipient: "0x..." }
+3. Agent: GET /api/market-data
+   X-Payment: { signed_authorization: "0x...", transaction: "0x..." }
+4. Facilitator: verifies payment on Base blockchain
+5. Server: 200 OK { data: ... }
+```
+
+### MCP Payments
+
+Anthropic's Model Context Protocol defines how agents invoke tools. Visa published a remote MCP server at `github.com/visa/mcp` that wraps all VIC APIs as MCP tools. Any agent built on Claude (or any other MCP-compatible LLM runtime) can trigger a complete VIC payment sequence through a standard MCP tool call — no custom API integration required.
+
+This is not a competing protocol. It is VIC wrapped in the MCP transport layer. The underlying credentials, identity, and authorization are still Visa's infrastructure. MCP is the interface by which agents access that infrastructure without writing bespoke integration code.
+
+### Agentic Commerce Protocol (AP2) / OpenAI + PayPal
+
+OpenAI launched Instant Checkout for Etsy sellers in September 2025 via the Agentic Commerce Protocol, co-developed with Stripe. Salesforce and Shopify are integrating the same protocol. Google launched its own Agent Payments Protocol (AP2) around the same time, which uses x402 for on-chain settlement.
+
+AP2 uses an OAuth-based identity model rather than public key cryptography. This makes it more compatible with existing OAuth ecosystems (where the consumer already has an account) but less suitable for headless browser automation use cases where there is no pre-existing account relationship.
+
+### Protocol selection heuristic
+
+| Use case | Best protocol |
+|---|---|
+| Consumer retail, Visa card present | TAP + VIC |
+| B2B invoicing, corporate cards | VIC (payment instructions) |
+| API micro-payments, per-call billing | x402 |
+| Agents built on Claude/ChatGPT | MCP → VIC |
+| Agents with existing OAuth accounts | AP2 |
+| Cross-network / multi-chain | x402 V2 |
+
+The 2026 bet from most infrastructure teams: TAP + VIC wins for consumer retail (Visa card credentials, buyer protection, dispute resolution). x402 wins for agent-to-agent and API micro-payments. MCP becomes the standard interface that everything is accessed through. AP2 finds traction where OpenAI's distribution is strongest.
 
 ---
 
-All diagrams in this post are built with [payarch](https://github.com/payarch-dev/payarch) — an open-source tool for visualizing agentic payment architectures. The source for this post's diagram is at `packages/diagrams/agentic-checkout-e2e.ts`. Pull requests welcome.
+## The Visa Acceptance Agent Toolkit: the no-code path
+
+For non-technical teams and merchants, Visa launched the Acceptance Agent Toolkit in pilot in September 2025. Built on top of the MCP server, it allows business analysts and operations teams to trigger agentic commerce actions using plain language — no API integration required.
+
+Example interactions:
+- `"Create an invoice for $100 for John Doe, due Friday"` → agent calls the Invoice API, completes the details, returns a secure payment link
+- `"Create a summary of today's revenue across all invoices, including unpaid ones"` → agent retrieves and reports on transaction data
+- `"Create a payment link for the new product line"` → agent generates a pay-by-link for the specified amount
+
+The Toolkit is available as a self-hosted npm package for JavaScript developers. All policies and role-based access controls are enforced by the MCP server's security layer.
+
+---
+
+## What is not solved yet
+
+This infrastructure is impressive but early. Four problems remain genuinely open.
+
+**Multi-agent authorization** — when one supervisor agent orchestrates multiple subagents, who holds the TAP credential? Does each subagent need independent registration? AWS's AgentCore architecture uses a supervisor pattern where the supervisor holds the credential and subagents operate within the supervisor's context, but this is not yet standardized in the TAP spec. The IETF working group forming around Web Bot Auth is expected to address this.
+
+**Cross-network interoperability** — TAP and Mastercard Agent Pay launched the same week with near-identical architectures but different key directory formats. American Express is adopting Web Bot Auth. Coinbase and Visa are collaborating on x402 interoperability. The standards bodies (IETF, EMVCo, OpenID Foundation) are engaged, but convergence is 12–18 months away. An agent building for multi-network acceptance today needs to implement multiple credential formats.
+
+**Consumer loyalty and intent verification** — Consumer Reports' Director of Product R&D identified this cleanly in the standardization discussions: identity and consent can be codified and logged, but an agent's duty of loyalty — whether it is acting for the consumer's interest or for the merchant's — is not yet formally defined or measurable. An agent that systematically recommends products from sponsored merchants at the consumer's expense is not detectable by the current infrastructure.
+
+**Dispute resolution for misunderstood intent** — if a consumer disputes a transaction not because of fraud but because the agent misunderstood intent ("I said gym headphones, not studio headphones"), existing chargeback infrastructure was not designed for this scenario. The commerce signals help establish what was authorized, but the liability model for agent interpretation failures is still being worked out by networks and regulators.
+
+---
+
+## What this means if you are building right now
+
+**Building a consumer shopping agent:** The fastest path to production is through Skyfire or Nekuda. They handle TAP registration, VIC integration, KYAPay identity verification, and browser automation. You get a payment tool call and they absorb the compliance and integration complexity. Skyfire's KYAPay is open source.
+
+For direct VIC integration: the sandbox is open at `developer.visa.com/capabilities/visa-intelligent-commerce`, the MCP server is at `github.com/visa/mcp`, and the toolkit covers the full five-API sequence. Budget more time for the Passkey integration on the consumer side than for the payment API itself — FIDO2 credential management across devices is the non-obvious complexity.
+
+**Building a B2B procurement agent:** Ramp's architecture is the reference. Pre-authorized spending policies rather than per-transaction Passkey assertions. Define the policy once at agent onboarding, then let the agent execute within it autonomously. The velocity and category limits are enforced by VisaNet, not your application code.
+
+**Building API-monetized services or agent-to-agent payments:** x402 is the right primitive. The Coinbase-hosted facilitator is free for the first 1,000 transactions per month. The Express.js middleware is four lines of code. Start here if your use case is per-call billing, data licensing, or compute payments — not consumer retail.
+
+**Preparing your merchant checkout for agent traffic:** TAP SDK is a no-code embed. Update your bot detection rules to pass TAP-verified agents — Cloudflare's Verified Bots documentation covers this specifically. The harder work is ensuring your OMS can accept an agent-created order without requiring a human to fill in the profile fields that a returning human customer would already have.
+
+---
+
+## Sources and further reading
+
+All technical details in this post are sourced from primary documentation:
+
+- Visa Intelligent Commerce Developer Center: `developer.visa.com/capabilities/visa-intelligent-commerce`
+- Visa MCP Server (GitHub): `github.com/visa/mcp`
+- Trusted Agent Protocol announcement (Oct 14, 2025): Visa investor relations
+- Cloudflare's technical breakdown of TAP and Web Bot Auth: `blog.cloudflare.com/secure-agentic-commerce`
+- Cloudflare Verified Bots with cryptography: `blog.cloudflare.com/verified-bots-with-cryptography`
+- x402 specification and V2 announcement: `x402.org` and `github.com/coinbase/x402`
+- x402 Foundation launch (Coinbase + Cloudflare): `blog.cloudflare.com/x402`
+- Skyfire KYAPay protocol announcement: BusinessWire, December 18, 2025
+- Consumer Reports agentic commerce prototypes: `innovation.consumerreports.org`
+- AWS + Visa Bedrock AgentCore integration: AWS ML blog, December 2025
+- Visa December 2025 milestone announcement: Visa investor relations
+
+---
+
+## What comes next in this series
+
+**Post 2: The Trusted Agent Protocol spec, line by line** — the exact HTTP Message Signature format, the Ed25519 key registration flow, how the nonce store works at scale, and why replay protection is harder than it looks.
+
+**Post 3: ISO 8583 for agents — the complete field reference** — every modified field, valid values, how acquirers format the message, how issuers interpret F022=81, and what the clearing message looks like at T+1.
+
+**Post 4: x402 in depth** — the payment flow, facilitator architecture, V2 spec changes, and when to use x402 over TAP.
+
+**Post 5: Building a multi-agent treasury system** — the Ramp architecture expanded, supervisor-subagent credential delegation, and how to implement pre-authorized spending policies that scale to thousands of autonomous transactions.
+
+---
+
+All diagrams in this post are built with [payarch](https://github.com/payarch-dev/payarch) — an open-source tool for visualizing agentic payment architectures. The source for this diagram is `packages/diagrams/agentic-checkout-e2e.ts`. Pull requests welcome.
