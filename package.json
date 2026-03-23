@@ -6,7 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "predev": "node scripts/sync-favicon-ico.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/sync-favicon-ico.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
@@ -27,5 +29,8 @@
     "react-dom": "^19.2.4",
     "sharp": "^0.34.3",
     "tailwindcss": "4.0.9"
+  },
+  "devDependencies": {
+    "to-ico": "^1.1.5"
   }
 }
