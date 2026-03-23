@@ -93,13 +93,24 @@ img {
 }
 
 code {
-	font-family: "Courier New", monospace;
+	font-family: "Courier New", ui-monospace, monospace;
 	padding: 0.2em 0.4em;
 	background-color: var(--bg-subtle);
 	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	font-size: 0.85em;
-	color: #ef4444; /* Tech red for inline code */
+	color: #ef4444;
+}
+
+/* Fenced blocks: <pre><code> must not use the inline “pill” look */
+pre code {
+	margin: 0;
+	padding: 0;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0;
+	box-shadow: none;
+	color: inherit;
 }
 
 pre {
@@ -122,15 +133,29 @@ pre:not(.astro-code) > code {
 	color: rgb(var(--black));
 }
 
-/* MDX/Shiki — keep inline theme colors + dark background (don’t force light bg) */
+/* MDX/Shiki — never inherit inline-code “pill” styles on the block <code> */
 pre.astro-code {
 	border-color: #3d444d;
 }
 
 pre.astro-code code {
+	display: block;
+	width: 100%;
+	margin: 0;
+	padding: 0;
 	font-family: ui-monospace, "Courier New", monospace;
 	font-size: 0.88em;
-	line-height: 1.55;
+	line-height: 1.6;
+	color: inherit;
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+pre.astro-code .line {
+	display: block;
+	background: transparent;
 }
 
 blockquote {
