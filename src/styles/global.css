@@ -106,15 +106,31 @@ pre {
 	padding: 1.5em;
 	border-radius: 12px;
 	border: 1px solid var(--border-color);
-	background-color: var(--bg-subtle) !important;
 	overflow-x: auto;
 }
 
-pre > code {
+/* Plain fenced blocks (no Shiki) */
+pre:not(.astro-code) {
+	background-color: var(--bg-subtle);
+}
+
+pre:not(.astro-code) > code {
 	all: unset;
-	font-family: "Courier New", monospace;
+	display: block;
+	font-family: "Courier New", ui-monospace, monospace;
 	font-size: 0.9em;
 	color: rgb(var(--black));
+}
+
+/* MDX/Shiki — keep inline theme colors + dark background (don’t force light bg) */
+pre.astro-code {
+	border-color: #3d444d;
+}
+
+pre.astro-code code {
+	font-family: ui-monospace, "Courier New", monospace;
+	font-size: 0.88em;
+	line-height: 1.55;
 }
 
 blockquote {
