@@ -1,0 +1,306 @@
+---
+title: 'The 4-party model for AI payments: how Visa and Mastercard rebuilt the rails'
+description: 'The traditional 4-party model was designed for humans. Here is how each of its five actors changes when an AI agent initiates the transaction — and how Visa and Mastercard built different answers to the same problem.'
+pubDate: 'Apr 4 2026'
+tags: ['visa', 'mastercard', 'four-party-model', 'agentic-commerce', 'agent-pay', 'vic', 'tokenization', 'iso8583']
+---
+
+import FourPartyDiagram from '../../components/four-party-diagram.jsx';
+import NetworkComparison from '../../components/network-comparison.jsx';
+import Callout from '../../components/Callout.tsx';
+
+<div className="grid grid-cols-3 gap-3 my-8 not-prose">
+  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+    <div className="text-2xl font-semibold text-slate-800 font-mono tabular-nums">Apr 29</div>
+    <div className="text-xs text-slate-500 mt-2 uppercase tracking-wide">Mastercard Agent Pay launched</div>
+  </div>
+  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+    <div className="text-2xl font-semibold text-slate-800 font-mono tabular-nums">Apr 30</div>
+    <div className="text-xs text-slate-500 mt-2 uppercase tracking-wide">Visa Intelligent Commerce launched</div>
+  </div>
+  <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center">
+    <div className="text-2xl font-semibold text-slate-800 font-mono tabular-nums">Oct 14</div>
+    <div className="text-xs text-slate-500 mt-2 uppercase tracking-wide">Both partnered with Cloudflare</div>
+  </div>
+</div>
+
+On April 29, 2025, Mastercard announced Agent Pay. On April 30, Visa announced Intelligent Commerce. Both launched the same week, with the same problem to solve, using some of the same infrastructure — and arrived at meaningfully different architectures.
+
+This post is about the 4-party model: the settlement architecture that has moved money between consumers, merchants, banks, and networks since the 1970s. It was designed around one assumption — a human is present, initiating the transaction, in real time. That assumption no longer holds.
+
+Here is exactly what breaks in each of the five roles when an AI agent initiates a purchase, and how each network rebuilt around it.
+
+<FourPartyDiagram client:load />
+
+---
+
+## The traditional model and why it breaks
+
+The 4-party model is called "4-party" because it involves four institutional roles: the consumer's bank (issuer), the merchant's bank (acquirer), the card network between them, and the consumer and merchant at the edges. In practice it's five entities, but the consumer and merchant are the endpoints, not the infrastructure.
+
+Every fraud system, every authentication protocol, every checkout UX built on top of this model assumes the consumer is present and human. Specifically:
+
+The **issuer's risk model** scores behavioral signals — transaction velocity, geolocation, device fingerprint, typing cadence — against a baseline built from years of that consumer's human behavior. An AI agent looks nothing like a human. It moves at machine speed, from a data center IP, with a headless browser fingerprint, executing optimal patterns that no human ever follows.
+
+The **merchant's bot protection** is trained to block exactly this behavior. The agent that is trying to pay looks identical to a credential-stuffing attack.
+
+The **acquirer's ISO 8583 message** has no field that says "this was initiated by software." The POS entry mode value `01` (manual key entry, used for ecommerce since the 1990s) tells every downstream system to apply human fraud heuristics.
+
+The **network's token service** issues tokens bound to devices and sessions — not to agents. A consumer's Visa token is valid across their devices. It has no concept of "this token is authorized only for agent `skyfire-001`."
+
+None of this is a design flaw — it's a design constraint. The model was built for humans. The question both Visa and Mastercard had to answer is: what is the minimum number of changes to each role to make this work for agents?
+
+---
+
+## How each role changes
+
+### The consumer
+
+In the traditional model, the consumer is present at every transaction. They authenticate, enter credentials, approve the payment.
+
+In the AI model, the consumer is present exactly once: at enrollment. They configure a spending policy — category limits, per-transaction cap, daily velocity — and create a FIDO2 Passkey that signs individual payment instructions. After that, the agent operates autonomously within those guardrails until the consumer revokes access.
+
+The consumer's role shifts from **actor** to **policy author**.
+
+### The AI agent (new role)
+
+There is now a sixth entity in the model that didn't exist before. The agent sits between the consumer and the merchant, interpreting natural language intent and executing the purchase. It holds the consumer's credential (agent-specific token), has a registered cryptographic identity, and signs every request it makes.
+
+The critical design question for both networks: how does the rest of the model know this agent is legitimate? The answer is different between Visa and Mastercard, and we'll get to that.
+
+### The issuer
+
+The issuer must now support two modes: human transactions (unchanged) and agent transactions (new rule set).
+
+When field F022 in the ISO 8583 message is set to `81` (the new agent-initiated POS entry mode value), the issuer loads the consumer's pre-configured agent spending policy instead of running the standard human behavioral model. The checks are deterministic — balance, per-transaction limit, category, velocity, token status — rather than probabilistic.
+
+This is architecturally significant. It means the issuer needs to store and enforce per-token agent policies, not just card-level policies. Citi and US Bank were the first issuers to go live on Mastercard Agent Pay; all US Mastercard cardholders were enabled by November 2025.
+
+### The acquirer
+
+The acquirer builds the ISO 8583 message. For agent transactions it must:
+
+- Place the agent-specific token (VCN for Visa, Agentic Token for Mastercard) in F002 instead of the real PAN
+- Set F022=81 to signal agent-initiated
+- Append the agent identifier in F048
+- Include the payment instruction reference hash in F126 (Visa) or equivalent
+
+Stripe, Adyen, and Worldpay support Visa VIC. Braintree, Checkout.com, and Fiserv are the lead acquirers for Mastercard Agent Pay.
+
+### The merchant
+
+This is where the architectures diverge most visibly. The merchant needs to verify that incoming agent requests are legitimate before accepting the checkout. Both networks solve this — but differently.
+
+**Visa's approach:** TAP SDK embedded in the merchant's checkout. JWT validation is local, under 5ms. The merchant explicitly integrates.
+
+**Mastercard's approach:** Web Bot Auth verification at the CDN layer (Cloudflare). No new merchant code required for basic verification. Agents use a Dynamic Token Verification Code formatted for standard card fields in existing checkout forms. Merchants can participate without touching their codebase.
+
+Mastercard's framing is "no-code for merchants." Visa's framing is "40-80ms local verification with full JWT context." Both are correct — they're optimizing for different things. Mastercard optimizes for adoption at scale. Visa optimizes for the richness of the credential the merchant receives.
+
+---
+
+## Visa Intelligent Commerce: the TAP architecture
+
+<Callout type="tldr">
+Visa's approach adds an identity layer **before** the payment message. The agent authenticates with Visa directly, receives a 90-second JWT, and presents it to the merchant. The JWT carries the payment instruction reference that links the ISO 8583 message to the consumer's original authorization.
+</Callout>
+
+The Visa flow:
+
+```text
+Consumer enrolls → VIC enroll_card() → VTS issues VCN bound to agent_id
+Consumer creates FIDO2 Passkey on device
+
+--- Transaction ---
+
+Agent → POST tap.visa.com/v1/validate
+        (Ed25519 signed, RFC 9421 HTTP Message Signatures)
+Visa TAP → validates signature, nonce, timestamp, wallet policy
+Visa TAP → issues JWT (TTL 90s, instruction_ref: pi-abc123)
+Visa TAP → registers payment instruction in VIC registry
+
+Agent → POST merchant/checkout (Authorization: TAP-1.0 {jwt})
+Merchant → validates JWT locally against cached Visa public key
+
+Agent → VIC retrieve_payment_credentials(instruction_ref)
+       → returns VCN tokenized_pan
+
+Acquirer → ISO 8583 MTI 0100
+           F002: VCN
+           F022: 81         ← agent-initiated
+           F048: AGNT:agent_id
+           F126: pi-abc123:sha256:...  ← TAP integrity hash
+
+VisaNet → validates F126 against VIC registry (amount, merchant)
+        → VTS de-tokenizes VCN → routes to issuer
+
+Issuer → loads agent spending policy for token
+       → approves: F039=00
+
+Agent → VIC submit_commerce_signal(instruction_ref, outcome)
+```
+
+The key design insight in Visa's approach: `F126` creates an integrity lock. VisaNet validates that the amount and merchant in the ISO 8583 message match the original payment instruction the consumer authorized. Tampering in transit → decline with response code 58.
+
+**Visa's key infrastructure partners:**
+- Identity layer: Cloudflare (Web Bot Auth behavioral analysis)
+- Key directory: `tap.visa.com/.well-known/agents/`
+- MCP server: `github.com/visa/mcp` (open source)
+- AI platforms: Skyfire (KYAPay), Anthropic, OpenAI
+- Acquirers: Stripe, Adyen, Worldpay, Nuvei
+
+---
+
+## Mastercard Agent Pay: the token-first architecture
+
+<Callout type="tldr">
+Mastercard's approach extends its existing token infrastructure rather than adding a new identity layer. Agentic Tokens are purpose-built for agent use cases, with agent identity embedded in the token metadata rather than in a separate JWT credential.
+</Callout>
+
+The Mastercard flow:
+
+```text
+Consumer enrolls → Mastercard Token Service issues Agentic Token
+                   bound to agent_id + spending policy
+Consumer creates Mastercard Payment Passkey (FIDO2)
+
+--- Transaction ---
+
+Agent → sends HTTP request to merchant
+CDN layer (Cloudflare) → Web Bot Auth verification
+                       → validates agent cryptographic identity
+                       → blocks unregistered agents before they
+                         reach merchant infrastructure
+
+Agent → submits Dynamic Token Verification Code (DTVC)
+        formatted for standard card payment fields
+        in existing merchant checkout form
+
+No merchant code change required for basic flow
+
+Acquirer (Braintree/Checkout.com/Fiserv) → builds ISO 8583
+          F002: Agentic Token (not real PAN)
+          F022: agent-initiated equivalent
+          Agent context in tokenization metadata
+
+Mastercard Network → validates Agentic Token binding
+                   → routes to issuer with agent policy context
+
+Issuer → loads agent spending policy
+       → Citi/US Bank: live since Nov 2025
+       → All US Mastercard cardholders: enabled Nov 2025
+
+Agent → receives confirmation
+```
+
+The key design insight in Mastercard's approach: the token itself carries the agent binding. Rather than a separate JWT that the merchant validates, the Agentic Token is recognized by the network as agent-initiated. The trust is embedded in the credential, not in a parallel identity handshake.
+
+**Mastercard's key infrastructure partners:**
+- Identity layer: Cloudflare (Web Bot Auth, same as Visa)
+- Standards body: FIDO Alliance Payments Working Group
+- AI platforms: Microsoft (Azure OpenAI, Copilot Studio), OpenAI (Instant Checkout), Google
+- Acquirers: Braintree, Checkout.com, Fiserv
+- Wallets: PayPal (October 2025 partnership)
+
+---
+
+## Side by side: the real differences
+
+<NetworkComparison client:load />
+
+The most important differences are architectural, not cosmetic:
+
+**Identity verification timing.** Visa TAP verifies the agent before the checkout request reaches the merchant. Mastercard Agent Pay verifies at the CDN layer — earlier, without merchant involvement. Visa gives the merchant a rich JWT with consumer context. Mastercard gives the merchant a simpler, backward-compatible credential.
+
+**Token design.** Visa's VCN is a Virtual Card Number — it looks like a card number, lives in F002, and requires the merchant to know nothing special. Mastercard's Agentic Token is similar but includes agent-binding metadata that flows through the token lifecycle rather than through a separate message field.
+
+**Merchant integration.** Visa's TAP SDK is explicit — the merchant knows an agent is present and validates a JWT. Mastercard's no-code CDN approach means a merchant can accept Agent Pay without touching their checkout. For adoption at the 100M+ merchant scale Mastercard has, this matters.
+
+**AI platform partnerships.** Visa went deep with Skyfire and the VIC sandbox (30+ partners, 20+ integrating directly). Mastercard went wide — Microsoft, OpenAI, Google, PayPal. Different distribution strategies for the same market.
+
+**ISO 8583 fields.** Both use new POS Entry Mode values. Both inject agent identity into existing private-use fields. The exact values differ — Visa's F022=81 is publicly documented; Mastercard's equivalent is part of their Agent Pay technical specification.
+
+---
+
+## What's actually the same
+
+Both networks made the same fundamental bets:
+
+**Web Bot Auth + Cloudflare.** Both Visa (TAP, October 14, 2025) and Mastercard (Agent Pay, October 14, 2025) announced Cloudflare partnerships on the exact same day. Both use IETF RFC 9421 HTTP Message Signatures as the cryptographic foundation. This is not a coincidence — it's the standard converging.
+
+**FIDO2 Passkeys for consumer authorization.** Both require a Passkey-signed consumer instruction before any agent transaction can proceed. The consumer's biometric authenticates the specific purchase, then the agent executes autonomously within the authorized parameters.
+
+**Network tokenization as the payment credential.** Neither network is building new payment rails. Both extend existing tokenization infrastructure that already handles billions of daily transactions. The agent gets a specialized token; the rest of the network treats it as a normal authorization.
+
+**Spending policy at the network level.** Both implement consumer-configurable spending controls — category limits, velocity checks, per-transaction caps — enforced by the network and issuer, not by the agent. The agent cannot exceed what the consumer authorized, even if compromised.
+
+**The 4-party model itself remains.** This is the most important architectural constraint. Neither network built parallel infrastructure. The ISO 8583 message still flows from acquirer to network to issuer. Settlement is still T+1. Chargebacks still exist. The existing rails are extended, not replaced.
+
+---
+
+## What's still not solved
+
+**Multi-agent authorization.** When a supervisor agent delegates to a subagent, which agent holds the TAP credential or Agentic Token? The current spec doesn't address delegation chains. Neither network has published a multi-agent authorization protocol.
+
+**Cross-network interoperability.** A consumer with a Visa card using a Mastercard-integrated AI platform creates ambiguity. The TAP key directory and the Agent Pay acceptance framework are separate systems. An agent that is registered with Visa is not automatically recognized by Mastercard's CDN layer, and vice versa.
+
+**Dispute resolution evidence standards.** Both networks have commerce signals and audit trails. But the exact standard for what constitutes sufficient evidence in an agent-initiated dispute — especially one involving a multi-step orchestration workflow — has not been formally published.
+
+**Open banking and PSD2.** In Europe, strong customer authentication (SCA) requirements were designed for human authentication. Pre-authorized agent spending policies don't map cleanly onto the SCA framework. Both networks are working with regulators on this, but there is no published resolution.
+
+---
+
+## For engineers building in this space
+
+**If you're building on Visa:** Start at `developer.visa.com/capabilities/visa-intelligent-commerce` and `github.com/visa/mcp`. The MCP server gives you full VIC access through standard Claude/GPT tool calls. TAP registration is a prerequisite — budget time for Ed25519 key pair setup and key directory registration.
+
+**If you're building on Mastercard:** Start at `developer.mastercard.com/agent-pay`. For merchants, the no-code CDN approach via Cloudflare is the fastest path. For acquirers and processors, the Agentic Token requestor integration via Mastercard's Secure Card on File service is the integration point.
+
+**If you're building agents (not infrastructure):** Skyfire's KYAPay handles Visa VIC registration and TAP for you. For Mastercard, the PayPal partnership (October 2025) and the Microsoft Copilot Studio integration are the fastest paths to production. Direct integration with either network requires a formal partnership agreement.
+
+**If you're building for both networks:** The Web Bot Auth / RFC 9421 layer is shared — an agent registered with Visa's key directory and Mastercard's Agent Pay program uses the same Ed25519 key pair format. The token issuance and spending policy layers are separate, but the cryptographic identity layer converges.
+
+---
+
+## Sources
+
+- Mastercard Agent Pay launch: `mastercard.com/news/press/2025/april/mastercard-unveils-agent-pay`
+- Mastercard Agent Pay Acceptance Framework: `mastercard.com/global/en/news-and-trends/stories/2025/agentic-commerce-framework.html`
+- Mastercard + Cloudflare partnership: October 14, 2025 (same day as Visa)
+- Mastercard + PayPal: `newsroom.paypal-corp.com/2025-10-27-Mastercard-and-PayPal`
+- Mastercard + Fiserv: `startuphub.ai/ai-news/the-fiserv-mastercard-strategy`
+- Visa Intelligent Commerce: `developer.visa.com/capabilities/visa-intelligent-commerce`
+- Visa TAP + Cloudflare: `blog.cloudflare.com/secure-agentic-commerce` (October 14, 2025)
+- Visa MCP Server: `github.com/visa/mcp`
+- IETF RFC 9421 HTTP Message Signatures: `rfc-editor.org/rfc/rfc9421`
+- FIDO Alliance Payments Working Group: `fidoalliance.org`
+
+---
+
+## Coming next
+
+<div className="not-prose my-6 border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 bg-white">
+  <div className="p-4 flex items-center gap-4">
+    <div className="font-mono font-semibold text-slate-300 text-sm w-6">03</div>
+    <div>
+      <div className="font-semibold text-slate-800 text-sm">ISO 8583 for agents: the complete field reference</div>
+      <div className="text-xs text-slate-500 mt-0.5">Every modified field, valid values, how issuers interpret F022=81, what T+1 clearing looks like.</div>
+    </div>
+  </div>
+  <div className="p-4 flex items-center gap-4">
+    <div className="font-mono font-semibold text-slate-300 text-sm w-6">04</div>
+    <div>
+      <div className="font-semibold text-slate-800 text-sm">x402 in depth: HTTP-native payments for agents</div>
+      <div className="text-xs text-slate-500 mt-0.5">The payment flow, facilitator architecture, V2 spec changes, and when to use x402 over TAP or Agent Pay.</div>
+    </div>
+  </div>
+  <div className="p-4 flex items-center gap-4">
+    <div className="font-mono font-semibold text-slate-300 text-sm w-6">05</div>
+    <div>
+      <div className="font-semibold text-slate-800 text-sm">TAP vs Agent Pay vs x402 vs AP2: the full protocol comparison</div>
+      <div className="text-xs text-slate-500 mt-0.5">Decision framework for choosing the right protocol for your use case, with real examples.</div>
+    </div>
+    </div>
+</div>
+
+All diagrams built with [payarch](https://github.com/ivalenzuelan/payarch) — open source tool for visualizing agentic payment architectures.
