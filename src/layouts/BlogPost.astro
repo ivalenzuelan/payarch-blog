@@ -19,6 +19,8 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 				width: calc(100% - 2em);
 				max-width: 100%;
 				margin: 0;
+				padding-left: max(0px, env(safe-area-inset-left));
+				padding-right: max(0px, env(safe-area-inset-right));
 			}
 			.hero-image {
 				width: 100%;
@@ -28,13 +30,16 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 				margin: 0 auto;
 				border-radius: 12px;
 				box-shadow: var(--box-shadow);
+				max-width: 100%;
+				height: auto;
 			}
 			.prose {
 				width: 860px;
-				max-width: calc(100% - 2em);
+				max-width: 100%;
 				margin: auto;
-				padding: 1em 1em 4em;
+				padding: 1em max(1rem, env(safe-area-inset-left)) 4em max(1rem, env(safe-area-inset-right));
 				color: rgb(var(--gray-dark));
+				box-sizing: border-box;
 			}
 			.title {
 				margin-bottom: 2em;
@@ -44,7 +49,7 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 			}
 			.title h1 {
 				margin: 0 0 0.6em 0;
-				font-size: 2.6em;
+				font-size: clamp(1.45rem, 5vw + 0.5rem, 2.6em);
 				line-height: 1.15;
 				letter-spacing: -0.02em;
 			}
@@ -80,6 +85,22 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 				max-width: 640px;
 				margin: 0.5em auto 0;
 				text-align: center;
+			}
+			@media (max-width: 640px) {
+				.title {
+					padding: 1em 0 0.75em;
+					margin-bottom: 1.25em;
+				}
+				.description {
+					font-size: 1rem;
+					text-align: left;
+				}
+				.tags {
+					justify-content: flex-start;
+				}
+				.hero-image img {
+					border-radius: 8px;
+				}
 			}
 			.last-updated-on {
 				font-style: italic;

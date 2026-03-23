@@ -73,8 +73,10 @@ import HeaderLink from './HeaderLink.astro';
 		justify-content: space-between;
 		max-width: 860px;
 		margin: 0 auto;
-		padding: 0 1em;
+		padding: 0 max(1em, env(safe-area-inset-right)) 0 max(1em, env(safe-area-inset-left));
 		height: 70px;
+		gap: 0.5rem;
+		min-width: 0;
 	}
 	h2 {
 		margin: 0;
@@ -89,6 +91,7 @@ import HeaderLink from './HeaderLink.astro';
 	.internal-links {
 		display: flex;
 		gap: 0.5em;
+		flex-shrink: 0;
 	}
 	nav a.link-item {
 		padding: 0.5em 0.8em;
@@ -136,6 +139,7 @@ import HeaderLink from './HeaderLink.astro';
 		text-decoration: none !important;
 		color: rgb(var(--black));
 		transition: opacity 0.2s ease;
+		min-width: 0;
 	}
 	.logo-lockup:hover {
 		opacity: 0.8;
@@ -150,4 +154,22 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	.wordmark .pay { font-weight: 300; }
 	.wordmark .arch { font-weight: 500; }
+	@media (max-width: 480px) {
+		nav {
+			height: 60px;
+			padding-left: max(0.75rem, env(safe-area-inset-left));
+			padding-right: max(0.75rem, env(safe-area-inset-right));
+		}
+		.wordmark {
+			font-size: 1.15rem;
+		}
+		.logo-lockup svg {
+			width: 38px;
+			height: 26px;
+		}
+		nav a.link-item {
+			padding: 0.45em 0.55em;
+			font-size: 0.88em;
+		}
+	}
 </style>

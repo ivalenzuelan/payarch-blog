@@ -175,23 +175,25 @@ export default function AgenticArchitecture() {
   const selAccent = selected ? NODE_ACCENT[selected]: null
 
   return (
-    <div style={{
+    <div
+      className="agentic-root"
+      style={{
       fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif",
       background: "#faf9f6",
       borderRadius: 14,
       border: "1px solid #ddd8ce",
       overflow: "hidden",
       boxShadow: "0 2px 8px rgba(60,50,30,0.07), 0 12px 32px rgba(60,50,30,0.06)",
-      width: "100vw",
+      width: "100%",
       maxWidth: 1040,
-      position: "relative",
-      left: "50%",
-      transform: "translateX(-50%)",
-      margin: "2.5rem 0",
+      margin: "2.5rem auto",
+      boxSizing: "border-box",
     }}>
 
       {/* ── Header ── */}
-      <div style={{
+      <div
+        className="agentic-header"
+        style={{
         padding: "18px 28px 15px",
         borderBottom: "1px solid #e8e3da",
         background: "#f5f2ec",
@@ -199,6 +201,7 @@ export default function AgenticArchitecture() {
         alignItems: "center",
         justifyContent: "space-between",
         gap: 16,
+        flexWrap: "wrap",
       }}>
         <div>
           <div style={{ fontSize: 10, letterSpacing: "0.13em", textTransform: "uppercase", color: "#a89880", fontFamily: "ui-monospace, 'Courier New', monospace", marginBottom: 5 }}>
@@ -227,10 +230,10 @@ export default function AgenticArchitecture() {
       </div>
 
       {/* ── Body ── */}
-      <div style={{ display: "flex" }}>
+      <div className="agentic-body" style={{ display: "flex", alignItems: "stretch", minWidth: 0 }}>
 
         {/* ── SVG ── */}
-        <div style={{ flex: 1, overflowX: "auto" }}>
+        <div className="agentic-svg-wrap" style={{ flex: 1, overflowX: "auto", WebkitOverflowScrolling: "touch", minWidth: 0 }}>
           <svg
             width={SVG_W}
             height={SVG_H}
@@ -462,12 +465,15 @@ export default function AgenticArchitecture() {
         </div>
 
         {/* ── Detail Panel ── */}
-        <div style={{
+        <div
+          className="agentic-detail"
+          style={{
           width: 236,
           borderLeft: "1px solid #e8e3da",
           background: "#f5f2ec",
           padding: "20px 18px",
           flexShrink: 0,
+          boxSizing: "border-box",
         }}>
           {detail && selActor ? (
             <div style={{ animation: "fadeUp 0.2s ease" }}>
@@ -582,6 +588,15 @@ export default function AgenticArchitecture() {
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(5px); }
           to   { opacity: 1; transform: translateY(0);   }
+        }
+        @media (max-width: 768px) {
+          .agentic-header { align-items: flex-start !important; }
+          .agentic-body { flex-direction: column !important; }
+          .agentic-detail {
+            width: 100% !important;
+            border-left: none !important;
+            border-top: 1px solid #e8e3da;
+          }
         }
       `}</style>
     </div>

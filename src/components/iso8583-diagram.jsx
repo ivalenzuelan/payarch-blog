@@ -169,7 +169,7 @@ export default function Iso8583Diagram() {
   return (
     <div style={{ 
       fontFamily: "'Georgia','Times New Roman',serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", 
-      width: "100vw", maxWidth: 1040, position: "relative", left: "50%", transform: "translateX(-50%)", margin: "20px 0"
+      width: "100%", maxWidth: 1040, margin: "20px auto", boxSizing: "border-box"
     }}>
 
       {/* Header */}
@@ -257,8 +257,8 @@ export default function Iso8583Diagram() {
       </div>
 
       {/* Table */}
-      <div style={{ borderTop: "1px solid #e0dbd0" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+      <div style={{ borderTop: "1px solid #e0dbd0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <table style={{ width: "100%", minWidth: 560, borderCollapse: "collapse", fontSize: 12 }}>
           <thead>
             <tr style={{ background: "#f0ece4" }}>
               <th style={{ padding: "7px 16px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400, width: 60 }}>Field</th>

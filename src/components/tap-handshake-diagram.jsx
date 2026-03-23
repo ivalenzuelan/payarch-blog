@@ -160,7 +160,7 @@ export default function TapHandshake() {
   return (
     <div style={{ 
       fontFamily: "'Georgia','Times New Roman',serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", 
-      width: "100vw", maxWidth: 1040, position: "relative", left: "50%", transform: "translateX(-50%)", margin: "20px 0"
+      width: "100%", maxWidth: 1040, margin: "20px auto", boxSizing: "border-box"
     }}>
 
       {/* Header */}
