@@ -320,7 +320,7 @@ export default function FourPartyFlow() {
                   style={{ transition:"all .3s" }}
                 />
                 {passive && (
-                  <text x={actor.x + actor.w - 5} y={actor.y + 13} textAnchor="end" dominantBaseline="central"
+                  <text x={actor.x + actor.w / 2} y={actor.y + actor.h - 7} textAnchor="middle" dominantBaseline="central"
                     style={{ fontSize:8, fill:"#b8a8d0", fontFamily:"'Courier New',monospace" }}>passive</text>
                 )}
                 {!passive && (isActive || isVisited) && (
