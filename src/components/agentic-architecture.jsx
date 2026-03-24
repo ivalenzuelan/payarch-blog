@@ -2,26 +2,24 @@ import { useState } from "react"
 
 // ─── Data ──────────────────────────────────────────────────────────────────
 const ACTORS = {
-  consumer: { id: "consumer", label: "Consumer", sub: "Sets spending policy once", layer: 0, col: 1, color: "#1a1814", accent: "#b45309" },
-  agent: { id: "agent", label: "AI Agent", sub: "Skyfire · Claude · GPT-4o", layer: 1, col: 0, color: "#5a38a0", accent: "#6d28d9" },
-  wallet: { id: "wallet", label: "AgentWallet", sub: "Visa VCN · spend limits · passkey", layer: 1, col: 2, color: "#5a38a0", accent: "#6d28d9" },
-  tap: { id: "tap", label: "Trusted Agent Protocol", sub: "Visa + Cloudflare · Ed25519 · 90s JWT", layer: 2, col: 0, color: "#1a50a0", accent: "#1d4ed8" },
-  vic: { id: "vic", label: "Visa Intelligent Commerce", sub: "VIC · VisaNet · Token Service", layer: 2, col: 2, color: "#1a50a0", accent: "#1d4ed8" },
-  issuer: { id: "issuer", label: "Issuer Bank", sub: "Chase · Amex · Barclays", layer: 3, col: 1, color: "#186040", accent: "#065f46" },
-  acquirer: { id: "acquirer", label: "Acquirer", sub: "Stripe · Adyen · Fiserv", layer: 4, col: 1, color: "#186040", accent: "#065f46" },
-  merchant: { id: "merchant", label: "Merchant", sub: "Bose.com · Shopify · Jomashop", layer: 5, col: 1, color: "#1a1814", accent: "#b45309" },
+  consumer: { id: "consumer", label: "Consumer", sub: "Sets spending policy once", layer: 0, col: 1, xOffset: 0, color: "#1a1814", accent: "#b45309" },
+  agent: { id: "agent", label: "AI Agent", sub: "Skyfire · Claude · GPT-4o", layer: 1, col: 0, xOffset: 20, color: "#5a38a0", accent: "#6d28d9" },
+  wallet: { id: "wallet", label: "AgentWallet", sub: "Visa VCN · spend limits · passkey", layer: 1, col: 2, xOffset: -20, color: "#5a38a0", accent: "#6d28d9" },
+  tap: { id: "tap", label: "Trusted Agent Protocol", sub: "Visa + Cloudflare · Ed25519 · 90s JWT", layer: 2, col: 0, xOffset: 20, color: "#1a50a0", accent: "#1d4ed8" },
+  vic: { id: "vic", label: "Visa Intelligent Commerce", sub: "VIC · VisaNet · Token Service", layer: 2, col: 2, xOffset: -20, color: "#1a50a0", accent: "#1d4ed8" },
+  
+  // Staggered bottom layers for cleaner line routing
+  issuer: { id: "issuer", label: "Issuer Bank", sub: "Chase · Amex · Barclays", layer: 3, col: 1, xOffset: 120, color: "#186040", accent: "#065f46" },
+  acquirer: { id: "acquirer", label: "Acquirer", sub: "Stripe · Adyen · Fiserv", layer: 4, col: 1, xOffset: 0, color: "#186040", accent: "#065f46" },
+  merchant: { id: "merchant", label: "Merchant", sub: "Bose.com · Shopify · Jomashop", layer: 5, col: 1, xOffset: -120, color: "#1a1814", accent: "#b45309" },
 }
 
 const CONNECTIONS = [
   { from: "consumer", to: "agent", label: "delegates intent", type: "delegate" },
   { from: "consumer", to: "wallet", label: "pre-authorizes + Passkey", type: "delegate" },
-  // Agent calls VIC API to get VCN — real pre-checkout server call
   { from: "agent", to: "vic", label: "get credentials (VCN)", type: "identity" },
   { from: "wallet", to: "vic", label: "VCN bound to agent_id", type: "payment" },
-  // Agent signs request LOCALLY (Ed25519) and sends directly to merchant
-  // TAP is a signing protocol in HTTP headers — no Visa server round-trip
   { from: "agent", to: "merchant", label: "HTTP + TAP signature", type: "identity" },
-  // Standard payment rails — unchanged
   { from: "merchant", to: "acquirer", label: "PaymentIntent", type: "payment" },
   { from: "acquirer", to: "vic", label: "ISO 8583 · F022=81 · F126", type: "payment" },
   { from: "vic", to: "issuer", label: "MTI 0100 · F022=81", type: "payment" },
@@ -65,33 +63,23 @@ const DETAILS = {
 
 // ─── Visual Config ─────────────────────────────────────────────────────────
 const NODE_ACCENT = {
-  consumer: "#b45309",
-  agent: "#6d28d9",
-  wallet: "#6d28d9",
-  tap: "#1d4ed8",
-  vic: "#1d4ed8",
-  issuer: "#065f46",
-  acquirer: "#065f46",
-  merchant: "#b45309",
+  consumer: "#b45309", agent: "#6d28d9", wallet: "#6d28d9", tap: "#1d4ed8",
+  vic: "#1d4ed8", issuer: "#065f46", acquirer: "#065f46", merchant: "#b45309",
 }
 
 const NODE_ICON_TINT = {
-  consumer: "#d97706",
-  agent: "#7c3aed",
-  wallet: "#7c3aed",
-  tap: "#2563eb",
-  vic: "#2563eb",
-  issuer: "#059669",
-  acquirer: "#059669",
-  merchant: "#d97706",
+  consumer: "#d97706", agent: "#7c3aed", wallet: "#7c3aed", tap: "#2563eb",
+  vic: "#2563eb", issuer: "#059669", acquirer: "#059669", merchant: "#d97706",
 }
 
-// Layer bands based on actual layer positions
+// Stretched Y coordinates for a taller, more elegant layout
+const LAYER_Y = { 0: 60, 1: 220, 2: 380, 3: 560, 4: 720, 5: 880 }
+
 const LAYER_BANDS = [
-  { y: 20, h: 100, label: "Consumer", color: "rgba(180,83,9,0.05)", border: "rgba(180,83,9,0.18)" },
-  { y: 130, h: 150, label: "Agent Layer", color: "rgba(109,40,217,0.05)", border: "rgba(109,40,217,0.18)" },
-  { y: 270, h: 150, label: "Trust & Payment Network", color: "rgba(29,78,216,0.05)", border: "rgba(29,78,216,0.18)" },
-  { y: 400, h: 260, label: "Payment Rails & Merchant", color: "rgba(6,95,70,0.05)", border: "rgba(6,95,70,0.15)" },
+  { y: 30, h: 120, label: "Consumer", color: "rgba(180,83,9,0.03)", border: "rgba(180,83,9,0.15)" },
+  { y: 190, h: 120, label: "Agent Layer", color: "rgba(109,40,217,0.03)", border: "rgba(109,40,217,0.15)" },
+  { y: 350, h: 120, label: "Trust & Payment Network", color: "rgba(29,78,216,0.03)", border: "rgba(29,78,216,0.15)" },
+  { y: 510, h: 460, label: "Payment Rails & Merchant", color: "rgba(6,95,70,0.03)", border: "rgba(6,95,70,0.12)" },
 ]
 
 const EDGE_STYLE = {
@@ -102,14 +90,13 @@ const EDGE_STYLE = {
 }
 
 // ─── Layout ────────────────────────────────────────────────────────────────
-const COL_X = { 0: 100, 1: 340, 2: 580 }
-const LAYER_Y = { 0: 40, 1: 160, 2: 290, 3: 420, 4: 510, 5: 600 }
-const NODE_W = 180
-const NODE_H = 64
-const SVG_W = 760
-const SVG_H = 720
+const COL_X = { 0: 120, 1: 360, 2: 600 }
+const NODE_W = 190
+const NODE_H = 68
+const SVG_W = 800
+const SVG_H = 1000
 
-function cx(a) { return COL_X[a.col] + NODE_W / 2 }
+function cx(a) { return COL_X[a.col] + a.xOffset + NODE_W / 2 }
 function cy(a) { return LAYER_Y[a.layer] + NODE_H / 2 }
 
 function getEdge(fromId, toId) {
@@ -119,31 +106,39 @@ function getEdge(fromId, toId) {
   const dx = tx - fx, dy = ty - fy
 
   let x1 = fx, y1 = fy, x2 = tx, y2 = ty
-  const isVertical = fa.layer !== ta.layer
-  const isVicIssuer = (fromId === "vic" && toId === "issuer") || (fromId === "issuer" && toId === "vic")
-
-  if (isVertical) {
+  
+  // Connect to top/bottom or left/right depending on primary direction
+  if (Math.abs(dy) > Math.abs(dx) * 0.4) {
     y1 = dy > 0 ? fy + NODE_H / 2 : fy - NODE_H / 2
     y2 = dy > 0 ? ty - NODE_H / 2 : ty + NODE_H / 2
-    // Offset bidirectional edges to prevent overlaps
-    if (isVicIssuer) {
-      if (dy > 0) { x1 -= 20; x2 -= 20 }
-      else { x1 += 20; x2 += 20 }
-    }
   } else {
     x1 = dx > 0 ? fx + NODE_W / 2 : fx - NODE_W / 2
     x2 = dx > 0 ? tx - NODE_W / 2 : tx + NODE_W / 2
   }
 
-  const mx = (x1 + x2) / 2
-  const my = (y1 + y2) / 2
-  const d = isVertical
-    ? `M${x1},${y1} C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2}`
-    : `M${x1},${y1} L${x2},${y2}`
+  // Prevent overlap for bidirectional Vic/Issuer lines
+  const isVicIssuer = (fromId === "vic" && toId === "issuer") || (fromId === "issuer" && toId === "vic")
+  if (isVicIssuer) {
+    if (fromId === "vic") { x1 -= 16; x2 -= 16 }
+    else { x1 += 16; x2 += 16 }
+  }
+
+  // Calculate smooth Bezier control points
+  const tension = 0.45;
+  const c1x = x1, c1y = y1 + (y2 - y1) * tension;
+  const c2x = x2, c2y = y2 - (y2 - y1) * tension;
+  
+  const d = `M${x1},${y1} C${c1x},${c1y} ${c2x},${c2y} ${x2},${y2}`
+  
+  // Calculate a reasonable midpoint for the label pill
+  const t = 0.5; // Midpoint of bezier
+  const mx = Math.pow(1-t, 3)*x1 + 3*Math.pow(1-t, 2)*t*c1x + 3*(1-t)*Math.pow(t, 2)*c2x + Math.pow(t, 3)*x2;
+  const my = Math.pow(1-t, 3)*y1 + 3*Math.pow(1-t, 2)*t*c1y + 3*(1-t)*Math.pow(t, 2)*c2y + Math.pow(t, 3)*y2;
+
   return { mx, my, d }
 }
 
-// ─── Icon paths (24×24 viewBox) ────────────────────────────────────────────
+// ─── Icon paths ────────────────────────────────────────────
 const ICON = {
   consumer: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
   agent: "M4 6h2V4H4v2zm4 0h2V4H8v2zm4 0h2V4h-2v2zm4 0h2V4h-2v2zM4 10h2V8H4v2zm4 0h2V8H8v2zm4 0h2V8h-2v2zm4 0h2V8h-2v2zM4 14h2v-2H4v2zm4 0h2v-2H8v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zM2 4v16h20V4H2zm18 14H4V6h16v12z",
@@ -159,6 +154,7 @@ const ICON = {
 export default function AgenticArchitecture() {
   const [selected, setSelected] = useState(null)
   const [hovered, setHovered] = useState(null)
+  
   const detail = selected ? DETAILS[selected] : null
   const selActor = selected ? ACTORS[selected] : null
   const selAccent = selected ? NODE_ACCENT[selected] : null
@@ -168,142 +164,85 @@ export default function AgenticArchitecture() {
       style={{
         fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif",
         background: "#faf9f6",
-        borderRadius: 14,
+        borderRadius: 16,
         border: "1px solid #ddd8ce",
         overflow: "hidden",
-        boxShadow: "0 2px 8px rgba(60,50,30,0.07), 0 12px 32px rgba(60,50,30,0.06)",
+        boxShadow: "0 4px 12px rgba(60,50,30,0.05), 0 24px 48px rgba(60,50,30,0.08)",
         width: "100vw",
-        maxWidth: 1040,
+        maxWidth: 1100,
         position: "relative",
         left: "50%",
         transform: "translateX(-50%)",
-        margin: "2.5rem 0",
+        margin: "3rem 0",
       }}
     >
       {/* ── Header ── */}
       <div
         style={{
-          padding: "18px 28px 15px",
+          padding: "24px 32px",
           borderBottom: "1px solid #e8e3da",
-          background: "#f5f2ec",
+          background: "linear-gradient(to bottom, #fcfbf9, #f5f2ec)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 16,
         }}
       >
         <div>
-          <div
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.13em",
-              textTransform: "uppercase",
-              color: "#a89880",
-              fontFamily: "ui-monospace, 'Courier New', monospace",
-              marginBottom: 5,
-            }}
-          >
+          <div style={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "#a89880", fontFamily: "ui-monospace, monospace", marginBottom: 6 }}>
             Agentic Commerce · System Architecture
           </div>
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 600,
-              color: "#2a2218",
-              letterSpacing: "-0.02em",
-              lineHeight: 1,
-            }}
-          >
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#1a1814", letterSpacing: "-0.03em" }}>
             How an AI agent pays for something
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
-          <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+          <div style={{ display: "flex", gap: 14 }}>
             {Object.entries(EDGE_STYLE).map(([type, es]) => (
-              <div key={type} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <svg width="22" height="10" style={{ overflow: "visible" }}>
-                  <line x1="0" y1="5" x2="18" y2="5" stroke={es.stroke} strokeWidth="1.5" strokeDasharray={es.dash} />
-                  <polygon points="16,2.5 20,5 16,7.5" fill={es.stroke} />
+              <div key={type} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <svg width="24" height="10" style={{ overflow: "visible" }}>
+                  <line x1="0" y1="5" x2="20" y2="5" stroke={es.stroke} strokeWidth="2" strokeDasharray={es.dash} />
+                  <polygon points="18,2 23,5 18,8" fill={es.stroke} />
                 </svg>
-                <span style={{ fontSize: 9, fontFamily: "ui-monospace, monospace", color: "#a89880", letterSpacing: "0.05em" }}>
+                <span style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#8a7868", letterSpacing: "0.05em" }}>
                   {type}
                 </span>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#c8b8a2" }}>
-            8 actors · 10 connections · ~1,100ms end to end
-          </div>
         </div>
       </div>
 
       {/* ── Body ── */}
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", height: 750 }}>
         {/* ── SVG ── */}
-        <div style={{ flex: 1, overflowX: "auto" }}>
+        <div style={{ flex: 1, overflowX: "auto", overflowY: "auto", position: "relative" }}>
           <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ display: "block" }}>
             <defs>
-              {/* Arrowheads */}
               {Object.entries(EDGE_STYLE).map(([type, es]) => (
-                <marker
-                  key={type}
-                  id={`arr-${type}`}
-                  viewBox="0 0 8 8"
-                  refX="6"
-                  refY="4"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto-start-reverse"
-                >
+                <marker key={type} id={`arr-${type}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                   <path d="M1 1.5L6.5 4L1 6.5" fill="none" stroke={es.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </marker>
               ))}
-              {/* Subtle drop shadow for selected nodes */}
               <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.12" />
+                <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.1" />
               </filter>
-              {/* Glow for selected edges */}
               <filter id="edge-glow" x="-40%" y="-300%" width="180%" height="700%">
-                <feGaussianBlur stdDeviation="2" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
               </filter>
-              {/* Very faint dot grid */}
-              <pattern id="dotgrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="0.8" fill="#ddd8ce" opacity="0.5" />
+              <pattern id="dotgrid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="#ddd8ce" opacity="0.6" />
               </pattern>
             </defs>
 
-            {/* Background */}
             <rect width={SVG_W} height={SVG_H} fill="#faf9f6" />
             <rect width={SVG_W} height={SVG_H} fill="url(#dotgrid)" />
 
             {/* ── Layer bands ── */}
             {LAYER_BANDS.map((band, i) => (
               <g key={i}>
-                <rect
-                  x={14}
-                  y={band.y}
-                  width={SVG_W - 28}
-                  height={band.h}
-                  rx={8}
-                  fill={band.color}
-                  stroke={band.border}
-                  strokeWidth={1}
-                />
-                <text
-                  x={30}
-                  y={band.y + 13}
-                  style={{
-                    fontSize: 8.5,
-                    fontFamily: "ui-monospace, monospace",
-                    fill: band.border,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                  }}
-                >
+                <rect x={20} y={band.y} width={SVG_W - 40} height={band.h} rx={12} fill={band.color} stroke={band.border} strokeWidth={1} strokeDasharray="4 4" />
+                <text x={40} y={band.y + 18} style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", fill: band.border, letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
                   {band.label}
                 </text>
               </g>
@@ -315,68 +254,28 @@ export default function AgenticArchitecture() {
               const es = EDGE_STYLE[conn.type]
               const isRelated = selected && (conn.from === selected || conn.to === selected)
               const isFaded = selected && !isRelated
-              const showDot = !isFaded
+              
+              // Dynamic pill width based on text length
+              const pillWidth = Math.max(90, conn.label.length * 5.8 + 20);
+              
               return (
-                <g
-                  key={i}
-                  style={{
-                    opacity: isFaded ? 0.1 : 1,
-                    transition: "opacity 0.25s",
-                  }}
-                >
-                  {/* Glow behind active edges */}
-                  {isRelated && (
-                    <path d={d} fill="none" stroke={es.glow} strokeWidth={5} strokeOpacity={0.15} filter="url(#edge-glow)" />
-                  )}
-                  {/* Main line */}
-                  <path
-                    d={d}
-                    fill="none"
-                    stroke={es.stroke}
-                    strokeWidth={isRelated ? 1.8 : 1.1}
-                    strokeDasharray={es.dash}
-                    strokeOpacity={isRelated ? 1 : 0.6}
-                    markerEnd={`url(#arr-${conn.type})`}
-                    style={{ transition: "stroke-width 0.2s, stroke-opacity 0.2s" }}
-                  />
-                  {/* Animated flow dot */}
-                  {showDot && (
-                    <circle r={isRelated ? es.dotR + 0.5 : es.dotR} fill={es.stroke} opacity={isRelated ? 0.9 : 0.4}>
-                      <animateMotion
-                        dur={isRelated ? String(parseFloat(es.animDur) * 0.65) + "s" : es.animDur}
-                        repeatCount="indefinite"
-                        begin={`${i * 0.38}s`}
-                      >
+                <g key={i} style={{ opacity: isFaded ? 0.08 : 1, transition: "opacity 0.3s" }}>
+                  {isRelated && <path d={d} fill="none" stroke={es.glow} strokeWidth={6} strokeOpacity={0.2} filter="url(#edge-glow)" />}
+                  
+                  <path d={d} fill="none" stroke={es.stroke} strokeWidth={isRelated ? 2 : 1.3} strokeDasharray={es.dash} strokeOpacity={isRelated ? 1 : 0.7} markerEnd={`url(#arr-${conn.type})`} style={{ transition: "stroke-width 0.2s" }} />
+                  
+                  {!isFaded && (
+                    <circle r={isRelated ? es.dotR + 1 : es.dotR} fill={es.stroke} opacity={isRelated ? 1 : 0.5}>
+                      <animateMotion dur={isRelated ? String(parseFloat(es.animDur) * 0.6) + "s" : es.animDur} repeatCount="indefinite" begin={`${i * 0.4}s`}>
                         <mpath href={`#ep-${i}`} />
                       </animateMotion>
                     </circle>
                   )}
                   <path id={`ep-${i}`} d={d} fill="none" stroke="none" />
-                  {/* Label pill */}
+                  
                   <g style={{ opacity: isFaded ? 0 : 1, transition: "opacity 0.2s" }}>
-                    <rect
-                      x={mx - 46}
-                      y={my - 9}
-                      width={92}
-                      height={17}
-                      rx={4}
-                      fill={isRelated ? "#fffdf8" : "#faf9f6"}
-                      stroke={isRelated ? es.stroke : "#ddd8ce"}
-                      strokeWidth={isRelated ? 1 : 0.8}
-                      strokeOpacity={isRelated ? 0.7 : 0.6}
-                    />
-                    <text
-                      x={mx}
-                      y={my + 0.5}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      style={{
-                        fontSize: 8,
-                        fontFamily: "ui-monospace, monospace",
-                        fill: isRelated ? es.label : "#a89880",
-                        letterSpacing: "0.02em",
-                      }}
-                    >
+                    <rect x={mx - pillWidth / 2} y={my - 11} width={pillWidth} height={22} rx={6} fill={isRelated ? "#ffffff" : "#faf9f6"} stroke={isRelated ? es.stroke : "#ddd8ce"} strokeWidth={isRelated ? 1.5 : 1} />
+                    <text x={mx} y={my + 0.5} textAnchor="middle" dominantBaseline="central" style={{ fontSize: 9.5, fontFamily: "ui-monospace, monospace", fill: isRelated ? es.label : "#8a7868", letterSpacing: "0.02em", fontWeight: isRelated ? 600 : 400 }}>
                       {conn.label}
                     </text>
                   </g>
@@ -386,109 +285,39 @@ export default function AgenticArchitecture() {
 
             {/* ── Nodes ── */}
             {Object.values(ACTORS).map((actor) => {
-              const x = COL_X[actor.col]
+              const x = COL_X[actor.col] + actor.xOffset
               const y = LAYER_Y[actor.layer]
               const accent = NODE_ACCENT[actor.id]
               const tint = NODE_ICON_TINT[actor.id]
               const isSel = selected === actor.id
               const isHov = hovered === actor.id
               const isFade = selected && !isSel
+
               return (
                 <g
                   key={actor.id}
                   onClick={() => setSelected(selected === actor.id ? null : actor.id)}
                   onMouseEnter={() => setHovered(actor.id)}
                   onMouseLeave={() => setHovered(null)}
-                  style={{
-                    cursor: "pointer",
-                    opacity: isFade ? 0.22 : 1,
-                    transition: "opacity 0.25s",
-                  }}
+                  style={{ cursor: "pointer", opacity: isFade ? 0.25 : 1, transition: "opacity 0.3s, transform 0.2s", transformOrigin: `${x + NODE_W/2}px ${y + NODE_H/2}px`, transform: isHov && !isSel ? "scale(1.02)" : "scale(1)" }}
                 >
-                  {/* Selection ring */}
-                  {isSel && (
-                    <rect
-                      x={x - 5}
-                      y={y - 5}
-                      width={NODE_W + 10}
-                      height={NODE_H + 10}
-                      rx={13}
-                      fill="none"
-                      stroke={accent}
-                      strokeWidth={1.5}
-                      strokeOpacity={0.35}
-                    />
-                  )}
-                  {/* Node body */}
-                  <rect
-                    x={x}
-                    y={y}
-                    width={NODE_W}
-                    height={NODE_H}
-                    rx={9}
-                    fill={isSel ? "#ffffff" : isHov ? "#fcfaf7" : "#fdfcf9"}
-                    stroke={isSel ? accent : isHov ? "#ccc5b8" : "#ddd8ce"}
-                    strokeWidth={isSel ? 1.5 : 1}
-                    filter={isSel ? "url(#node-shadow)" : undefined}
-                    style={{ transition: "fill 0.15s, stroke 0.15s" }}
-                  />
-                  {/* Top accent bar */}
-                  <rect
-                    x={x + 1}
-                    y={y}
-                    width={NODE_W - 2}
-                    height={3}
-                    rx={2}
-                    fill={accent}
-                    fillOpacity={isSel ? 1 : isHov ? 0.75 : 0.5}
-                    style={{ transition: "fill-opacity 0.15s" }}
-                  />
-                  {/* Icon */}
-                  <g transform={`translate(${x + 14}, ${y + NODE_H / 2 - 9}) scale(0.75)`}>
-                    <path d={ICON[actor.id]} fill={tint} opacity={isSel ? 0.85 : isHov ? 0.65 : 0.45} style={{ transition: "opacity 0.15s" }} />
+                  {isSel && <rect x={x - 6} y={y - 6} width={NODE_W + 12} height={NODE_H + 12} rx={16} fill="none" stroke={accent} strokeWidth={2} strokeOpacity={0.4} />}
+                  
+                  <rect x={x} y={y} width={NODE_W} height={NODE_H} rx={12} fill={isSel ? "#ffffff" : isHov ? "#ffffff" : "#fdfcf9"} stroke={isSel ? accent : isHov ? "#ccc5b8" : "#ddd8ce"} strokeWidth={isSel ? 2 : 1} filter={isSel || isHov ? "url(#node-shadow)" : undefined} style={{ transition: "all 0.2s" }} />
+                  
+                  <rect x={x + 1} y={y + 1} width={NODE_W - 2} height={4} rx={3} fill={accent} fillOpacity={isSel ? 1 : isHov ? 0.8 : 0.6} />
+                  
+                  <g transform={`translate(${x + 16}, ${y + NODE_H / 2 - 10}) scale(0.85)`}>
+                    <path d={ICON[actor.id]} fill={tint} opacity={isSel ? 1 : isHov ? 0.8 : 0.5} />
                   </g>
-                  {/* Label */}
-                  <text
-                    x={x + 37}
-                    y={y + 27}
-                    dominantBaseline="central"
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      fontFamily: "system-ui, sans-serif",
-                      fill: isSel ? "#1a1410" : isHov ? "#2a2218" : "#3a3028",
-                      letterSpacing: "-0.01em",
-                      transition: "fill 0.15s",
-                    }}
-                  >
+                  
+                  <text x={x + 44} y={y + 28} dominantBaseline="central" style={{ fontSize: 13, fontWeight: 700, fontFamily: "system-ui, sans-serif", fill: isSel ? "#1a1410" : isHov ? "#2a2218" : "#3a3028", letterSpacing: "-0.01em" }}>
                     {actor.label}
                   </text>
-                  {/* Sub-label */}
-                  <text
-                    x={x + 37}
-                    y={y + 46}
-                    dominantBaseline="central"
-                    style={{
-                      fontSize: 8.5,
-                      fontFamily: "ui-monospace, monospace",
-                      fill: isSel ? "#8a7868" : "#b8a898",
-                      letterSpacing: "0.01em",
-                      transition: "fill 0.15s",
-                    }}
-                  >
+                  
+                  <text x={x + 44} y={y + 48} dominantBaseline="central" style={{ fontSize: 9, fontFamily: "ui-monospace, monospace", fill: isSel ? "#8a7868" : "#a89880" }}>
                     {actor.sub}
                   </text>
-                  {/* Hover cue dot */}
-                  {!selected && (
-                    <circle
-                      cx={x + NODE_W - 13}
-                      cy={y + NODE_H / 2}
-                      r={3}
-                      fill={accent}
-                      opacity={isHov ? 0.6 : 0.18}
-                      style={{ transition: "opacity 0.15s" }}
-                    />
-                  )}
                 </g>
               )
             })}
@@ -496,156 +325,72 @@ export default function AgenticArchitecture() {
         </div>
 
         {/* ── Detail Panel ── */}
-        <div
-          style={{
-            width: 236,
-            borderLeft: "1px solid #e8e3da",
-            background: "#f5f2ec",
-            padding: "20px 18px",
-            flexShrink: 0,
-          }}
-        >
+        <div style={{ width: 280, borderLeft: "1px solid #e8e3da", background: "#f8f6f2", padding: "28px 24px", flexShrink: 0, overflowY: "auto", boxShadow: "-4px 0 16px rgba(0,0,0,0.02)" }}>
           {detail && selActor ? (
-            <div style={{ animation: "fadeUp 0.2s ease" }}>
-              {/* Title */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <div style={{ width: 3, height: 28, background: selAccent, borderRadius: 2, flexShrink: 0 }} />
+            <div style={{ animation: "fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <div style={{ width: 4, height: 36, background: selAccent, borderRadius: 2 }} />
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1410", lineHeight: 1.2 }}>{selActor.label}</div>
-                  <div style={{ fontSize: 9, fontFamily: "ui-monospace, monospace", color: "#a89880", marginTop: 2 }}>
-                    {selActor.sub}
-                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1410" }}>{selActor.label}</div>
+                  <div style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#a89880", marginTop: 4 }}>{selActor.sub}</div>
                 </div>
               </div>
-              {/* Body */}
-              <p style={{ fontSize: 12, color: "#5a4f44", lineHeight: 1.75, margin: "0 0 16px" }}>{detail.body}</p>
-              {/* Facts */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+              
+              <p style={{ fontSize: 13, color: "#4a4038", lineHeight: 1.6, margin: "0 0 20px" }}>{detail.body}</p>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {detail.facts.map((f, i) => (
-                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: selAccent, flexShrink: 0, marginTop: 4 }} />
-                    <div style={{ fontSize: 10.5, fontFamily: "ui-monospace, monospace", color: "#7a6e64", lineHeight: 1.55 }}>
-                      {f}
-                    </div>
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,0.5)", padding: "8px 10px", borderRadius: 8, border: "1px solid #efeae0" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: selAccent, marginTop: 4, flexShrink: 0 }} />
+                    <div style={{ fontSize: 11, fontFamily: "ui-monospace, monospace", color: "#6a5e54", lineHeight: 1.4 }}>{f}</div>
                   </div>
                 ))}
               </div>
-              {/* Related connections */}
-              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid #e0dbd0" }}>
-                <div
-                  style={{
-                    fontSize: 9,
-                    fontFamily: "ui-monospace, monospace",
-                    color: "#c8b8a2",
-                    marginBottom: 8,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Connections
-                </div>
+
+              <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid #e8e3da" }}>
+                <div style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#a89880", marginBottom: 12, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Related Connections</div>
                 {CONNECTIONS.filter((c) => c.from === selected || c.to === selected).map((c, i) => {
                   const es = EDGE_STYLE[c.type]
                   const other = c.from === selected ? c.to : c.from
                   const dir = c.from === selected ? "→" : "←"
                   return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-                      <div style={{ width: 18, height: 1.5, background: es.stroke, borderRadius: 1, flexShrink: 0 }} />
-                      <span style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#8a7868" }}>
-                        {dir} {ACTORS[other].label}
-                      </span>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <div style={{ width: 24, height: 2, background: es.stroke, borderRadius: 1 }} />
+                      <span style={{ fontSize: 11, fontFamily: "ui-monospace, monospace", color: "#6a5e54" }}>{dir} {ACTORS[other].label}</span>
                     </div>
                   )
                 })}
               </div>
+
               <button
                 onClick={() => setSelected(null)}
-                style={{
-                  marginTop: 14,
-                  fontSize: 10,
-                  fontFamily: "ui-monospace, monospace",
-                  color: "#a89880",
-                  border: "1px solid #d8d3c8",
-                  background: "transparent",
-                  borderRadius: 6,
-                  padding: "5px 12px",
-                  cursor: "pointer",
-                  letterSpacing: "0.04em",
-                  width: "100%",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.borderColor = "#b8a898"
-                  e.target.style.color = "#6a5e54"
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.borderColor = "#d8d3c8"
-                  e.target.style.color = "#a89880"
-                }}
+                style={{ marginTop: 24, fontSize: 12, fontWeight: 600, color: "#6a5e54", border: "1px solid #d8d3c8", background: "#ffffff", borderRadius: 8, padding: "8px 16px", cursor: "pointer", width: "100%", transition: "all 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+                onMouseEnter={(e) => { e.target.style.borderColor = "#b8a898"; e.target.style.background = "#faf9f6" }}
+                onMouseLeave={(e) => { e.target.style.borderColor = "#d8d3c8"; e.target.style.background = "#ffffff" }}
               >
-                ← deselect
+                Clear Selection
               </button>
             </div>
           ) : (
-            <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontFamily: "ui-monospace, monospace",
-                  color: "#c8b8a2",
-                  marginBottom: 18,
-                  lineHeight: 1.65,
-                }}
-              >
-                Click any node to inspect its role and connections.
+            <div style={{ animation: "fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+              <div style={{ fontSize: 12, fontFamily: "ui-monospace, monospace", color: "#a89880", marginBottom: 24, lineHeight: 1.6 }}>
+                Click any architecture node to inspect its specific role and security facts.
               </div>
-              {/* Actor index */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {Object.values(ACTORS).map((a) => (
                   <div
                     key={a.id}
                     onClick={() => setSelected(a.id)}
                     onMouseEnter={(e) => (e.currentTarget.style.background = "#ede8e0")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "5px 6px",
-                      borderRadius: 6,
-                      cursor: "pointer",
-                      transition: "background 0.12s",
-                    }}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: 8, cursor: "pointer", transition: "background 0.15s" }}
                   >
-                    <div style={{ width: 3, height: 22, background: NODE_ACCENT[a.id], borderRadius: 2, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "#4a4038" }}>{a.label}</div>
-                      <div
-                        style={{
-                          fontSize: 9,
-                          fontFamily: "ui-monospace, monospace",
-                          color: "#c8b8a2",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {a.sub}
-                      </div>
+                    <div style={{ width: 4, height: 24, background: NODE_ACCENT[a.id], borderRadius: 2 }} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#4a4038" }}>{a.label}</div>
+                      <div style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#a89880" }}>{a.sub.split("·")[0].trim()}</div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              {/* Stats */}
-              <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #e0dbd0" }}>
-                {[
-                  ["~1,100ms", "end to end"],
-                  ["T+1", "settlement"],
-                  ["F022=81", "agent flag"],
-                  ["zero", "consumer friction"],
-                ].map(([val, lbl]) => (
-                  <div key={val} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontSize: 10, fontFamily: "ui-monospace, monospace", color: "#8a7868" }}>{val}</span>
-                    <span style={{ fontSize: 9, fontFamily: "ui-monospace, monospace", color: "#c8b8a2" }}>{lbl}</span>
                   </div>
                 ))}
               </div>
@@ -655,9 +400,14 @@ export default function AgenticArchitecture() {
       </div>
       <style>{`
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(5px); }
+          from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        /* Custom scrollbar for webkit to keep the elegant aesthetic */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d8d3c8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b8a898; }
       `}</style>
     </div>
   )
