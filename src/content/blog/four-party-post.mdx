@@ -5,9 +5,9 @@ pubDate: 'Apr 4 2026'
 tags: ['visa', 'mastercard', 'four-party-model', 'agentic-commerce', 'agent-pay', 'vic', 'tokenization', 'iso8583']
 ---
 
-import FourPartyFlowDiagram from '../../components/four-party-flow-diagram.jsx';
-import FourPartySecurityLayers from '../../components/four-party-security-layers.jsx';
-import FourPartyRebuildMap from '../../components/four-party-rebuild-map.jsx';
+import FourPartyFlow from '../../components/FourPartyFlow.jsx';
+import SecurityLayers from '../../components/SecurityLayers.jsx';
+import RebuildMap from '../../components/RebuildMap.jsx';
 import Callout from '../../components/Callout.tsx';
 
 <div className="grid grid-cols-3 gap-3 my-8 not-prose">
@@ -31,7 +31,7 @@ This post is about the 4-party model: the settlement architecture that has moved
 
 Here is exactly what breaks in each of the five roles when an AI agent initiates a purchase, and how each network rebuilt around it.
 
-<FourPartyFlowDiagram client:load />
+<FourPartyFlow client:load />
 
 ---
 
@@ -51,7 +51,7 @@ The **network's token service** issues tokens bound to devices and sessions — 
 
 None of this is a design flaw — it's a design constraint. The model was built for humans. The question both Visa and Mastercard had to answer is: what is the minimum number of changes to each role to make this work for agents?
 
-<FourPartySecurityLayers client:load />
+<SecurityLayers client:load />
 
 ---
 
@@ -100,7 +100,7 @@ This is where the architectures diverge most visibly. The merchant needs to veri
 
 Mastercard's framing is "no-code for merchants." Visa's framing is "40-80ms local verification with full JWT context." Both are correct — they're optimizing for different things. Mastercard optimizes for adoption at scale. Visa optimizes for the richness of the credential the merchant receives.
 
-<FourPartyRebuildMap client:load />
+<RebuildMap client:load />
 
 ---
 
