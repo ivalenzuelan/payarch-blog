@@ -12,11 +12,11 @@ const T = {
 
 // ── GEOMETRY ──────────────────────────────────────────────────────
 const ACTORS = {
-  consumer: { x: 40,  y: 80,  w: 120, h: 52, label: "Consumer",   sub: "intent",           color: "#1a1814" },
-  merchant: { x: 520, y: 80,  w: 120, h: 52, label: "Merchant",   sub: "checkout",         color: "#1a1814" },
-  acquirer: { x: 520, y: 290, w: 120, h: 52, label: "Acquirer",   sub: "Stripe · Adyen",   color: "#7a4a10" },
-  network:  { x: 280, y: 290, w: 120, h: 52, label: "Network",    sub: "Visa · Mastercard", color: "#186040" },
-  issuer:   { x: 40,  y: 290, w: 120, h: 52, label: "Issuer",     sub: "Chase · Amex",     color: "#185FA5" },
+  consumer: { x: 28,  y: 96,  w: 130, h: 54, label: "Consumer",   sub: "intent",            color: "#1a1814" },
+  merchant: { x: 598, y: 96,  w: 130, h: 54, label: "Merchant",   sub: "checkout",          color: "#1a1814" },
+  acquirer: { x: 598, y: 304, w: 130, h: 54, label: "Acquirer",   sub: "Stripe · Adyen",    color: "#7a4a10" },
+  network:  { x: 310, y: 304, w: 130, h: 54, label: "Network",    sub: "Visa · Mastercard",  color: "#186040" },
+  issuer:   { x: 28,  y: 304, w: 130, h: 54, label: "Issuer",     sub: "Chase · Amex",      color: "#185FA5" },
 }
 
 const cx = (id) => ACTORS[id].x + ACTORS[id].w / 2
@@ -24,14 +24,14 @@ const cy = (id) => ACTORS[id].y + ACTORS[id].h / 2
 
 // SVG path for each connection
 const PATHS = {
-  "consumer-merchant": `M${ACTORS.consumer.x + ACTORS.consumer.w},${cy("consumer")} C340,${cy("consumer")} 340,${cy("merchant")} ${ACTORS.merchant.x},${cy("merchant")}`,
+  "consumer-merchant": `M${ACTORS.consumer.x + ACTORS.consumer.w},${cy("consumer")} C375,${cy("consumer")} 375,${cy("merchant")} ${ACTORS.merchant.x},${cy("merchant")}`,
   "merchant-acquirer": `M${cx("merchant")},${ACTORS.merchant.y + ACTORS.merchant.h} L${cx("acquirer")},${ACTORS.acquirer.y}`,
   "acquirer-network":  `M${ACTORS.acquirer.x},${cy("acquirer")} L${ACTORS.network.x + ACTORS.network.w},${cy("network")}`,
   "network-issuer":    `M${ACTORS.network.x},${cy("network")} L${ACTORS.issuer.x + ACTORS.issuer.w},${cy("issuer")}`,
-  "issuer-network-r":  `M${ACTORS.issuer.x + ACTORS.issuer.w},${cy("issuer") + 12} C240,${cy("issuer") + 12} 240,${cy("network") + 12} ${ACTORS.network.x},${cy("network") + 12}`,
+  "issuer-network-r":  `M${ACTORS.issuer.x + ACTORS.issuer.w},${cy("issuer") + 12} C252,${cy("issuer") + 12} 252,${cy("network") + 12} ${ACTORS.network.x},${cy("network") + 12}`,
   "network-acquirer-r":`M${ACTORS.network.x + ACTORS.network.w},${cy("network") + 12} L${ACTORS.acquirer.x},${cy("acquirer") + 12}`,
   "acquirer-merchant-r":`M${cx("acquirer") + 10},${ACTORS.acquirer.y} L${cx("merchant") + 10},${ACTORS.merchant.y + ACTORS.merchant.h}`,
-  "merchant-consumer-r":`M${ACTORS.merchant.x},${cy("merchant") + 12} C340,${cy("merchant") + 12} 340,${cy("consumer") + 12} ${ACTORS.consumer.x + ACTORS.consumer.w},${cy("consumer") + 12}`,
+  "merchant-consumer-r":`M${ACTORS.merchant.x},${cy("merchant") + 12} C375,${cy("merchant") + 12} 375,${cy("consumer") + 12} ${ACTORS.consumer.x + ACTORS.consumer.w},${cy("consumer") + 12}`,
 }
 
 // ── FLOWS ─────────────────────────────────────────────────────────
@@ -163,7 +163,7 @@ export default function FourPartyFlow() {
 
       {/* SVG */}
       <div style={{ padding: "16px 20px 8px", overflowX: "auto" }}>
-        <svg width="100%" viewBox="0 0 680 400" style={{ display: "block", minWidth: 440, overflow: "visible" }}>
+        <svg width="100%" viewBox="0 0 760 420" style={{ display: "block", minWidth: 540, overflow: "visible" }}>
           <defs>
             {/* Arrow markers */}
             {["pass","fail","dim"].map(type => (
@@ -180,11 +180,11 @@ export default function FourPartyFlow() {
           </defs>
 
           {/* Layer bands */}
-          <rect x={10} y={62} width={660} height={90} rx={6} fill={T.cream2} opacity={0.7}/>
-          <text x={22} y={78} style={{ fontSize: 8, fontFamily: "'Courier New',monospace", fill: T.ink4, letterSpacing: "0.08em", textTransform: "uppercase" }}>consumer · merchant layer</text>
+          <rect x={10} y={60} width={740} height={108} rx={6} fill={T.cream2} opacity={0.7}/>
+          <text x={24} y={75} style={{ fontSize: 9, fontFamily: "'Courier New',monospace", fill: T.ink3, letterSpacing: "0.08em", textTransform: "uppercase" }}>consumer · merchant layer</text>
 
-          <rect x={10} y={272} width={660} height={90} rx={6} fill={T.cream3} opacity={0.8}/>
-          <text x={22} y={288} style={{ fontSize: 8, fontFamily: "'Courier New',monospace", fill: T.ink4, letterSpacing: "0.08em", textTransform: "uppercase" }}>payment rails layer</text>
+          <rect x={10} y={272} width={740} height={108} rx={6} fill={T.cream3} opacity={0.8}/>
+          <text x={24} y={287} style={{ fontSize: 9, fontFamily: "'Courier New',monospace", fill: T.ink3, letterSpacing: "0.08em", textTransform: "uppercase" }}>payment rails layer</text>
 
           {/* Edges — draw all paths faded, active ones colored */}
           {flow.map((s, i) => {
@@ -275,7 +275,7 @@ export default function FourPartyFlow() {
           })}
 
           {/* T+1 annotation */}
-          <text x={340} y={393} textAnchor="middle"
+          <text x={380} y={412} textAnchor="middle"
             style={{ fontSize: 8, fontFamily: "'Courier New',monospace", fill: T.ink4 }}>
             ISO 8583 flows through network rails · T+1 settlement · chargebacks unchanged
           </text>
