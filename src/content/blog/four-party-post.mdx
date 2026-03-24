@@ -5,8 +5,9 @@ pubDate: 'Apr 4 2026'
 tags: ['visa', 'mastercard', 'four-party-model', 'agentic-commerce', 'agent-pay', 'vic', 'tokenization', 'iso8583']
 ---
 
-import FourPartyDiagram from '../../components/four-party-diagram.jsx';
-import NetworkComparison from '../../components/network-comparison.jsx';
+import FourPartyFlowDiagram from '../../components/four-party-flow-diagram.jsx';
+import FourPartySecurityLayers from '../../components/four-party-security-layers.jsx';
+import FourPartyRebuildMap from '../../components/four-party-rebuild-map.jsx';
 import Callout from '../../components/Callout.tsx';
 
 <div className="grid grid-cols-3 gap-3 my-8 not-prose">
@@ -30,7 +31,7 @@ This post is about the 4-party model: the settlement architecture that has moved
 
 Here is exactly what breaks in each of the five roles when an AI agent initiates a purchase, and how each network rebuilt around it.
 
-<FourPartyDiagram client:load />
+<FourPartyFlowDiagram client:load />
 
 ---
 
@@ -49,6 +50,8 @@ The **acquirer's ISO 8583 message** has no field that says "this was initiated b
 The **network's token service** issues tokens bound to devices and sessions — not to agents. A consumer's Visa token is valid across their devices. It has no concept of "this token is authorized only for agent `skyfire-001`."
 
 None of this is a design flaw — it's a design constraint. The model was built for humans. The question both Visa and Mastercard had to answer is: what is the minimum number of changes to each role to make this work for agents?
+
+<FourPartySecurityLayers client:load />
 
 ---
 
@@ -96,6 +99,8 @@ This is where the architectures diverge most visibly. The merchant needs to veri
 **Mastercard's approach:** Web Bot Auth verification at the CDN layer (Cloudflare). No new merchant code required for basic verification. Agents use a Dynamic Token Verification Code formatted for standard card fields in existing checkout forms. Merchants can participate without touching their codebase.
 
 Mastercard's framing is "no-code for merchants." Visa's framing is "40-80ms local verification with full JWT context." Both are correct — they're optimizing for different things. Mastercard optimizes for adoption at scale. Visa optimizes for the richness of the credential the merchant receives.
+
+<FourPartyRebuildMap client:load />
 
 ---
 
@@ -206,8 +211,6 @@ The key design insight in Mastercard's approach: the token itself carries the ag
 
 ## Side by side: the real differences
 
-<NetworkComparison client:load />
-
 The most important differences are architectural, not cosmetic:
 
 **Identity verification timing.** Visa TAP verifies the agent before the checkout request reaches the merchant. Mastercard Agent Pay verifies at the CDN layer — earlier, without merchant involvement. Visa gives the merchant a rich JWT with consumer context. Mastercard gives the merchant a simpler, backward-compatible credential.
@@ -283,24 +286,24 @@ Both networks made the same fundamental bets:
   <div className="p-4 flex items-center gap-4">
     <div className="font-mono font-semibold text-slate-300 text-sm w-6">03</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm">ISO 8583 for agents: the complete field reference</div>
-      <div className="text-xs text-slate-500 mt-0.5">Every modified field, valid values, how issuers interpret F022=81, what T+1 clearing looks like.</div>
+      <div className="font-semibold text-slate-800 text-sm">The Trusted Agent Protocol spec, line by line</div>
+      <div className="text-xs text-slate-500 mt-0.5">Ed25519 key registration, nonce store design, and why replay protection is harder than it looks.</div>
     </div>
   </div>
   <div className="p-4 flex items-center gap-4">
     <div className="font-mono font-semibold text-slate-300 text-sm w-6">04</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm">x402 in depth: HTTP-native payments for agents</div>
-      <div className="text-xs text-slate-500 mt-0.5">The payment flow, facilitator architecture, V2 spec changes, and when to use x402 over TAP or Agent Pay.</div>
+      <div className="font-semibold text-slate-800 text-sm">ISO 8583 for agents: the complete field reference</div>
+      <div className="text-xs text-slate-500 mt-0.5">Every modified field, valid values, how issuers interpret F022=81, what T+1 clearing looks like.</div>
     </div>
   </div>
   <div className="p-4 flex items-center gap-4">
     <div className="font-mono font-semibold text-slate-300 text-sm w-6">05</div>
     <div>
-      <div className="font-semibold text-slate-800 text-sm">TAP vs Agent Pay vs x402 vs AP2: the full protocol comparison</div>
-      <div className="text-xs text-slate-500 mt-0.5">Decision framework for choosing the right protocol for your use case, with real examples.</div>
+      <div className="font-semibold text-slate-800 text-sm">x402 in depth: HTTP-native payments for agents</div>
+      <div className="text-xs text-slate-500 mt-0.5">The payment flow, facilitator architecture, V2 spec changes, and when to use x402 over TAP.</div>
     </div>
-    </div>
+  </div>
 </div>
 
 All diagrams built with [payarch](https://github.com/ivalenzuelan/payarch) — open source tool for visualizing agentic payment architectures.
