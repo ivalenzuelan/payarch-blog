@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 
 const T = {
   cream:"#faf9f6", cream2:"#f5f3ee", cream3:"#ede9e2",
-  ink:"#1a1814", ink2:"#4a4440", ink3:"#8a8278", ink4:"#b8b3a8", ink5:"#d8d3c8",
+  ink:"#1a1814", ink2:"#4a4440", ink3:"#5e5750", ink4:"#8a8278", ink5:"#b8b3a8",
   pass:"#186040", passLight:"#f0f8f4", passBorder:"#a8d8b8",
   fail:"#c02010", failLight:"#fff4f2", failBorder:"#f0b0a0",
   visa:"#185FA5", blueLight:"#eef3ff", blueBorder:"#b8d0f0",
@@ -181,7 +181,7 @@ export default function SecurityLayers() {
 
               {/* Number + icon */}
               <div style={{ paddingLeft:12, paddingTop:2 }}>
-                <div style={{ fontSize:12, fontWeight:600, color:isOpen?layer.color:T.ink5, fontFamily:"'Courier New',monospace", lineHeight:1 }}>{layer.num}</div>
+                <div style={{ fontSize:12, fontWeight:600, color:isOpen?layer.color:T.ink4, fontFamily:"'Courier New',monospace", lineHeight:1 }}>{layer.num}</div>
                 {(isActive || isPast) && (
                   <div style={{ marginTop:4, fontSize:10, color:isHuman?T.pass:T.fail }}>{isHuman?"✓":"✕"}</div>
                 )}
@@ -297,7 +297,7 @@ export default function SecurityLayers() {
           <button onClick={() => { reset(); setTimeout(() => setPlaying(true), 50) }}
             style={{ padding:"5px 12px", borderRadius:5, fontSize:9, fontFamily:"'Courier New',monospace", cursor:"pointer", border:`1px solid ${T.ink5}`, background:T.cream, color:T.ink }}>▶ walk through</button>
           <button onClick={reset}
-            style={{ padding:"5px 9px", borderRadius:5, fontSize:9, fontFamily:"'Courier New',monospace", cursor:"pointer", border:`1px solid ${T.border}`, background:"transparent", color:T.ink5 }}>reset</button>
+            style={{ padding:"5px 9px", borderRadius:5, fontSize:9, fontFamily:"'Courier New',monospace", cursor:"pointer", border:`1px solid ${T.border}`, background:"transparent", color:T.ink4 }}>reset</button>
         </div>
       </div>
 

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react"
 // ── COLORS ────────────────────────────────────────────────────────
 const T = {
   cream: "#faf9f6", cream2: "#f5f3ee", cream3: "#ede9e2",
-  ink: "#1a1814", ink2: "#4a4440", ink3: "#8a8278", ink4: "#b8b3a8", ink5: "#d8d3c8",
+  ink: "#1a1814", ink2: "#4a4440", ink3: "#5e5750", ink4: "#8a8278", ink5: "#b8b3a8",
   pass: "#186040", passLight: "#f0f8f4", passBorder: "#a8d8b8",
   fail: "#c02010", failLight: "#fff4f2", failBorder: "#f0b0a0",
   visa: "#185FA5", mc: "#993C1D",
@@ -125,10 +125,6 @@ export default function FourPartyFlow() {
     if (s.status === "fail") { failedActors.add(s.from); failedActors.add(s.to) }
   })
 
-  // Which paths are completed
-  const visitedPaths = new Set(flow.slice(0, step).map(s => s.path))
-  const failedPaths  = new Set(flow.slice(0, step + 1).filter(s => s.status === "fail").map(s => s.path))
-
   const getActorStyle = (id) => {
     const isFailed  = failedActors.has(id)
     const isVisited = visitedActors.has(id)
@@ -137,18 +133,6 @@ export default function FourPartyFlow() {
     if (isActive)  return { fill: T.cream3,  stroke: ACTORS[id].color, sw: 2 }
     if (isVisited) return { fill: T.cream2,  stroke: T.pass,  sw: 1.5 }
     return              { fill: T.cream,   stroke: T.ink5,  sw: 1 }
-  }
-
-  const getEdgeColor = (pathKey, stepStatus) => {
-    if (failedPaths.has(pathKey)) return T.fail
-    if (visitedPaths.has(pathKey) || (activeStep && activeStep.path === pathKey && stepStatus === "pass")) return T.pass
-    return T.ink5
-  }
-
-  const edgeOpacity = (pathKey) => {
-    if (visitedPaths.has(pathKey) || failedPaths.has(pathKey)) return 0.7
-    if (activeStep && activeStep.path === pathKey) return 1
-    return 0.25
   }
 
   return (
@@ -283,7 +267,7 @@ export default function FourPartyFlow() {
                   {actor.label}
                 </text>
                 <text x={actor.x + actor.w / 2} y={actor.y + 36} textAnchor="middle" dominantBaseline="central"
-                  style={{ fontSize: 9, fontFamily: "'Courier New',monospace", fill: isActive ? T.ink4 : T.ink5 }}>
+                  style={{ fontSize: 9, fontFamily: "'Courier New',monospace", fill: isActive ? T.ink3 : T.ink4 }}>
                   {actor.sub}
                 </text>
               </g>
@@ -292,7 +276,7 @@ export default function FourPartyFlow() {
 
           {/* T+1 annotation */}
           <text x={340} y={393} textAnchor="middle"
-            style={{ fontSize: 8, fontFamily: "'Courier New',monospace", fill: T.ink5 }}>
+            style={{ fontSize: 8, fontFamily: "'Courier New',monospace", fill: T.ink4 }}>
             ISO 8583 flows through network rails · T+1 settlement · chargebacks unchanged
           </text>
         </svg>
@@ -315,7 +299,7 @@ export default function FourPartyFlow() {
             </div>
           </>
         ) : (
-          <div style={{ fontSize: 10, color: T.ink5, fontFamily: "'Courier New',monospace", paddingTop: 6 }}>
+          <div style={{ fontSize: 10, color: T.ink3, fontFamily: "'Courier New',monospace", paddingTop: 6 }}>
             press play to walk through the authorization flow
           </div>
         )}
@@ -347,11 +331,11 @@ export default function FourPartyFlow() {
           <div style={{ height: "100%", borderRadius: 1, transition: "width .4s ease",
             background: isFail ? T.fail : T.pass, width: `${progress}%` }}/>
         </div>
-        <span style={{ fontSize: 9, color: T.ink4, fontFamily: "'Courier New',monospace" }}>
+        <span style={{ fontSize: 9, color: T.ink3, fontFamily: "'Courier New',monospace" }}>
           {Math.max(0, step + 1)} / {flow.length}
         </span>
         <button onClick={reset} style={{ padding: "5px 9px", borderRadius: 5, fontSize: 9, fontFamily: "'Courier New',monospace",
-          cursor: "pointer", border: `1px solid ${T.border}`, background: "transparent", color: T.ink5 }}>reset</button>
+          cursor: "pointer", border: `1px solid ${T.border}`, background: "transparent", color: T.ink4 }}>reset</button>
       </div>
     </div>
   )

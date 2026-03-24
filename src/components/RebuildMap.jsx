@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 
 const T = {
   cream:"#faf9f6", cream2:"#f5f3ee", cream3:"#ede9e2",
-  ink:"#1a1814", ink2:"#4a4440", ink3:"#8a8278", ink4:"#b8b3a8", ink5:"#d8d3c8",
+  ink:"#1a1814", ink2:"#4a4440", ink3:"#5e5750", ink4:"#8a8278", ink5:"#b8b3a8",
   pass:"#186040", passLight:"#f0f8f4", passBorder:"#a8d8b8",
   fail:"#c02010", failLight:"#fff4f2", failBorder:"#f0b0a0",
   visa:"#185FA5", blueLight:"#eef3ff", blueBorder:"#b8d0f0",
@@ -57,43 +57,10 @@ const REBUILD = [
   },
 ]
 
-// Animated strikethrough component
-function Strikethrough({ text, animate }) {
-  const [pct, setPct] = useState(animate ? 0 : 100)
-  useEffect(() => {
-    if (!animate) return
-    let start = null
-    const step = (ts) => {
-      if (!start) start = ts
-      const prog = Math.min((ts - start) / 400, 1)
-      setPct(Math.round(prog * 100))
-      if (prog < 1) requestAnimationFrame(step)
-    }
-    const raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
-  }, [animate])
-
-  return (
-    <span style={{ position:"relative", display:"inline-block" }}>
-      <span style={{ color: animate ? T.fail : T.ink4, opacity: animate ? 0.55 : 1, transition:"color .3s, opacity .3s" }}>
-        {text}
-      </span>
-      {animate && (
-        <span style={{
-          position:"absolute", top:"50%", left:0,
-          height:1, background:T.fail,
-          width:`${pct}%`, transition:"none",
-          pointerEvents:"none",
-        }}/>
-      )}
-    </span>
-  )
-}
 
 export default function RebuildMap() {
   const [open, setOpen]         = useState(null)
   const [revealed, setRevealed] = useState(new Set())
-  const [animLayer, setAnimLayer] = useState(null)
   const [playing, setPlaying]   = useState(false)
   const playRef = useRef(false)
 
@@ -109,20 +76,18 @@ export default function RebuildMap() {
     const run = async () => {
       for (const layer of REBUILD) {
         if (!playRef.current) break
-        setAnimLayer(layer.id)
         setOpen(layer.id)
         setRevealed(s => new Set([...s, layer.id]))
         await new Promise(r => setTimeout(r, 2400))
       }
       playRef.current = false
       setPlaying(false)
-      setAnimLayer(null)
     }
     run()
     return () => { playRef.current = false }
   }, [playing])
 
-  const reset = () => { playRef.current = false; setPlaying(false); setOpen(null); setRevealed(new Set()); setAnimLayer(null) }
+  const reset = () => { playRef.current = false; setPlaying(false); setOpen(null); setRevealed(new Set()) }
 
   return (
     <div style={{ fontFamily:"'Georgia','Times New Roman',serif", background:T.cream, borderRadius:12, border:`1px solid ${T.border}`, overflow:"hidden" }}>
@@ -154,14 +119,13 @@ export default function RebuildMap() {
           <span style={{ fontSize:9, padding:"1px 7px", background:T.passLight, border:`1px solid ${T.passBorder}`, borderRadius:2, color:T.pass, fontFamily:"'Courier New',monospace" }}>→ replacement</span>
           <span style={{ fontSize:9, color:T.ink4 }}>rebuilt for agents</span>
         </div>
-        <span style={{ marginLeft:"auto", fontSize:9, color:T.ink5, fontFamily:"'Courier New',monospace" }}>click any layer</span>
+        <span style={{ marginLeft:"auto", fontSize:9, color:T.ink4, fontFamily:"'Courier New',monospace" }}>click any layer</span>
       </div>
 
       {/* Layers */}
       {REBUILD.map((layer, i) => {
         const isOpen     = open === layer.id
         const isRevealed = revealed.has(layer.id)
-        const isAnimating = animLayer === layer.id
 
         return (
           <div key={layer.id} style={{
@@ -175,7 +139,7 @@ export default function RebuildMap() {
             <div onClick={() => toggle(layer.id)} style={{ cursor:"pointer", display:"grid", gridTemplateColumns:"50px 1fr", padding:"13px 0" }}>
 
               <div style={{ paddingLeft:12, paddingTop:1 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:isOpen?layer.color:T.ink5, fontFamily:"'Courier New',monospace", lineHeight:1 }}>{layer.num}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:isOpen?layer.color:T.ink4, fontFamily:"'Courier New',monospace", lineHeight:1 }}>{layer.num}</div>
               </div>
 
               <div style={{ paddingRight:14 }}>
@@ -293,7 +257,7 @@ export default function RebuildMap() {
           <button onClick={() => { reset(); setTimeout(() => setPlaying(true), 50) }}
             style={{ padding:"6px 14px", borderRadius:5, fontSize:10, fontFamily:"'Courier New',monospace", cursor:"pointer", border:`1px solid ${T.ink5}`, background:T.cream, color:T.ink }}>▶ play</button>
           <button onClick={reset}
-            style={{ padding:"6px 10px", borderRadius:5, fontSize:10, fontFamily:"'Courier New',monospace", cursor:"pointer", border:`1px solid ${T.border}`, background:"transparent", color:T.ink5 }}>reset</button>
+            style={{ padding:"6px 10px", borderRadius:5, fontSize:10, fontFamily:"'Courier New',monospace", cursor:"pointer", border:`1px solid ${T.border}`, background:"transparent", color:T.ink4 }}>reset</button>
         </div>
       </div>
 
