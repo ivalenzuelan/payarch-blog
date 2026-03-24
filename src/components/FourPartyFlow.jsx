@@ -16,7 +16,7 @@ const ACTORS_HUMAN = {
   merchant: { x: 594, y: 96,  w: 130, h: 54, label:"Merchant", sub:"checkout",          color:"#1a1814" },
   acquirer: { x: 594, y: 304, w: 130, h: 54, label:"Acquirer", sub:"Stripe · Adyen",    color:"#7a4a10" },
   network:  { x: 314, y: 304, w: 130, h: 54, label:"Network",  sub:"Visa · Mastercard", color:"#186040" },
-  issuer:   { x: 40,  y: 304, w: 130, h: 54, label:"Issuer",   sub:"Chase · Amex",      color:"#185FA5" },
+  issuer:   { x: 40,  y: 304, w: 130, h: 54, label:"Issuer",   sub:"Chase · BBVA",      color:"#185FA5" },
 }
 
 const ACTORS_AGENT = {
@@ -25,7 +25,7 @@ const ACTORS_AGENT = {
   merchant: { x: 606, y: 60, w: 118, h: 50, label:"Merchant", sub:"checkout",          color:"#1a1814" },
   acquirer: { x: 606, y: 304, w: 118, h: 50, label:"Acquirer", sub:"Stripe · Adyen",   color:"#7a4a10" },
   network:  { x: 313, y: 304, w: 138, h: 50, label:"Network",  sub:"Visa · Mastercard", color:"#186040" },
-  issuer:   { x: 40,  y: 304, w: 118, h: 50, label:"Issuer",   sub:"Chase · Amex",     color:"#185FA5" },
+  issuer:   { x: 40,  y: 304, w: 118, h: 50, label:"Issuer",   sub:"Chase · BBVA",     color:"#185FA5" },
 }
 
 const cx = (A, id) => A[id].x + A[id].w / 2
@@ -320,8 +320,8 @@ export default function FourPartyFlow() {
                   style={{ transition:"all .3s" }}
                 />
                 {passive && (
-                  <text x={actor.x + actor.w - 10} y={actor.y + 12} textAnchor="middle" dominantBaseline="central"
-                    style={{ fontSize:9, fill:"#b8a8d0", fontFamily:"'Courier New',monospace" }}>passive</text>
+                  <text x={actor.x + actor.w - 5} y={actor.y + 13} textAnchor="end" dominantBaseline="central"
+                    style={{ fontSize:8, fill:"#b8a8d0", fontFamily:"'Courier New',monospace" }}>passive</text>
                 )}
                 {!passive && (isActive || isVisited) && (
                   <text x={actor.x + actor.w - 12} y={actor.y + 13} textAnchor="middle" dominantBaseline="central"
