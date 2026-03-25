@@ -32,103 +32,97 @@ This post is about the 4-party model: the settlement architecture that has moved
 
 Here is exactly what breaks at each layer when an AI agent initiates a purchase, and how each network rebuilt around it.
 
-<FourPartyFlow client:load />
+<div className="not-prose" style={{ margin: '32px 0' }}>
+  <FourPartyFlow client:load />
+</div>
 
 ---
 
-## The 4-party model as a layered defense — and why each layer breaks for agents
+## Why the 4-party model breaks for agents — layer by layer
 
-The 4-party model is not just a settlement architecture. It is a layered fraud prevention system where each participant has a specific responsibility. Understanding which layer breaks — and why — is the key to understanding what both networks had to rebuild.
+The 4-party model is also a fraud prevention stack. Each participant has a specific job. The problem is that every job was designed around one assumption: a human is present, acting in real time. When that assumption disappears, the stack doesn't degrade gracefully — it fails completely, at every layer simultaneously.
 
-### Layer 1: Merchant + Gateway — the front line
+### Layer 1: Merchant + Gateway
 
-The first check happens before the payment reaches the banking system. The merchant's website and gateway are responsible for detecting bot behavior at checkout.
+Before an authorization request ever leaves the merchant, the gateway runs behavioral checks: CAPTCHA, WAF rules, device fingerprinting, velocity limits. The point is to catch automated scripts brute-forcing card numbers before they hit the banking system.
 
-Tools: CAPTCHAs, Web Application Firewalls, velocity checks (too many rapid requests from the same IP), device fingerprinting, JavaScript browser challenges.
-
-Goal: Stop automated scripts from brute-forcing card numbers before they generate an authorization request.
-
-**What breaks for AI agents:** Every one of these tools is a false positive machine against legitimate AI shoppers. An AI agent has no mouse movement. It executes at machine speed from a data center IP. Its browser fingerprint is headless Chrome. Its purchasing patterns are algorithmically optimal — which looks exactly like a coordinated card testing attack. A perfectly legitimate agent buying a $90 pair of headphones fails every single front-line check. The merchant blocks the sale before payment even attempts to authorize. If the agent can't pass the front door, nothing downstream matters.
+An AI agent fails every one of these checks — not because it's malicious, but because it's optimal. No mouse movement. Machine-speed execution from a data center IP. Headless Chrome fingerprint. Algorithmically timed requests. A legitimate agent buying a $90 pair of headphones looks indistinguishable from a coordinated carding attack. The merchant blocks the request before payment is even attempted. Nothing downstream matters if the agent can't get through the front door.
 
 ### Layer 2: Acquirer + Processor
 
-If a transaction passes the gateway, the acquirer evaluates it based on merchant history, address verification (AVS), CVV matching, and known malicious IP lists.
+If something gets past the gateway, the acquirer evaluates it against the merchant's normal transaction profile — AVS match, CVV, IP reputation, behavioral patterns.
 
-Goal: Filter requests that don't match the merchant's normal transaction profile.
+The real issue here is `F022`. That's the POS Entry Mode field in ISO 8583, set to `01` (manual key entry) by default for ecommerce since the 1990s. It tells every system downstream: apply human transaction rules. An agent transaction from an AWS IP with no AVS match, carrying `F022=01`, looks exactly like credential stuffing. The field that needed to change was this one — and changing it is the most precise description of what both networks actually built.
 
-**What breaks for AI agents:** The acquirer's risk model is calibrated against human checkout behavior. An agent transaction from an AWS IP with no AVS match triggers every acquirer risk flag. More specifically: the ISO 8583 message has no field that says "this is a legitimate AI agent." Field F022 (POS Entry Mode) has been set to `01` — manual key entry, the ecommerce default since the 1990s — which tells every downstream system to apply human transaction rules. This is the single most important field both networks modified.
+### Layer 3: Card Network
 
-### Layer 3: Card Network — the macro view
+The network has cross-merchant visibility that no single bank has. It runs large-scale ML models trained to catch distributed attacks. By definition, machine-speed transactions from data center IPs with no human behavioral signal are what those models were built to flag.
 
-The network sits in the middle of global transaction flows and has visibility that individual banks cannot have. This is where large-scale ML models run.
+A Skyfire agent buying headphones gets the maximum risk score. Not because it did anything wrong, but because it matches the exact behavioral fingerprint of every attack the model was trained on. There's also no mechanism to verify that the consumer already authorized this specific purchase before the transaction arrived.
 
-Tools: Real-time risk scoring across hundreds of data points, cross-merchant velocity analysis, distributed bot network detection.
+### Layer 4: Issuer Bank
 
-Goal: Catch sophisticated, distributed attacks that no single merchant or issuer can see.
+The issuer receives the network's risk score and makes the final call. When signals are ambiguous — which a maximum risk score very much is — it triggers 3DS step-up authentication: an SMS or biometric challenge sent to the cardholder in real time.
 
-**What breaks for AI agents:** The network's ML models are trained on human behavioral baselines. They flag machine-speed transactions from data center IPs as high-risk by design. A legitimate Skyfire agent shopping at Bose.com receives a maximum risk score because it behaves identically to what these models were built to catch. There is also no mechanism to validate that the consumer already authorized this specific intent before the transaction arrived.
-
-### Layer 4: Issuer Bank — the final decision
-
-The issuer receives the network's risk score, combines it with cardholder history, and makes the final authorization decision.
-
-Tools: Internal risk engines, step-up authentication (3D Secure) when signals are ambiguous — an SMS or biometric challenge that proves human presence in real time.
-
-**What breaks for AI agents:** Step-up authentication is the last line of defense against bots. It works by requiring a human to respond in real time. An AI agent cannot respond to a 3DS SMS challenge. If the issuer's risk model triggers step-up — which it will, given the maximum risk score from the network — the transaction fails permanently. There is no fallback. The sale is lost with no recovery path.
+An agent cannot respond to a 3DS SMS. The transaction fails permanently. No fallback, no retry path. The sale is gone.
 
 <Callout type="insight">
-Every layer of the 4-party model's fraud prevention assumes human presence. CAPTCHA assumes a human can solve visual puzzles. AVS assumes a human typed their address. Device fingerprinting assumes a human browser. Behavioral scoring assumes human timing and patterns. Step-up authentication assumes a human can receive and respond to a challenge in real time. AI agents fail every single assumption simultaneously. The entire security stack has to be rebuilt — not patched.
+CAPTCHA assumes a human solves the puzzle. AVS assumes a human typed their address. Device fingerprinting assumes a human browser. 3DS assumes a human can respond to a challenge in real time. AI agents fail every assumption simultaneously — which is why patching individual layers doesn't work. The whole stack has to be rebuilt.
 </Callout>
 
-<SecurityLayers client:load />
+<div className="not-prose" style={{ margin: '32px 0' }}>
+  <SecurityLayers client:load />
+</div>
 
 ---
 
-## What each network rebuilt, layer by layer
+## What each network actually rebuilt
 
-With that framing, what Visa and Mastercard built becomes precise:
+Layer 1: replace behavioral heuristics with cryptographic identity. The WAF can't tell a bot from a legitimate agent based on mouse movement — but it can verify a signed HTTP request against a public key. Both networks provide exactly this. Visa via the TAP JWT; Mastercard via Cloudflare verification at the CDN edge before the request reaches merchant infrastructure.
 
-**Layer 1 (merchant/gateway):** Both provide cryptographic agent identity that the WAF can verify — instead of behavioral heuristics that will always false-positive on agents. Visa uses the TAP JWT. Mastercard uses CDN-layer verification by Cloudflare before the request reaches merchant infrastructure.
+Layer 2: add new ISO 8583 fields that signal agent context. `F022=81` for agent-initiated (replacing the 1990s default of `01`). `F048` for the agent identifier. `F126` for the instruction integrity hash. The acquirer's risk model now has a signal to work with.
 
-**Layer 2 (acquirer):** Both add new ISO 8583 fields — a new POS Entry Mode value (Visa `F022=81`, Mastercard equivalent), an agent identifier (`F048`), and an instruction reference (`F126`) — that tell the acquirer's risk model this is a known agent, not a bot.
+Layer 3: pre-payment instruction registry. The consumer's authorized intent is registered before the transaction. When the ISO 8583 message arrives, the network validates that amount, merchant, and agent match the original authorization. Anything tampered in transit gets declined with response code 58.
 
-**Layer 3 (network):** Both add a pre-payment instruction registry. The consumer's pre-authorized intent is stored before the transaction. When the ISO 8583 message arrives, the network validates that the amount, merchant, and agent match what the consumer authorized. Any tamper in transit — decline.
+Layer 4: replace 3DS with pre-authorized spending policies. The FIDO2 Passkey assertion happens at enrollment — at instruction time, not transaction time. When `F022=81` arrives, the issuer loads the agent's spending policy and runs deterministic checks: balance, per-transaction limit, merchant category, velocity, token status. No probabilistic scoring. No step-up needed because the consumer already proved presence when they enrolled.
 
-**Layer 4 (issuer):** Both replace step-up authentication with pre-authorized spending policies. The FIDO2 Passkey assertion happens at instruction time, not transaction time. By the time the ISO 8583 message arrives with the new POS Entry Mode value, the step-up has already happened — the issuer loads the agent's spending policy and runs deterministic checks instead of probabilistic scoring.
+The layered defense is preserved. Every layer still has its job. The tools have been replaced with ones that work for a principal who isn't physically present.
 
-The layered defense is preserved. Each party still has its responsibility. Every tool has been replaced with one that works for non-human principals.
-
-<RebuildMap client:load />
+<div className="not-prose" style={{ margin: '32px 0' }}>
+  <RebuildMap client:load />
+</div>
 
 ---
 
-## How each role in the model changes
+## How each role changes
 
-### The consumer: from actor to policy author
+### The consumer
 
-In the traditional model, the consumer is present at every transaction. They authenticate, enter credentials, approve the payment.
+In the old model: present at every transaction. Authenticates, enters credentials, approves the charge.
 
-In the AI model, the consumer is present exactly once: at enrollment. They configure a spending policy — category limits, per-transaction cap, daily velocity — and create a FIDO2 Passkey that signs individual payment instructions. After that, the agent operates autonomously within those guardrails until the consumer revokes access.
+In the agent model: present once, at enrollment. Sets a spending policy — category limits, per-transaction cap, daily velocity — and signs a FIDO2 Passkey that pre-authorizes the agent. After that, they're absent. The agent runs the transaction; the consumer gets a push notification when it's done.
 
-### The AI agent: new party in the model
+This is a fundamentally different trust model. The consumer isn't approving a transaction — they're configuring a policy that governs a class of future transactions. It's closer to setting up a direct debit than clicking a buy button.
 
-There is now a sixth entity that didn't exist before. The agent sits between the consumer and the merchant, interpreting natural language intent and executing the purchase. It holds the consumer's credential (agent-specific token), has a registered cryptographic identity, and signs every request it makes.
+### The AI agent
+
+There's a new party in the model. Not a consumer. Not a merchant's checkout page. An autonomous entity that sits between consumer intent and merchant execution, holds its own cryptographic identity, and signs every request it makes. Both networks treat it as an independent principal — which is the only way to make the authorization chain traceable.
 
 ### The issuer: two modes
 
-When `F022=81` arrives, the issuer loads the consumer's pre-configured agent spending policy instead of running the standard human behavioral model. The checks are deterministic — balance, per-transaction limit, category, velocity, token status — rather than probabilistic. Citi and US Bank were the first issuers to go live on Mastercard Agent Pay; all US Mastercard cardholders were enabled by November 2025.
+When `F022=81` arrives, the issuer loads the consumer's agent spending policy instead of running the standard human behavioral model. The checks become deterministic: balance, per-transaction limit, category, velocity, token status. Citi and US Bank went live first on Mastercard Agent Pay; all US Mastercard cardholders were enabled by November 2025.
 
-### The acquirer: new ISO 8583 fields
+### The acquirer
 
-For agent transactions: `F002` gets the agent-specific token (not real PAN), `F022=81` signals agent-initiated, `F048` carries the agent identifier, `F126` carries the TAP integrity hash.
+For agent transactions: `F002` gets the agent-specific token (not the real PAN), `F022=81` signals agent-initiated, `F048` carries the agent identifier, `F126` carries the instruction integrity hash. The ISO 8583 message is the same format — the fields that changed are these four.
 
-### The merchant: where the architectures diverge
+### The merchant: where the two architectures actually differ
 
-**Visa:** TAP SDK embedded in checkout. JWT validation local, under 5ms. Merchant explicitly integrates.
+**Visa:** TAP SDK in checkout. JWT validation local, under 5ms. Explicit integration required.
 
-**Mastercard:** Web Bot Auth at CDN layer. No merchant code change for basic verification. Agents use a Dynamic Token Verification Code formatted for standard card fields. Merchants can participate without touching their codebase.
+**Mastercard:** Web Bot Auth at the CDN layer. No merchant code change for basic verification. Agents submit a Dynamic Token Verification Code in the existing card fields. Merchants get agent support without touching their codebase.
 
-Mastercard optimizes for adoption at the 100M+ merchant scale. Visa optimizes for the richness of the credential the merchant receives.
+Mastercard is optimizing for adoption at scale — 100M+ merchants is a different constraint than a fintech integration. Visa is optimizing for the richness of what the merchant learns about the agent credential.
 
 ---
 
@@ -217,45 +211,47 @@ The key insight: the token itself carries the agent binding. Trust is embedded i
 
 ## Side by side
 
-<NetworkComparison client:load />
+<div className="not-prose" style={{ margin: '32px 0' }}>
+  <NetworkComparison client:load />
+</div>
 
-The most important differences are architectural. **Identity verification timing:** Visa TAP verifies before the checkout request reaches the merchant. Mastercard verifies at the CDN layer — earlier, without merchant involvement. **Token design:** Visa's VCN looks like a card number and lives in `F002`. Mastercard's Agentic Token includes agent-binding metadata in the token lifecycle itself. **Merchant integration:** Visa's TAP SDK is explicit. Mastercard's no-code CDN approach requires no merchant code change — which matters enormously at 100M+ merchant scale.
+The deeper differences are in the design philosophy. Visa adds an identity layer before the checkout request reaches the merchant — the TAP JWT. Mastercard intercepts at the CDN layer, earlier, without involving the merchant at all. Visa's VCN looks like a card number and lives in `F002` as expected. Mastercard's Agentic Token carries agent-binding metadata in the token lifecycle itself — trust is in the credential, not in a parallel handshake.
+
+The merchant integration gap is the one that will matter most at scale. Visa requires explicit TAP SDK integration. Mastercard requires nothing. For most merchants, "no code change" is the end of the conversation.
 
 ---
 
 ## What's actually the same
 
-Both networks made identical bets on three things.
+The October 14, 2025 Cloudflare announcements tell you something. Both networks announced their Web Bot Auth partnerships on the exact same day — not because they coordinated, but because they both arrived at the same cryptographic primitive: IETF RFC 9421 HTTP Message Signatures. The standard converged before either company made it official.
 
-**Web Bot Auth + Cloudflare.** Both announced their Cloudflare partnerships on October 14, 2025 — the same day. Both use IETF RFC 9421 HTTP Message Signatures as the cryptographic foundation. This is the standard converging in real time.
+Both also bet on FIDO2 Passkeys as the consumer authorization mechanism. The biometric challenge happens at enrollment, not at transaction time. The agent then operates within whatever the consumer authorized.
 
-**FIDO2 Passkeys.** Both require a Passkey-signed consumer instruction before any agent transaction. The consumer's biometric authenticates the specific purchase upfront; the agent executes autonomously within the authorized parameters.
-
-**The 4-party model itself.** Neither network built parallel infrastructure. ISO 8583 still flows from acquirer to network to issuer. Settlement is T+1. Chargebacks exist. The rails are extended, not replaced.
+And critically: neither network replaced the rails. ISO 8583 still flows from acquirer to network to issuer. Settlement is T+1. Chargebacks work the same way. The 4-party model is extended, not abandoned. Everything that exists — thousands of acquirer integrations, billions of cards, decades of issuer infrastructure — continues to function without modification.
 
 ---
 
 ## What's still not solved
 
-**Multi-agent authorization.** When a supervisor agent delegates to a subagent, which holds the TAP credential or Agentic Token? Neither network has published a delegation chain protocol.
+**Multi-agent delegation.** When a supervisor agent delegates to a subagent, which one holds the TAP credential or Agentic Token? Neither network has published a delegation chain protocol. This is the first hard problem as orchestration systems get more complex.
 
-**Cross-network interoperability.** A consumer with a Visa card using a Mastercard-integrated platform creates ambiguity. TAP key directory and Agent Pay acceptance framework are separate systems — a Visa-registered agent is not automatically recognized by Mastercard's CDN layer.
+**Cross-network interoperability.** A consumer with a Visa card on a Mastercard-integrated platform creates ambiguity. A Visa-registered agent is not automatically recognized by Mastercard's CDN layer. These are parallel systems with no shared registry.
 
-**Dispute resolution evidence standards.** The exact standard for what constitutes sufficient evidence in an agent-initiated dispute involving a multi-step orchestration workflow has not been formally published.
+**Dispute evidence.** What constitutes sufficient evidence in an agent-initiated chargeback where the transaction was the tenth step in a multi-agent orchestration workflow? Not formally defined.
 
-**PSD2 in Europe.** Strong customer authentication requirements were designed for human authentication. Pre-authorized agent spending policies don't map onto the SCA framework cleanly.
+**PSD2.** Strong Customer Authentication was designed for human authentication. Pre-authorized spending policies don't map onto the SCA framework cleanly — and the EU hasn't indicated how they will.
 
 ---
 
 ## For engineers building in this space
 
-**Building on Visa:** `developer.visa.com/capabilities/visa-intelligent-commerce` and `github.com/visa/mcp`. The open-source MCP server gives full VIC access through standard Claude/GPT tool calls. Budget extra time for TAP registration and Ed25519 key pair setup.
+**On Visa:** Start at `developer.visa.com/capabilities/visa-intelligent-commerce`. The open-source MCP server (`github.com/visa/mcp`) gives full VIC access through standard Claude/GPT tool calls. TAP registration and Ed25519 key pair setup take longer than expected — budget for it.
 
-**Building on Mastercard:** `developer.mastercard.com/agent-pay`. For merchants, the no-code CDN approach is the fastest path. For acquirers, the Agentic Token requestor integration via Mastercard's Secure Card on File service is the integration point.
+**On Mastercard:** `developer.mastercard.com/agent-pay`. Merchants take the no-code CDN path. Acquirers integrate at the Agentic Token requestor layer via Mastercard's Secure Card on File service.
 
-**Building agents, not infrastructure:** Skyfire KYAPay handles Visa VIC + TAP registration. For Mastercard, the PayPal partnership and Microsoft Copilot Studio integration are the fastest paths to production.
+**If you're building agents, not infrastructure:** Skyfire's KYAPay handles Visa VIC + TAP registration. The PayPal partnership and Microsoft Copilot Studio are the fastest paths to Mastercard production.
 
-**Building for both networks:** The Web Bot Auth / RFC 9421 layer is shared — the same Ed25519 key pair format works across both. Token issuance and spending policy layers are separate. The cryptographic identity layer converges.
+**If you're building for both:** The RFC 9421 layer is shared — the same Ed25519 key pair format works across both networks. Token issuance and spending policy layers are separate. Start with the identity layer; it's the part that converges.
 
 ---
 
