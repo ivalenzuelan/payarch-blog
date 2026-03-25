@@ -9,7 +9,6 @@ import FourPartyFlow    from '../../components/FourPartyFlow.jsx';
 import SecurityLayers   from '../../components/SecurityLayers.jsx';
 import RebuildMap       from '../../components/RebuildMap.jsx';
 import NetworkComparison from '../../components/NetworkComparison.jsx';
-import Callout from '../../components/Callout.tsx';
 
 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', margin: '32px 0' }} className="not-prose">
   <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
@@ -65,10 +64,6 @@ A Skyfire agent buying headphones gets the maximum risk score. Not because it di
 The issuer receives the network's risk score and makes the final call. When signals are ambiguous — which a maximum risk score very much is — it triggers 3DS step-up authentication: an SMS or biometric challenge sent to the cardholder in real time.
 
 An agent cannot respond to a 3DS SMS. The transaction fails permanently. No fallback, no retry path. The sale is gone.
-
-<Callout type="insight">
-CAPTCHA assumes a human solves the puzzle. AVS assumes a human typed their address. Device fingerprinting assumes a human browser. 3DS assumes a human can respond to a challenge in real time. AI agents fail every assumption simultaneously — which is why patching individual layers doesn't work. The whole stack has to be rebuilt.
-</Callout>
 
 <div className="not-prose" style={{ margin: '32px 0' }}>
   <SecurityLayers client:load />
@@ -128,10 +123,6 @@ Mastercard is optimizing for adoption at scale — 100M+ merchants is a differen
 
 ## Visa Intelligent Commerce: the TAP architecture
 
-<Callout type="tldr">
-Visa adds an identity layer before the payment message. The agent authenticates with Visa directly, receives a 90-second JWT, and presents it to the merchant. The JWT carries the payment instruction reference that links the ISO 8583 message to the consumer's original authorization.
-</Callout>
-
 ```text
 Consumer enrolls → VIC enroll_card() → VTS issues VCN bound to agent_id
 Consumer creates FIDO2 Passkey on device
@@ -171,10 +162,6 @@ The key insight: `F126` creates an integrity lock. VisaNet validates that the am
 ---
 
 ## Mastercard Agent Pay: the token-first architecture
-
-<Callout type="tldr">
-Mastercard extends its existing token infrastructure rather than adding a new identity layer. Agent identity is embedded in the Agentic Token metadata rather than in a separate JWT credential.
-</Callout>
 
 ```text
 Consumer enrolls → Mastercard Token Service issues Agentic Token
