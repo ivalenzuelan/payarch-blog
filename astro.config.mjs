@@ -9,7 +9,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://payarch.dev',
+  site: 'https://payarch.koratrack.com',
   integrations: [mdx(), sitemap(), react()],
 
   vite: {
