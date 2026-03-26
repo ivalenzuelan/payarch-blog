@@ -192,7 +192,7 @@ export default function FourPartyFlow() {
   const SVG_H = isAgentMode(mode) ? 440 : 420
 
   return (
-    <div style={{ fontFamily:"'Georgia','Times New Roman',serif", background:T.cream, borderRadius:12, border:`1px solid ${T.border}`, overflow:"hidden" }}>
+    <div className="fourparty-flow" style={{ fontFamily:"'Georgia','Times New Roman',serif", background:T.cream, borderRadius:12, border:`1px solid ${T.border}`, overflow:"hidden", WebkitOverflowScrolling:"touch" }}>
 
       {/* Header */}
       <div style={{ padding:"18px 24px 14px", background:T.cream2, borderBottom:`1px solid ${T.border}` }}>
@@ -232,8 +232,8 @@ export default function FourPartyFlow() {
       )}
 
       {/* SVG */}
-      <div style={{ padding:"16px 20px 8px", overflowX:"auto" }}>
-        <svg width="100%" viewBox={`0 0 764 ${SVG_H}`} style={{ display:"block", minWidth:480, overflow:"visible" }}>
+      <div style={{ padding:"16px 20px 8px", overflowX:"auto", WebkitOverflowScrolling:"touch" }}>
+        <svg width="100%" viewBox={`0 0 764 ${SVG_H}`} style={{ display:"block", minWidth:360, overflow:"visible" }}>
           <defs>
             {["pass","fail","dim","agent-line","passive"].map(type => (
               <marker key={type} id={`arr-${type}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">

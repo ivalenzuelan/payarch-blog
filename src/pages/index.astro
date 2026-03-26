@@ -577,6 +577,50 @@ footer#landing-footer {
   .about-stats { order: -1 }
   footer#landing-footer { flex-direction: column; gap: 20px; text-align: center }
 }
+
+@media (max-width: 640px) {
+  /* Nav: only show logo + CTA on small phones */
+  nav#landing-nav { padding: 0 16px }
+  .nav-links li:nth-child(1),
+  .nav-links li:nth-child(2),
+  .nav-links li:nth-child(3) { display: none }
+  .nav-links { gap: 0 }
+
+  /* Hero */
+  .hero { padding: 88px 20px 56px; min-height: auto }
+  .hero-mark svg { width: 64px; height: 44px }
+  .hero-mark { margin-bottom: 24px }
+  .hero-title { font-size: clamp(32px, 9vw, 44px) }
+  .hero-sub { font-size: 15px; margin-bottom: 28px }
+  .hero-cta { flex-direction: column; gap: 10px; width: 100% }
+  .btn-primary, .btn-secondary { width: 100%; text-align: center; padding: 13px 20px }
+  .scroll-hint { display: none }
+
+  /* Sections */
+  section { padding: 52px 16px }
+
+  /* Post cards */
+  .post-card { padding: 24px 20px }
+  .post-card.featured { padding: 28px 20px }
+  .post-title { font-size: 18px }
+  .post-card.featured .post-title { font-size: 21px }
+  .post-desc { font-size: 13px }
+
+  /* Chip tags: prevent overflow */
+  [style*="display:flex;gap:6px"] { flex-wrap: wrap }
+
+  /* Manifesto */
+  .manifesto-title { font-size: 18px }
+
+  /* About */
+  .about-name { font-size: 26px }
+  .about-stats { grid-template-columns: 1fr 1fr }
+  .stat-cell { padding: 18px 16px }
+  .stat-val { font-size: 28px }
+
+  /* Footer */
+  footer#landing-footer { padding: 28px 20px }
+}
 </style>
 </head>
 <body>

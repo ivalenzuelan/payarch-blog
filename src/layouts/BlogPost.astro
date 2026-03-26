@@ -169,11 +169,37 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
       transition: width 0.1s linear;
     }
 
+    /* ── Diagram touch targets ──────────────────────────────── */
+    .fourparty-flow button { min-height: 36px; }
+
     /* ── Mobile ────────────────────────────────────────────── */
     @media (max-width: 640px) {
       body { font-size: 16px; }
       h2 { font-size: 1.45rem; }
       h3 { font-size: 1.2rem; }
+
+      /* Diagrams: edge-to-edge + scrollable */
+      .not-prose {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-left: -16px !important;
+        margin-right: -16px !important;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      /* Code blocks scrollable */
+      pre {
+        font-size: 0.76em;
+        padding: 1em;
+      }
+
+      /* Prose table scrollable */
+      table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
     }
   </style>
 
@@ -332,11 +358,31 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
     }
 
     @media (max-width: 640px) {
+      /* Nav: only logo + home on small phones */
       .post-nav { padding: 0 16px; }
-      .nav-links { gap: 16px; }
-      .post-header { padding: 56px 20px 44px; }
-      .prose-wrap { padding-top: 36px; padding-bottom: 56px; }
-      .post-footer { flex-direction: column; gap: 16px; padding: 24px 20px; }
+      .nav-links li:nth-child(1),
+      .nav-links li:nth-child(2),
+      .nav-links li:nth-child(3) { display: none; }
+      .nav-links { gap: 0; }
+
+      /* Header */
+      .post-header { padding: 52px 16px 36px; }
+      .post-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+      .post-desc-text { font-size: 14px; }
+
+      /* Prose */
+      .prose-wrap {
+        padding-top: 32px;
+        padding-bottom: 48px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+      }
+
+      /* Code blocks */
+      pre { padding: 1em 1.2em; font-size: 0.78em; }
+
+      /* Footer */
+      .post-footer { flex-direction: column; gap: 16px; padding: 24px 16px; }
     }
   </style>
 </head>
