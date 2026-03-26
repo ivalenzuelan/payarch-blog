@@ -255,7 +255,70 @@ export default function AgenticArchitecture() {
       {/* ── Body ── */}
       <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row" }}>
 
-        {/* SVG */}
+        {/* Mobile: actor list instead of SVG */}
+        {isMobile && (
+          <div style={{ padding: "12px 16px 4px" }}>
+            <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "#c8b8a2", marginBottom: 10, letterSpacing: "0.06em" }}>
+              TAP ANY ACTOR TO INSPECT
+            </div>
+            {[
+              { id: "consumer",  band: "Consumer" },
+              { id: "agent",     band: "Agent Layer" },
+              { id: "wallet",    band: "Agent Layer" },
+              { id: "keystore",  band: "Trust & Payment Network" },
+              { id: "vic",       band: "Trust & Payment Network" },
+              { id: "issuer",    band: "Payment Rails" },
+              { id: "acquirer",  band: "Payment Rails" },
+              { id: "merchant",  band: "Payment Rails" },
+            ].map(({ id, band }, i, arr) => {
+              const actor = ACTORS[id]
+              const accent = NODE_ACCENT[id]
+              const isSel = selected === id
+              const showBand = i === 0 || arr[i - 1].band !== band
+              return (
+                <div key={id}>
+                  {showBand && (
+                    <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "#b8a898", letterSpacing: "0.08em", textTransform: "uppercase", marginTop: i === 0 ? 0 : 10, marginBottom: 4 }}>
+                      {band}
+                    </div>
+                  )}
+                  <div onClick={() => setSelected(selected === id ? null : id)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "10px 12px", marginBottom: 3,
+                      borderRadius: 8, cursor: "pointer",
+                      background: isSel ? "#ffffff" : "#fdfcf9",
+                      border: `1px solid ${isSel ? accent : "#ddd8ce"}`,
+                      transition: "all 0.15s",
+                    }}>
+                    <div style={{ width: 3, height: 32, background: accent, borderRadius: 2, flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#2a2218", letterSpacing: "-0.01em" }}>{actor.label}</div>
+                      <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "#b8a898", marginTop: 2 }}>{actor.sub}</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: isSel ? accent : "#ddd8ce" }}>{isSel ? "▲" : "▼"}</div>
+                  </div>
+                  {isSel && detail && (
+                    <div style={{ margin: "0 0 8px 14px", padding: "12px 14px", background: "#f5f2ec", borderRadius: "0 0 8px 8px", borderLeft: `2px solid ${accent}` }}>
+                      <p style={{ fontSize: 12, color: "#5a4f44", lineHeight: 1.7, margin: "0 0 10px" }}>{detail.body}</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {detail.facts.map((f, fi) => (
+                          <div key={fi} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                            <div style={{ width: 4, height: 4, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 5 }} />
+                            <div style={{ fontSize: 10.5, fontFamily: "ui-monospace,monospace", color: "#7a6e64", lineHeight: 1.5 }}>{f}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Desktop: SVG */}
+        {!isMobile && (
         <div style={{ flex: 1, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ display: "block", minWidth: SVG_W }}>
             <defs>
@@ -403,14 +466,15 @@ export default function AgenticArchitecture() {
             })}
           </svg>
         </div>
+        )}
 
-        {/* Detail panel */}
+        {/* Desktop detail panel only */}
+        {!isMobile && (
         <div style={{
-          width: isMobile ? "100%" : 236,
-          borderLeft: isMobile ? "none" : "1px solid #e8e3da",
-          borderTop: isMobile ? "1px solid #e8e3da" : "none",
+          width: 236,
+          borderLeft: "1px solid #e8e3da",
           background: "#f5f2ec",
-          padding: isMobile ? "16px 20px" : "20px 18px",
+          padding: "20px 18px",
           flexShrink: 0,
         }}>
           {detail && selActor ? (
@@ -496,6 +560,7 @@ export default function AgenticArchitecture() {
             </div>
           )}
         </div>
+        )}
 
       </div>
 
