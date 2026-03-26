@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // ─── Architecture note ─────────────────────────────────────────────────────
 // TAP is a SIGNING PROTOCOL, not a server. The agent holds a pre-registered
@@ -179,6 +179,14 @@ const ICON = {
 export default function AgenticArchitecture() {
   const [selected, setSelected] = useState(null)
   const [hovered, setHovered] = useState(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const detail = selected ? DETAILS[selected] : null
   const selActor = selected ? ACTORS[selected] : null
@@ -192,53 +200,64 @@ export default function AgenticArchitecture() {
       border: "1px solid #ddd8ce",
       overflow: "hidden",
       boxShadow: "0 2px 8px rgba(60,50,30,0.07), 0 12px 32px rgba(60,50,30,0.06)",
-      width: "100vw",
+      width: isMobile ? "100%" : "100vw",
       maxWidth: 1040,
-      position: "relative",
-      left: "50%",
-      transform: "translateX(-50%)",
+      position: isMobile ? "static" : "relative",
+      left: isMobile ? "auto" : "50%",
+      transform: isMobile ? "none" : "translateX(-50%)",
       margin: "2.5rem 0",
     }}>
 
       {/* ── Header ── */}
       <div style={{
-        padding: "18px 28px 15px",
+        padding: isMobile ? "14px 16px 12px" : "18px 28px 15px",
         borderBottom: "1px solid #e8e3da",
         background: "#f5f2ec",
-        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        alignItems: isMobile ? "flex-start" : "center",
+        justifyContent: "space-between",
+        gap: isMobile ? 8 : 16,
       }}>
         <div>
           <div style={{ fontSize: 10, letterSpacing: "0.13em", textTransform: "uppercase", color: "#a89880", fontFamily: "ui-monospace,'Courier New',monospace", marginBottom: 5 }}>
             Agentic Commerce · System Architecture
           </div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: "#2a2218", letterSpacing: "-0.02em", lineHeight: 1 }}>
+          <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, color: "#2a2218", letterSpacing: "-0.02em", lineHeight: 1 }}>
             How an AI agent pays for something
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
-          <div style={{ display: "flex", gap: 10 }}>
-            {Object.entries(EDGE_STYLE).map(([type, es]) => (
-              <div key={type} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <svg width="22" height="10" style={{ overflow: "visible" }}>
-                  <line x1="0" y1="5" x2="18" y2="5" stroke={es.stroke} strokeWidth="1.5" strokeDasharray={es.dash} />
-                  <polygon points="16,2.5 20,5 16,7.5" fill={es.stroke} />
-                </svg>
-                <span style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "#a89880", letterSpacing: "0.05em" }}>{type}</span>
-              </div>
-            ))}
+        {!isMobile && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 10 }}>
+              {Object.entries(EDGE_STYLE).map(([type, es]) => (
+                <div key={type} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <svg width="22" height="10" style={{ overflow: "visible" }}>
+                    <line x1="0" y1="5" x2="18" y2="5" stroke={es.stroke} strokeWidth="1.5" strokeDasharray={es.dash} />
+                    <polygon points="16,2.5 20,5 16,7.5" fill={es.stroke} />
+                  </svg>
+                  <span style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "#a89880", letterSpacing: "0.05em" }}>{type}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "#c8b8a2" }}>
+              8 actors · 10 connections · ~1,100ms end to end
+            </div>
           </div>
+        )}
+        {isMobile && (
           <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "#c8b8a2" }}>
-            8 actors · 10 connections · ~1,100ms end to end
+            8 actors · 10 connections · ~1,100ms · tap any node
           </div>
-        </div>
+        )}
       </div>
 
       {/* ── Body ── */}
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row" }}>
 
         {/* SVG */}
-        <div style={{ flex: 1, overflowX: "auto" }}>
-          <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ display: "block" }}>
+        <div style={{ flex: 1, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ display: "block", minWidth: SVG_W }}>
             <defs>
               {Object.entries(EDGE_STYLE).map(([type, es]) => (
                 <marker key={type} id={`arr-${type}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -387,10 +406,11 @@ export default function AgenticArchitecture() {
 
         {/* Detail panel */}
         <div style={{
-          width: 236,
-          borderLeft: "1px solid #e8e3da",
+          width: isMobile ? "100%" : 236,
+          borderLeft: isMobile ? "none" : "1px solid #e8e3da",
+          borderTop: isMobile ? "1px solid #e8e3da" : "none",
           background: "#f5f2ec",
-          padding: "20px 18px",
+          padding: isMobile ? "16px 20px" : "20px 18px",
           flexShrink: 0,
         }}>
           {detail && selActor ? (
