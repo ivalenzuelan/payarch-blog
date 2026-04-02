@@ -114,13 +114,139 @@ const STEPS = [
 // Arrow direction labels mapped to actor column positions (0=agent,1=visa,2=merchant)
 const COL = { agent: 0, visa: 1, merchant: 2 }
 
+// Crypto internals data — shown when crypto mode is active
+const CRYPTO_DETAILS = {
+  0: {
+    title: "Canonical string construction (RFC 9421 §2.3)",
+    sections: [
+      {
+        label: "1. Collect covered components",
+        mono: true,
+        lines: [
+          '"@method": POST',
+          '"@target-uri": https://tap.visa.com/v1/validate',
+          '"x-tap-agent-id": skyfire-agent-001',
+          '"x-tap-intent": purchase',
+          '"content-digest": sha-256=:YjMzMDQ5YjQ4YzA=:',
+        ]
+      },
+      {
+        label: "2. Append signature params",
+        mono: true,
+        lines: [
+          '"@signature-params": ("@method" "@target-uri" "x-tap-agent-id"',
+          '  "x-tap-intent" "content-digest");keyid="skyfire-001";',
+          '  tag="tap-purchase";created=1742518234;nonce="a3f8c2e1d9b7"',
+        ]
+      },
+      {
+        label: "3. Sign with Ed25519 private key",
+        mono: false,
+        lines: [
+          "The canonical string is hashed with SHA-512, then signed with the agent's Ed25519 private key. Ed25519 signatures are deterministic — the same input always produces the same signature. Key length: 32 bytes (256 bits).",
+        ]
+      },
+      {
+        label: "4. Encode as base64url",
+        mono: true,
+        lines: [
+          "tap-sig=:MEQCIBx7zKp9mN3vQs8Tr...base64==:",
+        ]
+      },
+    ],
+    note: "The private key never leaves the agent's secure enclave. Visa only stores the corresponding public key, retrieved from .well-known/agents/{agent_id}."
+  },
+  1: {
+    title: "Signature verification internals (Ed25519)",
+    sections: [
+      {
+        label: "1. Fetch public key",
+        mono: true,
+        lines: [
+          "GET https://skyfire.xyz/.well-known/agents/skyfire-001",
+          "→ { alg: Ed25519, pub: MCowBQYDK2VdA3IA... }",
+          "   (cached 5 min, invalidated on key rotation)",
+        ]
+      },
+      {
+        label: "2. Reconstruct canonical string",
+        mono: false,
+        lines: [
+          "Visa rebuilds the same canonical string from the incoming request's headers in exactly the same order listed in Signature-Input. Any discrepancy → reject.",
+        ]
+      },
+      {
+        label: "3. Ed25519 verify",
+        mono: true,
+        lines: [
+          "ed25519.verify(",
+          "  pubkey:    MCowBQYDK2Vd...",
+          "  message:   SHA-512(canonical_string)",
+          "  signature: MEQCIBx7zKp9mN3...",
+          ") → true ✓",
+        ]
+      },
+      {
+        label: "4. Nonce deduplication",
+        mono: true,
+        lines: [
+          "SETNX tap:nonce:a3f8c2e1d9b7 1 EX 300",
+          "→ 1  (key did not exist → unused → store it)",
+          "Any replay attempt: → 0 → reject immediately",
+        ]
+      },
+    ],
+    note: "Ed25519 verification takes ~0.05ms. The nonce check adds ~0.3ms (Redis lookup). Timestamp delta check is pure arithmetic. Total: <1ms of the 12ms validation window."
+  },
+  2: {
+    title: "JWT structure (RFC 7519 + TAP extensions)",
+    sections: [
+      {
+        label: "Header",
+        mono: true,
+        lines: [
+          '{ "alg": "ES256", "typ": "JWT" }',
+          "// Signed with Visa's ECDSA P-256 private key",
+          "// Merchant verifies using Visa's cached public key",
+        ]
+      },
+      {
+        label: "Payload",
+        mono: true,
+        lines: [
+          '{ "iss": "tap.visa.com",',
+          '  "sub": "skyfire-agent-001",',
+          '  "aud": "bose.com",',
+          '  "iat": 1742518234,',
+          '  "exp": 1742518324,          // +90 seconds only',
+          '  "nonce": "a3f8c2e1d9b7",   // replay protection',
+          '  "consumer_recognized": true,',
+          '  "instruction_ref": "pi-abc123",',
+          '  "risk_score": 12',
+          '}',
+        ]
+      },
+      {
+        label: "Why 90 seconds TTL?",
+        mono: false,
+        lines: [
+          "Long enough for the agent to reach the merchant and complete checkout. Short enough that a stolen JWT is useless — the nonce is bound to the token and already consumed at Visa. The aud claim is merchant-bound, so it cannot be replayed at a different merchant.",
+        ]
+      },
+    ],
+    note: "The merchant never calls Visa during checkout. It verifies the JWT signature using Visa's public key (fetched once on startup, rotated quarterly). Verification: <5ms, zero network calls."
+  },
+}
+
 export default function TapHandshake() {
   const [openStep, setOpenStep] = useState(null)
   const [activeStep, setActiveStep] = useState(-1)
   const [playing, setPlaying] = useState(false)
+  const [showCrypto, setShowCrypto] = useState(false)
   const playingRef = useRef(false)
 
-  const toggle = (i) => setOpenStep(prev => prev === i ? null : i)
+  // toggle is used for keyboard/accessibility; goTo handles click interactions
+  const _toggle = (i) => setOpenStep(prev => prev === i ? null : i)
 
   // Play through steps
   useEffect(() => {
@@ -168,11 +294,27 @@ export default function TapHandshake() {
         <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           Trusted Agent Protocol · Handshake Sequence
         </div>
-        <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 3px" }}>
-          Agent authentication &amp; credential issuance
-        </h2>
-        <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
-          6 steps · ~60ms total · click any step to expand
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 3px" }}>
+              Agent authentication &amp; credential issuance
+            </h2>
+            <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+              6 steps · ~60ms total · click any step to expand
+            </div>
+          </div>
+          <button
+            onClick={() => setShowCrypto(c => !c)}
+            style={{
+              padding: "5px 12px", borderRadius: 5, fontSize: 10, flexShrink: 0,
+              fontFamily: "'Courier New',monospace", cursor: "pointer",
+              border: `1px solid ${showCrypto ? "#7040c0" : "#d8d3c8"}`,
+              background: showCrypto ? "#f5f0ff" : "transparent",
+              color: showCrypto ? "#7040c0" : "#9a9288",
+              transition: "all .15s",
+            }}>
+            {showCrypto ? "▾ crypto internals" : "▸ crypto internals"}
+          </button>
         </div>
       </div>
 
@@ -209,7 +351,6 @@ export default function TapHandshake() {
           const actor = ACTORS.find(a => a.id === s.from)
 
           // Arrow direction
-          const goingRight = toCol > fromCol
           const goingLeft = toCol < fromCol
 
           // Center of each column in percent (3 cols: 16.6%, 50%, 83.3%)
@@ -320,6 +461,40 @@ export default function TapHandshake() {
                   <div style={{ marginTop: 8, fontSize: 11, color: "#6b6560", lineHeight: 1.65, fontStyle: "italic", borderTop: "1px solid #e0dbd0", paddingTop: 8, fontFamily: "Georgia,serif" }}>
                     {s.note}
                   </div>
+
+                  {/* Crypto internals panel */}
+                  {showCrypto && CRYPTO_DETAILS[i] && (
+                    <div style={{ marginTop: 12, borderTop: "1px solid #ddd0f8", paddingTop: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: "#7040c0", fontFamily: "'Courier New',monospace", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>
+                        ◈ {CRYPTO_DETAILS[i].title}
+                      </div>
+                      {CRYPTO_DETAILS[i].sections.map((sec, si) => (
+                        <div key={si} style={{ marginBottom: 10 }}>
+                          <div style={{ fontSize: 10, color: "#7040c0", fontFamily: "'Courier New',monospace", marginBottom: 4, fontWeight: 500 }}>
+                            {sec.label}
+                          </div>
+                          {sec.mono ? (
+                            <div style={{
+                              background: "#1a1814", borderRadius: 6, padding: "8px 12px",
+                              fontFamily: "'Courier New',monospace", fontSize: 10.5, lineHeight: 1.7,
+                              color: "#d8d0c8", overflowX: "auto",
+                            }}>
+                              {sec.lines.map((line, li) => (
+                                <div key={li} style={{ whiteSpace: "pre" }}>{line}</div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: 11, color: "#5e5750", lineHeight: 1.65, fontFamily: "Georgia,serif" }}>
+                              {sec.lines[0]}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      <div style={{ fontSize: 11, color: "#7040c0", lineHeight: 1.65, fontStyle: "italic", borderTop: "1px solid #ddd0f8", paddingTop: 8, fontFamily: "Georgia,serif", opacity: 0.85 }}>
+                        {CRYPTO_DETAILS[i].note}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -360,6 +535,11 @@ export default function TapHandshake() {
           style={{ padding: "5px 10px", borderRadius: 5, fontSize: 10, fontFamily: "'Courier New',monospace", cursor: "pointer", border: "1px solid #d8d3c8", background: "transparent", color: "#9a9288" }}>
           reset
         </button>
+        {showCrypto && (
+          <div style={{ fontSize: 9.5, fontFamily: "'Courier New',monospace", color: "#7040c0", padding: "3px 8px", background: "#f5f0ff", borderRadius: 4, border: "1px solid #ddd0f8" }}>
+            crypto on
+          </div>
+        )}
       </div>
 
     </div>

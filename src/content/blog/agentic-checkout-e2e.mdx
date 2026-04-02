@@ -5,10 +5,10 @@ pubDate: 'Mar 21 2026'
 tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payments', 'x402', 'mcp']
 ---
 
+import { agenticCheckoutE2E } from '@payarch/core';
 import AgenticArchitecture from '../../components/agentic-architecture.jsx';
 import TapHandshake from '../../components/tap-handshake-diagram.jsx';
 import Iso8583Diagram from '../../components/iso8583-diagram.jsx';
-import Callout from '../../components/Callout.tsx';
 
 
 You say "buy me those Bose headphones." Your AI assistant does it. 1,100 milliseconds later, the purchase is confirmed — no checkout page, no card number entered, no CAPTCHA solved.
@@ -17,7 +17,7 @@ This already happened. In December 2025, a consumer dispatched an AI agent to fi
 
 This post breaks down every technical layer of what happened: the new identity protocol Visa and Cloudflare built, the exact changes to ISO 8583 for agent-initiated transactions, the VIC API sequence, and the competitive landscape across TAP, x402, and AP2.
 
-<AgenticArchitecture client:load />
+<AgenticArchitecture client:load diagram={agenticCheckoutE2E} />
 
 ---
 
