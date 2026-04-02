@@ -1,4 +1,4 @@
-import { agenticCheckoutE2E } from "@payarch/core"
+import { agenticCheckoutE2E } from "../lib/core"
 import { useEffect, useState } from "react"
 
 const ACTOR_ORDER = ["consumer", "agent", "wallet", "keystore", "vic", "issuer", "acquirer", "merchant"]

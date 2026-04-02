@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { PayarchDiagram as DiagramDef } from '@payarch/core'
+import type { PayarchDiagram as DiagramDef } from '../lib/core'
 
 type Layer = 'business' | 'technical' | 'iso8583'
 
