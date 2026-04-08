@@ -1,0 +1,285 @@
+---
+title: 'Visa and Ramp are rebuilding corporate bill pay with AI agents — here is the architecture'
+description: 'On April 1, 2026, Visa and Ramp announced the first production deployment of agentic AI in corporate accounts payable. This is the complete technical breakdown: how VIC and TAP apply to B2B payments, what changes in ISO 8583, and why corporate bill pay is the perfect proving ground for the new payment stack.'
+pubDate: 'Apr 6 2026'
+tags: ['visa', 'ramp', 'agentic-commerce', 'vic', 'tap', 'b2b', 'corporate-payments', 'iso8583', 'accounts-payable']
+---
+
+import BeforeAfter from '../../components/before-after-split.jsx';
+import Iso8583Diagram from '../../components/iso8583-diagram.jsx';
+import Callout from '../../components/Callout.tsx';
+
+export const beforeData = {
+  label: "Manual AP workflow",
+  badge: "4–7 days",
+  badgeType: "fail",
+  timeBarWidth: "100%",
+  metrics: [
+    { value: "7", label: "manual steps" },
+    { value: "2–3", label: "approvers" },
+    { value: "~3%", label: "error rate" },
+  ],
+  steps: [
+    {
+      label: "Invoice received",
+      type: "pain",
+      time: "+0h",
+      detail: "PDF attached to email in a shared AP inbox. Could be a paper scan, fax copy, or EDI file. No standard format. AP clerk finds it among 80 other emails.",
+    },
+    {
+      label: "Manual data entry into ERP",
+      type: "pain",
+      time: "+2h",
+      detail: "AP clerk manually types: vendor name, invoice number, amount, PO reference, GL code, cost center, tax amount. Into SAP, NetSuite, or Oracle. Error rate: ~3%. Each error triggers a correction cycle.",
+    },
+    {
+      label: "PO matching",
+      type: "pain",
+      time: "+4h",
+      detail: "Cross-reference the invoice against the purchase order in the procurement system. 15% of invoices have mismatches (price, quantity, vendor name mismatch). Each exception takes 2–3 additional days to resolve.",
+    },
+    {
+      label: "Manager approval",
+      type: "approval",
+      time: "+24h",
+      detail: "Email thread to line manager. Average response time: 18 hours. If manager is traveling or OOO: 3 days. No audit trail beyond the email thread.",
+    },
+    {
+      label: "Finance director sign-off",
+      type: "approval",
+      time: "+48h",
+      detail: "Required for invoices above $10,000. Second approval bottleneck. Often requires a calendar sync. Some companies have a three-tier approval chain above $50k.",
+    },
+    {
+      label: "Bank portal payment entry",
+      type: "pain",
+      time: "+72h",
+      detail: "AP team logs into the bank portal separately from the ERP. Enters payment details a second time — vendor bank account, routing number, amount. NACHA ACH or wire transfer. Another data entry touchpoint.",
+    },
+    {
+      label: "Manual reconciliation",
+      type: "pain",
+      time: "T+2 days",
+      detail: "Match bank statement to ERP journal entry. Assign to the correct cost center and project code. File receipt. Update AP aging report. CFO dashboard refreshed manually.",
+    },
+  ],
+}
+
+export const afterData = {
+  label: "Ramp AI agent",
+  badge: "~2 hours",
+  badgeType: "agent",
+  timeBarWidth: "8%",
+  timeSaved: "50×",
+  metrics: [
+    { value: "6", label: "steps" },
+    { value: "0", label: "manual entry" },
+    { value: "<1%", label: "exception rate" },
+  ],
+  steps: [
+    {
+      label: "Invoice received + extracted",
+      type: "instant",
+      time: "<1min",
+      detail: "Ramp's agent reads email, PDF, or EDI. Extracts: vendor Acme Corp, amount $8,450.00, invoice #INV-2026-4821, PO-2026-4821, 12 line items, tax $676. Confidence score: 98.7%. No human reads the email.",
+    },
+    {
+      label: "PO match + GL code",
+      type: "agent",
+      time: "<1min",
+      detail: "Matched to PO-2026-4821 in procurement system. Amount within 2% tolerance. GL code auto-assigned from vendor master data. Exception rate drops from 15% to <1% — agents don't transpose digits.",
+    },
+    {
+      label: "Spending policy evaluation",
+      type: "instant",
+      time: "<1s",
+      detail: "$8,450 < $10k auto-approve threshold. Vendor Acme Corp: pre-approved. MCC: software services (category allowed). Velocity: 2nd invoice this quarter (within limit). Result: auto-approved. No human required.",
+    },
+    {
+      label: "TAP credential + VIC",
+      type: "agent",
+      time: "~60ms",
+      detail: "Ramp agent signs HTTP request with Ed25519 private key. Visa VIC validates identity via Cloudflare edge + key directory. Issues JWT: sub=ramp-corp-acme-001, aud=vendor-acquirer, exp=+90s, instruction_ref=pi-8450.",
+    },
+    {
+      label: "ISO 8583 authorization",
+      type: "instant",
+      time: "~1s",
+      detail: "F022=81 (agent-initiated). F048: CORP:ramp-acme-001. F054: L3 line items. F126: TAP instruction hash. Acquirer → VisaNet → Chase issuer → F039=00 approved. Auth code: 847291.",
+    },
+    {
+      label: "ERP sync + reconciliation",
+      type: "agent",
+      time: "<5min",
+      detail: "Payment confirmed. Agent auto-posts journal entry to NetSuite cost center 4210 / project Infra-Q2. Receipt filed in document management. Audit trail complete. CFO dashboard updated in real time.",
+    },
+  ],
+}
+
+export const correspondence = [0, 1, 2, 3, 3, 4, 5]
+
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', margin: '32px 0' }} className="not-prose">
+  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: '#1a1814', fontFamily: 'Courier New, monospace' }}>50,000</div>
+    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Ramp corporate customers</div>
+  </div>
+  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: '#6030b0', fontFamily: 'Courier New, monospace' }}>Apr 1</div>
+    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>First production B2B VIC deployment</div>
+  </div>
+  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: '#186040', fontFamily: 'Courier New, monospace' }}>50×</div>
+    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Faster than manual AP workflow</div>
+  </div>
+</div>
+
+On April 1, 2026, Visa and Ramp announced that AI agents would automate corporate bill payments for Ramp's 50,000 corporate customers. The headline was understated. This is not a product announcement — it is the first real production deployment of Visa Intelligent Commerce outside of consumer retail. It tells us something important about where the agentic payment stack is actually headed.
+
+Corporate accounts payable is the ideal proving ground. The amounts are large, the workflows are well-defined, the fraud vectors are different from consumer transactions, and the cost of human error is high. A human AP clerk processing invoices costs a company roughly $15 per invoice. An agent does it for less than a cent.
+
+This post is the complete technical breakdown: the before/after architecture, how VIC and TAP apply to B2B differently than B2C, what changes in ISO 8583 for corporate payments, and what Ramp built on top of Visa's rails.
+
+<div className="not-prose" style={{ margin: '32px 0' }}>
+  <BeforeAfter
+    client:load
+    title="Corporate bill pay: manual workflow vs. Ramp AI agent"
+    subtitle="Accounts payable · $8,450 invoice · Acme Corp → Ramp customer"
+    before={beforeData}
+    after={afterData}
+    correspondence={correspondence}
+  />
+</div>
+
+---
+
+## Why corporate bill pay is still stuck in 1995
+
+The average Fortune 500 company processes 150,000 invoices per year. Each one touches between three and seven humans. The process above is not an edge case — it is the norm. The Association of Finance Professionals estimates that the average cost to process a single invoice manually is $15.97. The average time is 4.1 days.
+
+The problem has three structural causes.
+
+**Format chaos.** Invoices arrive as PDFs, paper, EDI 810 files, email text, fax scans, or vendor portal exports. No two vendors use the same format. The data extraction step alone accounts for 40% of processing time.
+
+**Approval choreography.** Most companies have multi-tier approval chains built into their financial controls. These chains exist for good reason — large outflows need human judgment. But the approval routing is triggered by thresholds, not by risk. A $9,999 invoice and a $10,001 invoice are treated completely differently despite carrying identical risk profiles.
+
+**Disconnected systems.** The ERP (where invoices live) and the bank portal (where payments are initiated) are almost never the same system. Payment entry is re-keyed manually between them. This double-entry is the single highest source of errors in the AP process.
+
+What Ramp's agent solves is all three simultaneously — and it does so using Visa's rails, which means the fraud controls and settlement infrastructure are already built and regulated.
+
+---
+
+## The B2B payment stack is different from B2C
+
+The existing blog posts on this site cover consumer TAP and VIC. Corporate bill pay uses the same protocols but has a different threat model and a different approval architecture.
+
+In consumer payments, the key problem is identity: *is this agent authorized by a real cardholder?* The Visa TAP credential answers that. The spending policy is simple: cardholder sets a per-transaction limit and allowed categories.
+
+In corporate payments, the problem is a layer higher: *is this payment authorized by the company's financial controls?* The spending policy is not a single person's preference — it's a company-wide policy document that may include:
+
+- Per-employee and per-department spending limits
+- Approved vendor lists (or blocked vendor lists)
+- Category restrictions (MCC-level: you can pay for software but not alcohol)
+- Velocity controls (max N invoices from the same vendor per month)
+- Multi-tier approval thresholds ($5k auto, $10k manager, $50k VP, $100k+ CFO)
+- Budget codes and GL mappings
+
+Ramp is the policy engine. It encodes the company's financial controls as machine-readable rules. Visa VIC is the identity and payment credential layer. The combination means the agent can evaluate policy *and* execute payment in a single workflow — neither system alone could do both.
+
+<Callout type="insight" title="The key architectural difference">
+In B2C, the consumer's spending policy lives in the Visa VIC instruction set (simple limits and categories). In B2B, the policy lives in Ramp's corporate controls engine, which sits *above* Visa. Ramp evaluates the policy; Visa validates the identity and executes the rail. Two separate systems, two separate trust layers.
+</Callout>
+
+---
+
+## How the TAP credential works for a corporate agent
+
+The TAP handshake for a Ramp corporate agent follows the same RFC 9421 signature flow described in [the VIC + TAP deep dive](/blog/agentic-checkout-e2e), but with a different subject and audience.
+
+In consumer TAP:
+```
+sub: "skyfire-agent-001"        // individual agent
+aud: "bose.com"                 // individual merchant
+```
+
+In corporate TAP (Ramp + Visa):
+```
+sub: "ramp-corp-acme-001"       // corporate agent bound to Acme Corp's account
+aud: "vendor-acquirer-bank"     // the vendor's acquiring bank, not the vendor itself
+instruction_ref: "pi-8450"      // references the pre-registered payment instruction
+spending_context: "ap-invoice"  // signals AP context vs. procurement vs. T&E
+```
+
+The `spending_context` field is new. It tells downstream systems — acquirer, VisaNet, issuer — that this is an AP invoice payment, not a procurement card transaction or a travel expense. Different risk models apply. Different reporting requirements follow.
+
+The `instruction_ref` links this TAP credential to a pre-registered payment instruction in VIC's registry. The instruction was created by Ramp's agent when it extracted the invoice data — before the TAP request was made. It includes the amount, vendor bank account, and a SHA-256 hash of the invoice document itself. Any modification to the amount in transit causes F126 validation at VisaNet to fail with response code 58.
+
+---
+
+## What changes in ISO 8583 for corporate payments
+
+The same five ISO 8583 modifications from consumer TAP apply here (F002 → VCN, F022 → 81, F025 → 59, F048 → agent ID, F126 → TAP hash). But corporate payments add one more layer: **Level 2 and Level 3 purchasing card data**.
+
+<div className="not-prose" style={{ margin: '32px 0' }}>
+  <Iso8583Diagram client:load />
+</div>
+
+L2 and L3 data are ISO 8583 extensions used for corporate purchasing cards. They carry the information that makes corporate payments auditable — and they become machine-trivial when an agent is generating the transaction.
+
+**Level 2 data** (fields used in commercial card transactions):
+- Customer code / purchase order number → `F047` (Additional Data — National)
+- Tax amount and tax indicator → `F028` (Amount, Transaction Fee)
+- Merchant postal code (for AVS on corporate cards)
+
+**Level 3 data** (line-item detail):
+- `F054` (Additional Amounts) — carries individual line items: quantity, unit price, commodity code, description
+- This is the data that makes the corporate card statement useful: instead of "Acme Corp $8,450", the issuer sees "12 × software license Q2, $704.17 each"
+
+For human AP clerks, L3 data is a burden — someone has to transcribe 12 line items from a PDF. For an agent, it is free. The same extraction that identifies the invoice total also extracts every line item. L3 data quality goes from near-zero (manual) to 100% (agent).
+
+This matters to CFOs more than the speed improvement. L3 data is what feeds the real-time spend analytics dashboards. When agents provide it automatically on every transaction, the visibility gap that has plagued corporate card programs for 30 years disappears.
+
+---
+
+## What Ramp built on top of Visa's rails
+
+Visa provides identity (TAP) and rails (VIC + ISO 8583). Ramp provides everything the company-specific layer requires.
+
+**The policy engine** is Ramp's core IP here. It evaluates the full company control set before the TAP credential request is made. If the invoice fails a policy check — wrong vendor, over budget, unapproved category — the TAP request is never made. The payment never touches Visa's infrastructure. This is the right place to enforce policy: before the credential is issued, not after.
+
+**The ERP integration** is what makes the workflow complete. Ramp connects to NetSuite, QuickBooks, Sage, SAP, and Xero. After a payment is confirmed, the agent writes the journal entry, assigns the cost center, attaches the receipt, and closes the invoice in the ERP. The CFO's reconciliation work drops to near zero.
+
+**Human escalation paths** are preserved deliberately. Invoices that fail any policy check — unknown vendor, amount above threshold, unusual MCC, budget exhausted — are routed to a human approver with full context: the invoice, the policy rule that triggered escalation, and the suggested approval action. The agent handles the routine; human judgment is reserved for exceptions.
+
+Colin Kennedy, Ramp's Chief Business Officer, framed it precisely: *"The best financial systems don't add controls after the fact — they build them into every transaction."* That is exactly what the TAP instruction registry does. The spending constraints are registered before the payment is authorized, not audited afterward.
+
+---
+
+## What this deployment means for the agentic payment stack
+
+This is the first confirmed production deployment of Visa Intelligent Commerce in a B2B context at meaningful scale. Fifty thousand companies. The implications are worth stating directly.
+
+**It proves the stack works outside retail.** Every prior VIC demonstration was consumer-facing: an AI assistant buying headphones, booking travel, reordering household supplies. Corporate bill pay is structurally different — larger amounts, regulatory requirements, multi-entity approval chains. The fact that VIC handles it confirms the protocol is genuinely general-purpose.
+
+**It establishes the B2B template.** Other AP automation platforms — Tipalti, Coupa, SAP Concur, Bill.com — will now face direct pressure to match this. The template is clear: VIC for identity and rails, proprietary policy engine for corporate controls, ERP connectors for reconciliation.
+
+**It expands the TAP surface to corporate identity.** Consumer TAP credentials are bound to individual cardholders. Corporate TAP credentials are bound to company accounts with agent sub-identities per department or workflow. This is new credential territory — `sub: "ramp-corp-acme-finance"` is a different trust model than `sub: "skyfire-agent-001"`. The issuer (Chase, BofA, whoever holds the corporate account) needs to implement dual-mode policy evaluation: one path for consumer TAP, another for corporate TAP. Most issuers have not done this yet.
+
+---
+
+## Open questions
+
+**Cross-border corporate payments.** The announcement covers USD domestic payments. International wire transfers involve SWIFT, correspondent banking chains, and FX conversion layers that sit entirely outside the ISO 8583 / VisaNet stack. How corporate TAP will integrate with cross-border rails is unresolved.
+
+**Multi-agent approval chains.** What happens when a single invoice requires two agents to sign off — the department agent and the finance agent? Multi-party signing is not specified in the current TAP credential schema. The `instruction_ref` model assumes a single agent per payment instruction.
+
+**Dispute evidence for AP invoices.** Consumer chargebacks are hard enough. Corporate AP disputes — where a vendor disputes a payment or a company disputes a charge — involve purchase orders, contracts, delivery receipts, and audit logs. How the TAP instruction registry integrates with the dispute evidence layer is not yet public.
+
+**ERP write-back failures.** When the payment succeeds but the ERP sync fails, the corporate books are out of sync. In human AP, a clerk notices. In agent AP, nobody is watching. Failure handling and idempotent ERP writes are engineering problems that need to be solved at scale.
+
+The Ramp + Visa deployment answers the most important question first: yes, this works at production scale in the real world. The edge cases above are the next layer of the spec to be written.
+
+---
+
+<Callout type="tldr" title="tl;dr">
+Visa and Ramp replaced a 7-step, 4-7 day manual accounts payable workflow with a 6-step, 2-hour agent workflow. The same VIC + TAP stack from consumer payments applies to corporate B2B, with additions: L3 line-item data auto-populated by the agent, a corporate-scoped TAP credential (`sub: ramp-corp-{company}`), and a company policy engine (Ramp) that sits above Visa's identity layer. It is the first production VIC deployment outside consumer retail, and it sets the template that every AP automation platform will now follow.
+</Callout>
