@@ -22,7 +22,7 @@ function toHex(bytes, n = 8) {
 }
 
 async function generateKeyPair() {
-  const kp = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify'])
+  const kp = await crypto.subtle.generateKey({ name: 'Ed25519' }, false, ['sign', 'verify'])
   const raw = await crypto.subtle.exportKey('raw', kp.publicKey)
   const rawBytes = new Uint8Array(raw)
   const pub = u8ToB64(rawBytes)
