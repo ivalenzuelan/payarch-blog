@@ -2,14 +2,50 @@
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import FallbackImage from '../assets/blog-placeholder-1.jpg';
+import { PERSON_NAME } from '../consts';
+import {
+	buildBlogPostingSchema,
+	buildBreadcrumbSchema,
+	getAbsoluteUrl,
+} from '../lib/seo';
 
 type Props = CollectionEntry<'blog'>['data'];
 const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.props as Props & { tags?: string[] };
+const canonicalUrl = Astro.url.toString();
+const socialImageUrl = new URL((heroImage ?? FallbackImage).src, Astro.site ?? Astro.url).toString();
+const breadcrumbItems = [
+	{ name: 'Home', url: getAbsoluteUrl('/') },
+	{ name: 'Blog', url: getAbsoluteUrl('/blog/') },
+	{ name: title, url: canonicalUrl },
+];
+const pageSchema = [
+	buildBlogPostingSchema({
+		title,
+		description,
+		url: canonicalUrl,
+		datePublished: pubDate,
+		dateModified: updatedDate,
+		image: socialImageUrl,
+		tags,
+	}),
+	buildBreadcrumbSchema(breadcrumbItems),
+];
 ---
 
 <html lang="en">
 <head>
-  <BaseHead title={title} description={description} />
+  <BaseHead
+    title={title}
+    description={description}
+    image={heroImage}
+    type="article"
+    publishedTime={pubDate}
+    modifiedTime={updatedDate}
+    tags={tags}
+    keywords={tags}
+    schema={pageSchema}
+  />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
 
@@ -269,12 +305,38 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
       position: relative; z-index: 1;
       max-width: 700px; margin: 0 auto;
     }
+    .post-breadcrumbs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink4);
+      animation: fadeUp .55s ease both;
+    }
+    .post-breadcrumbs a {
+      color: var(--ink4);
+      text-decoration: none;
+      transition: color .15s ease;
+    }
+    .post-breadcrumbs a:hover {
+      color: var(--ink2);
+    }
+    .post-breadcrumbs [aria-current="page"] {
+      color: var(--ink3);
+    }
     .post-eyebrow {
       font-family: 'DM Mono', monospace;
       font-size: 10px; letter-spacing: 0.13em;
       text-transform: uppercase; color: var(--ink4);
       margin-bottom: 20px;
       display: flex; align-items: center; justify-content: center; gap: 8px;
+      flex-wrap: wrap;
       animation: fadeUp .6s ease .1s both;
     }
     .post-eyebrow-dot {
@@ -417,7 +479,16 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
   <!-- ARTICLE HEADER -->
   <header class="post-header">
     <div class="post-header-inner">
+      <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="/blog/">Blog</a>
+        <span>/</span>
+        <span aria-current="page">{title}</span>
+      </nav>
       <div class="post-eyebrow">
+        <span>By {PERSON_NAME}</span>
+        <span class="post-eyebrow-dot"></span>
         <FormattedDate date={pubDate} />
         {updatedDate && <><span class="post-eyebrow-dot"></span><span>Updated <FormattedDate date={updatedDate} /></span></>}
         {tags && tags.length > 0 && <span class="post-eyebrow-dot"></span>}
@@ -435,9 +506,9 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 
   <!-- PROSE CONTENT -->
   <main>
-    <div class="prose-wrap">
+    <article class="prose-wrap">
       <slot />
-    </div>
+    </article>
   </main>
 
   <!-- FOOTER -->
@@ -448,7 +519,7 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
         <circle cx="3"  cy="19" r="2" fill="#b8b3a8"/>
         <circle cx="33" cy="19" r="2" fill="#b8b3a8"/>
       </svg>
-      <span class="footer-copy">© 2026 payarch.dev</span>
+      <span class="footer-copy">© 2026 payarch</span>
     </div>
     <ul class="footer-links">
       <li><a href="/#posts">Writing</a></li>

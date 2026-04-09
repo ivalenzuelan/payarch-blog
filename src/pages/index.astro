@@ -1,12 +1,54 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { SITE_TITLE } from '../consts';
+import {
+  buildCollectionPageSchema,
+  buildPersonSchema,
+  buildWebsiteSchema,
+  estimateReadingTime,
+  getAbsoluteUrl,
+} from '../lib/seo';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const featuredPost = posts[0];
+const secondaryPosts = posts.slice(1, 4);
+const homeTitle = 'AI-native payments architecture and protocol analysis';
+const homeDescription =
+  'Technical writing on agentic payments, Trusted Agent Protocol, Visa Intelligent Commerce, ISO 8583, and the infrastructure behind autonomous checkout.';
+const homeSchema = [
+  buildWebsiteSchema(),
+  buildPersonSchema(),
+  buildCollectionPageSchema({
+    title: `${SITE_TITLE} latest posts`,
+    description: homeDescription,
+    url: getAbsoluteUrl('/'),
+    items: posts.slice(0, 4).map((post) => ({
+      name: post.data.title,
+      url: getAbsoluteUrl(`/blog/${post.id}/`),
+      description: post.data.description,
+      datePublished: post.data.pubDate,
+    })),
+  }),
+];
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 ---
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+<BaseHead
+  title={homeTitle}
+  description={homeDescription}
+  keywords={['agentic payments', 'ai payments', 'TAP', 'Visa Intelligent Commerce', 'ISO 8583']}
+  schema={homeSchema}
+/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <style is:global>
@@ -386,6 +428,22 @@ section {
   border-radius: 3px;
   padding: 2px 6px;
 }
+.archive-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.archive-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: none;
+}
+.archive-link:hover { color: var(--ink) }
 
 .post-card.soon { opacity: 0.5; cursor: default }
 .post-card.soon:hover { background: var(--cream) }
@@ -695,117 +753,74 @@ footer#landing-footer {
 
 <!-- POSTS -->
 <section class="posts-section" id="posts">
-  <div class="section-label">Writing</div>
+  <div class="section-label">Latest Writing</div>
 
   <div class="posts-grid">
-
-    <a href="/blog/agentic-checkout-e2e" class="post-card featured">
-      <div>
-        <div class="post-number">01</div>
-        <div style="display:flex;gap:6px;margin:10px 0 16px">
-          <span class="post-tag">live</span>
-          <span class="chip">TAP</span>
-          <span class="chip">VIC</span>
-          <span class="chip">ISO 8583</span>
-          <span class="chip">x402</span>
+    {featuredPost && (
+      <a href={`/blog/${featuredPost.id}/`} class="post-card featured">
+        <div>
+          <div class="post-number">01</div>
+          <div style="display:flex;gap:6px;margin:10px 0 16px;flex-wrap:wrap">
+            <span class="post-tag">featured</span>
+            {featuredPost.data.tags.slice(0, 4).map((tag) => (
+              <span class="chip">{tag}</span>
+            ))}
+          </div>
+          <div class="post-title">{featuredPost.data.title}</div>
+          <div class="post-desc" style="margin-top:12px">
+            {featuredPost.data.description}
+          </div>
+          <div class="post-meta">
+            <span class="post-date">{dateFormatter.format(featuredPost.data.pubDate)}</span>
+            <span class="post-reading">· {estimateReadingTime(featuredPost.body ?? '')} min read</span>
+          </div>
         </div>
-        <div class="post-title">How an AI agent buys something: the complete technical breakdown</div>
-        <div class="post-desc" style="margin-top:12px">
-          HTTP signatures, agent-bound tokens, ISO 8583 field modifications,
-          the VIC API sequence, and the protocol landscape across TAP, x402, and AP2.
-          Four interactive diagrams.
+        <div class="post-meta-right">
+          <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--ink5);text-transform:uppercase">Topics</div>
+            <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
+              {featuredPost.data.tags.slice(0, 3).map((tag) => (
+                <div class="chip">{tag}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </a>
+    )}
+
+    {secondaryPosts.map((post, index) => (
+      <a href={`/blog/${post.id}/`} class="post-card">
+        <div class="post-number">{String(index + 2).padStart(2, '0')}</div>
+        <div style="display:flex;gap:6px;margin:10px 0 14px;flex-wrap:wrap">
+          <span class="post-tag">live</span>
+          {post.data.tags.slice(0, 4).map((tag) => (
+            <span class="chip">{tag}</span>
+          ))}
+        </div>
+        <div class="post-title">{post.data.title}</div>
+        <div class="post-desc" style="margin-top:10px">
+          {post.data.description}
         </div>
         <div class="post-meta">
-          <span class="post-date">Mar 21, 2026</span>
-          <span class="post-reading">· 18 min read</span>
+          <span class="post-date">{dateFormatter.format(post.data.pubDate)}</span>
+          <span class="post-reading">· {estimateReadingTime(post.body ?? '')} min read</span>
         </div>
+      </a>
+    ))}
+
+    <a href="/blog/" class="post-card">
+      <div class="post-number">Archive</div>
+      <span class="soon-badge">Explore everything published</span>
+      <div class="post-title">Browse the full AI payments archive</div>
+      <div class="post-desc">
+        Every published post, newest first, plus the RSS feed for readers who want updates as new research goes live.
       </div>
-      <div class="post-meta-right">
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--ink5);text-transform:uppercase">Diagrams</div>
-          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
-            <div class="chip">architecture overview</div>
-            <div class="chip">TAP handshake</div>
-            <div class="chip">ISO 8583 anatomy</div>
-          </div>
-        </div>
+      <div class="archive-links">
+        <span class="chip">all articles</span>
+        <span class="chip">rss feed</span>
+        <span class="chip">technical analysis</span>
       </div>
     </a>
-
-    <a href="/blog/four-party-post" class="post-card">
-      <div class="post-number">02</div>
-      <div style="display:flex;gap:6px;margin:10px 0 14px">
-        <span class="post-tag">live</span>
-        <span class="chip">Visa</span>
-        <span class="chip">Mastercard</span>
-        <span class="chip">4-party</span>
-        <span class="chip">Agent Pay</span>
-      </div>
-      <div class="post-title">The 4-party model for AI payments: how Visa and Mastercard rebuilt the rails</div>
-      <div class="post-desc" style="margin-top:10px">
-        How each role changes when an AI agent initiates the transaction — and how the two networks
-        chose different architectures for the same problem. Three interactive diagrams.
-      </div>
-      <div class="post-meta">
-        <span class="post-date">Apr 4, 2026</span>
-        <span class="post-reading">· long read</span>
-      </div>
-      <div class="post-meta-right">
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--ink5);text-transform:uppercase">Diagrams</div>
-          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
-            <div class="chip">authorization flow</div>
-            <div class="chip">fraud layers</div>
-            <div class="chip">rebuild map</div>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <div class="post-card soon">
-      <div class="post-number">03</div>
-      <span class="soon-badge">Apr 18 · coming soon</span>
-      <div class="post-title">ISO 8583 for agents: the complete field reference</div>
-      <div class="post-desc">
-        Every modified field, valid values, how issuers interpret F022=81,
-        and what T+1 clearing looks like for agent transactions.
-      </div>
-      <div class="diagram-chips" style="margin-top:auto">
-        <span class="chip">ISO 8583</span>
-        <span class="chip">F022=81</span>
-        <span class="chip">MTI 0220</span>
-      </div>
-    </div>
-
-    <div class="post-card soon">
-      <div class="post-number">04</div>
-      <span class="soon-badge">May 2 · coming soon</span>
-      <div class="post-title">The Trusted Agent Protocol spec, line by line</div>
-      <div class="post-desc">
-        Ed25519 key registration, nonce store design, the 60-second window,
-        and why replay protection is harder than it looks.
-      </div>
-      <div class="diagram-chips" style="margin-top:auto">
-        <span class="chip">TAP spec</span>
-        <span class="chip">Ed25519</span>
-        <span class="chip">RFC 9421</span>
-      </div>
-    </div>
-
-    <div class="post-card soon">
-      <div class="post-number">05</div>
-      <span class="soon-badge">May 16 · coming soon</span>
-      <div class="post-title">x402 in depth: HTTP-native payments for agents</div>
-      <div class="post-desc">
-        The payment flow, facilitator architecture, V2 spec changes,
-        and when to use x402 over TAP.
-      </div>
-      <div class="diagram-chips" style="margin-top:auto">
-        <span class="chip">x402</span>
-        <span class="chip">USDC</span>
-        <span class="chip">Base / Solana</span>
-      </div>
-    </div>
 
   </div>
 </section>
@@ -911,7 +926,7 @@ footer#landing-footer {
       <circle cx="3" cy="19" r="2" fill="#b8b3a8"/>
       <circle cx="33" cy="19" r="2" fill="#b8b3a8"/>
     </svg>
-    <span class="footer-copy">© 2026 payarch.dev</span>
+    <span class="footer-copy">© 2026 payarch</span>
   </div>
   <ul class="footer-links">
     <li><a href="#posts">Writing</a></li>

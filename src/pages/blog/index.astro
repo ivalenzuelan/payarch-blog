@@ -1,21 +1,50 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { SITE_TITLE } from '../../consts';
+import {
+	buildBreadcrumbSchema,
+	buildCollectionPageSchema,
+	getAbsoluteUrl,
+} from '../../lib/seo';
 
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+const pageTitle = 'AI payments blog';
+const pageDescription =
+	'Technical writing on agentic payments, Trusted Agent Protocol, Visa Intelligent Commerce, ISO 8583 changes, and AI-native checkout architecture.';
+const pageSchema = [
+	buildCollectionPageSchema({
+		title: `${SITE_TITLE} blog`,
+		description: pageDescription,
+		url: getAbsoluteUrl('/blog/'),
+		items: posts.map((post) => ({
+			name: post.data.title,
+			url: getAbsoluteUrl(`/blog/${post.id}/`),
+			description: post.data.description,
+			datePublished: post.data.pubDate,
+		})),
+	}),
+	buildBreadcrumbSchema([
+		{ name: 'Home', url: getAbsoluteUrl('/') },
+		{ name: 'Blog', url: getAbsoluteUrl('/blog/') },
+	]),
+];
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<BaseHead
+			title={pageTitle}
+			description={pageDescription}
+			keywords={['blog', 'technical blog', 'agentic payments', 'TAP', 'Visa Intelligent Commerce']}
+			schema={pageSchema}
+		/>
 		<style>
 			main {
 				width: 860px;
@@ -31,6 +60,25 @@ const posts = (await getCollection('blog')).sort(
 				font-size: clamp(1.75rem, 4vw + 0.5rem, 2.5rem);
 				margin: 0 0 0.5rem 0;
 				line-height: 1.15;
+			}
+			.breadcrumbs {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				flex-wrap: wrap;
+				margin-bottom: 1rem;
+				font-family: 'Courier New', monospace;
+				font-size: 0.75rem;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: rgb(var(--gray));
+			}
+			.breadcrumbs a {
+				color: rgb(var(--gray));
+				text-decoration: none;
+			}
+			.breadcrumbs a:hover {
+				color: rgb(var(--black));
 			}
 			.page-header p {
 				color: rgb(var(--gray));
@@ -86,6 +134,21 @@ const posts = (await getCollection('blog')).sort(
 				font-weight: 600;
 				letter-spacing: 0.05em;
 			}
+			.post-chips {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45rem;
+				margin-bottom: 1rem;
+			}
+			.post-chip {
+				border: 1px solid var(--border-color);
+				border-radius: 999px;
+				padding: 0.18rem 0.5rem;
+				font-family: 'Courier New', monospace;
+				font-size: 0.72rem;
+				color: rgb(var(--gray-dark));
+				background: rgb(var(--gray-light) / 0.35);
+			}
 			.post-card h2 {
 				font-size: 1.6rem;
 				margin: 0 0 0.5rem 0;
@@ -125,8 +188,13 @@ const posts = (await getCollection('blog')).sort(
 		<Header />
 		<main>
 			<div class="page-header">
-				<h1>Deep Dives</h1>
-				<p>Technical architecture breakdowns and open-source specifications.</p>
+				<nav class="breadcrumbs" aria-label="Breadcrumb">
+					<a href="/">Home</a>
+					<span>/</span>
+					<span aria-current="page">Blog</span>
+				</nav>
+				<h1>AI payments research and architecture writing</h1>
+				<p>Deep technical analysis of agentic commerce, payment protocol design, and the infrastructure behind autonomous checkout.</p>
 			</div>
 			<section>
 				<ul>
@@ -135,7 +203,12 @@ const posts = (await getCollection('blog')).sort(
 							<li>
 								<a href={`/blog/${post.id}/`} class="post-card">
 									{post.data.heroImage && (
-										<img width={720} height={360} src={post.data.heroImage.src} alt="" />
+										<img
+											width={720}
+											height={360}
+											src={post.data.heroImage.src}
+											alt={`Preview image for ${post.data.title}`}
+										/>
 									)}
 									<div class="post-meta">
 										<span class="post-tag">PROTOCOL SPEC</span>
@@ -143,6 +216,13 @@ const posts = (await getCollection('blog')).sort(
 											<FormattedDate date={post.data.pubDate} />
 										</span>
 									</div>
+									{post.data.tags.length > 0 && (
+										<div class="post-chips" aria-label="Topics">
+											{post.data.tags.slice(0, 4).map((tag) => (
+												<span class="post-chip">{tag}</span>
+											))}
+										</div>
+									)}
 									<h2>{post.data.title}</h2>
 									{post.data.description && <p>{post.data.description}</p>}
 								</a>

@@ -6,10 +6,11 @@ import { defineConfig } from 'astro/config';
 
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
+import { SITE_URL } from './site-config.mjs';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://payarch.koratrack.com',
+  site: SITE_URL,
   integrations: [mdx(), sitemap(), react()],
 
   vite: {
