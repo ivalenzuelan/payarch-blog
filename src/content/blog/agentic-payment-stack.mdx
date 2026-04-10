@@ -1,0 +1,207 @@
+---
+title: 'The agentic payment stack nobody is mapping'
+description: 'Eighteen months of academic papers on AI agent payments. Seventeen protocols. Sixty industry partners. Almost all of it assumes blockchain. Here is the architecture of the stack that actually processes money — and why it has no equivalent in the research literature.'
+pubDate: 'Apr 09 2026'
+tags: ['architecture', 'agentic-payments', 'visa', 'mastercard', 'iso8583', 'payment-rails', 'payarch']
+---
+
+import Callout from '../../components/Callout.tsx';
+import FiveLayerStack from '../../components/FiveLayerStack.jsx';
+import ProtocolCompetition from '../../components/ProtocolCompetition.jsx';
+import OpenProblems from '../../components/OpenProblems.jsx';
+
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', margin: '32px 0' }} className="not-prose">
+  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: '#1a1814', fontFamily: 'Courier New, monospace' }}>17</div>
+    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>papers on agent payment protocols (2025–2026)</div>
+  </div>
+  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: '#6030b0', fontFamily: 'Courier New, monospace' }}>16</div>
+    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>vendors with production agent payment tooling</div>
+  </div>
+  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: '#186040', fontFamily: 'Courier New, monospace' }}>~0</div>
+    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>papers covering the fiat card rail stack</div>
+  </div>
+</div>
+
+There is a strange gap at the center of the agentic payments conversation.
+
+In the last eighteen months, researchers at MIT, Oxford, Google DeepMind, Stanford, and a dozen other institutions have published extensively on how AI agents should pay for things. The papers are technically sophisticated. They propose cryptographic delegation chains, escrow contracts, atomic service channels, and insurance mechanisms for agent misbehavior.<sup>[1](#sources)</sup>
+
+Almost all of them assume the money moves on a blockchain. A survey of seventeen agent payment papers published between late 2024 and early 2026 finds that only one — APEX (arXiv:2604.02023) — explicitly targets fiat-oriented adaptation. The rest assume Ethereum, USDC, or a custom settlement chain.<sup>[2](#sources)</sup>
+
+Meanwhile, in the same eighteen months, Visa processed transactions for hundreds of companies across 50,000 corporate customers via its Intelligent Commerce platform.<sup>[3](#sources)</sup> Mastercard rolled out agentic tokens to every US cardholder.<sup>[4](#sources)</sup> Stripe shipped a protocol that powers real purchases inside ChatGPT.<sup>[5](#sources)</sup> Real agents are spending real money on real card rails — the same infrastructure that processed 3.6 trillion transactions globally in 2025.
+
+That stack has almost no academic treatment. No paper maps it end to end. No standard body has published an architecture document for it.
+
+Payarch exists to change that. This post is the map.
+
+---
+
+## Why the fiat stack matters more than the papers suggest
+
+The blockchain-first framing in the research literature is not irrational. Crypto rails offer properties that card rails do not — programmable escrow, atomic settlement, no chargebacks, no intermediaries that need onboarding. For a researcher designing a payment protocol from scratch, starting with blockchain is the clean choice.
+
+But card rails have a property that blockchain rails do not: they are already everywhere. Every merchant that accepts Visa also accepts a Visa TAP credential from an AI agent, today, without any infrastructure change on their end.<sup>[6](#sources)</sup> The agent's transaction looks like any other card-not-present payment to the merchant's terminal. The new logic lives in the credential layer and in the message fields that accompany the authorization — invisible to most of the stack, but carrying the identity and authorization proof that makes the transaction trustworthy.
+
+This is the architectural insight that the research literature misses. The agentic payment stack on fiat rails is not a replacement for the existing payment stack — it is a set of new layers added *on top of* it, carefully designed to be backward-compatible with the 40-year-old infrastructure that processes most of the world's money.
+
+---
+
+## The five layers of the agentic payment stack
+
+Every production agentic payment system — whether built by Visa, Mastercard, Stripe, or a startup — involves the same five architectural layers. The layers are not always clearly separated, and different players draw the boundaries differently. But the functions exist in every complete implementation.
+
+### Layer 1 — Agent Identity
+
+Before an AI agent can initiate any payment, something in the system needs to answer: *who is this agent, and who authorized it?*
+
+In the traditional payment system, this question was answered by the cardholder's presence — their PIN, their face, their fingerprint. Agents cannot do any of those things. They need a different kind of identity.
+
+The industry has converged on two approaches. The first is **cryptographic key-based identity**: the agent platform registers a public key, and every payment request is signed with the corresponding private key. Anyone who receives the request can verify the signature without calling back to the platform. Visa's Trusted Agent Protocol takes this approach — every agent gets an Ed25519 keypair, and the signature travels with the HTTP request as an RFC 9421 HTTP Message Signature covering at minimum `@authority`, `@path`, `@method`, `content-type`, and `content-digest`.<sup>[7](#sources)</sup>
+
+The second approach is **registry-based identity**: the agent platform registers with the card network directly, like a business registering to accept cards. Mastercard's Agent Pay works this way — the agent platform goes through a Know Your Agent process, and the resulting agentic token carries that verified identity downstream through the MDES tokenization infrastructure.<sup>[8](#sources)</sup>
+
+On the research side, the AIP paper (arXiv:2603.24775) found that a scan of ~2,000 MCP servers revealed **all lacked authentication** — the motivating gap that its Invocation-Bound Capability Token approach tries to fill.<sup>[9](#sources)</sup> Production card-rail implementations have moved faster than the academic literature on this exact problem.
+
+Both approaches solve the same problem: making the agent accountable to the payment network in a way that allows fraud, liability, and dispute resolution to work.
+
+### Layer 2 — Delegation and Authorization
+
+Identity tells you *who* the agent is. Delegation tells you *what it is allowed to do*.
+
+This is the layer that most directly mirrors existing payment authorization — but for agents, it is substantially more complex. A consumer giving their agent permission to shop for them is making a decision that spans multiple future transactions of unknown amount at unknown merchants. That is a fundamentally different kind of authorization than "I approve this specific $42.50 purchase at this specific store."
+
+The solutions the industry has developed vary in their design philosophy. Google's Agent Payments Protocol (AP2) takes a **mandate-based approach**: the human signs an "Intent Mandate" (the broad permission) and a "Cart Mandate" (the specific transaction) as separate cryptographic Verifiable Digital Credentials. The chain creates a non-repudiable record from original human intent down to the specific payment, with the PaymentMandate appended to the network authorization message itself.<sup>[10](#sources)</sup>
+
+Mastercard's Verifiable Intent standard uses a three-layer SD-JWT credential structure (L1: identity, L2: user-to-agent delegation, L3: agent-to-network mandate) where each downstream layer must be a strict subset of the layer above — enforced via `cnf.jwk` key confirmation binding at each hop.<sup>[11](#sources)</sup>
+
+DAAP (draft-mishra-oauth-agent-grants-01, IETF) takes an **OAuth 2.0 extension approach**: agents get scoped JWT tokens with explicit budget claims (`bdg`), category restrictions, and expiry times. Budget debit is atomic at the Authorization Server. High-stakes scopes like `payments:initiate` require online verification per use with a maximum 5-minute revocation cache.<sup>[12](#sources)</sup>
+
+What all approaches share is a principle that emerged clearly from both the research literature and the production implementations: the AI reasoning layer should never hold the payment credential directly. TessPay (arXiv:2602.00213) expresses this most explicitly: "strict separation: AI reasoning plane never holds private keys; only settlement plane signs."<sup>[13](#sources)</sup> Faramesh (arXiv:2601.17744) proposes a mandatory policy sidecar that gates any financial side effect regardless of the underlying rail.<sup>[14](#sources)</sup> The agent that decides to buy something and the system that executes the payment need to be architecturally separate.
+
+### Layer 3 — Policy Enforcement
+
+Delegation defines what an agent *can* do. Policy enforcement determines whether a specific action *should* happen right now.
+
+For consumer payments, policy is relatively simple: is this transaction within the spending limit the user set? Is the merchant category allowed? Has the agent exceeded its velocity limit? DAAP defines five anomaly types — `unusual_scope_access`, `high_frequency`, `off_hours_activity`, `new_principal`, `cascade_delegation` — that trigger non-blocking alerts to the human principal.<sup>[12](#sources)</sup>
+
+For corporate payments — the use case that Ramp and Visa launched into production in April 2026 — policy is an entire discipline. A company's spending policy might include pre-approved vendor lists, multi-tier approval thresholds that vary by amount and category, GL code assignments, budget exhaustion checks per cost center, and quarterly velocity limits per department. None of this can live in a card network credential — it is too complex and too company-specific.
+
+This is why the corporate agentic payment stack has a clean division: the policy engine (Ramp, or any corporate AP platform) sits above the credential layer (Visa). The policy engine evaluates whether a payment is authorized by the company's own controls before the credential request is made. Visa's job is not to know Acme Corp's budget structure — it is to verify that the agent is who it claims to be and that the payment instruction has not been tampered with. Two systems, two responsibilities, one combined trust guarantee.
+
+### Layer 4 — The Payment Rail
+
+This is the layer that is most invisible in discussions of agentic payments — because it mostly has not changed.
+
+When a Ramp AI agent pays a vendor invoice, the actual authorization message that travels from acquirer to VisaNet to the issuing bank is still ISO 8583, the same message format that has been in use since the 1980s. What has changed is what lives *inside* certain fields of that message.
+
+The agent's identity is carried in DE 48 (Additional Data — Private Use). The TAP credential travels in that same extension space. The transaction is flagged as agent-initiated via DE 22 (Point-of-Service Entry Mode). The issuing bank receives these signals and applies the appropriate risk model. Mastercard formalized this in October 2025 with revised standards for DE 105 (Transaction Link Identifier), requiring issuers and acquirers to store and return the TLID across all lifecycle messages — creating an audit chain that ties every agent transaction back to the original human authorization event.<sup>[15](#sources)</sup>
+
+For the vast majority of the payment stack — the acquirer, the network, the settlement system — the transaction looks like a card-not-present payment with unusually rich metadata. The backward compatibility is intentional. It means the 40 million merchants who accept Visa cards today can receive payments from AI agents without changing anything about their infrastructure. The AP2 specification is explicit on this point: the PaymentMandate is "designed to be appended to existing transaction authorization packets" without requiring changes to the core message format.<sup>[10](#sources)</sup>
+
+<Callout type="insight" title="The backward compatibility principle">
+The most important architectural decision in the fiat agentic payment stack is what did not change. By keeping ISO 8583 as the authorization format and adding agent signals in existing extension fields, the entire existing merchant and acquirer infrastructure works with AI agents on day one. No upgrade cycle. No new terminal hardware. No new integration projects for the 50 million businesses that already accept card payments. The new layers sit on top of and alongside the existing stack — they do not replace it.
+</Callout>
+
+### Layer 5 — Settlement and Reconciliation
+
+Settlement in card payments has always been deferred and net: transactions from the day are batched, netted across participants, and settled the following day. For consumer agentic payments, nothing about this changes — the agent's transaction settles the same way any card payment does.
+
+Where the agent stack adds real value is in **reconciliation**. A human buying office supplies generates a transaction record: "Acme Supplies, $847". An AI agent buying office supplies generates a transaction record plus a structured line-item breakdown, a purchase order reference, a GL code assignment, and a cost center tag — all populated automatically, all attached to the transaction at the moment it occurs. Visa's VDCAP program (launched US/Canada April 2026) makes this economically explicit: merchants who provide enriched transaction data elements qualify for a 0.05% interchange fee reduction, rising to 0.10% when combined with network tokens.<sup>[3](#sources)</sup>
+
+This is Level 3 purchasing card data, and it has existed as a feature of corporate card programs for decades. Historically, almost no one populated it correctly, because doing so required a human to manually transcribe line items from a PDF invoice. An AI agent generates L3 data for free — it is a side effect of doing the extraction work required to process the invoice in the first place.
+
+The CFO visibility benefit of agentic corporate payments is often described as a speed improvement. It is actually a data quality improvement. Real-time reconciliation with structured line items is qualitatively different from deferred reconciliation with lump-sum merchant names.
+
+---
+
+## The five-layer map
+
+<FiveLayerStack client:load />
+
+This is what the research literature has not mapped. The blockchain-focused papers operate primarily at layers 1 and 2 — identity and delegation — where crypto-native approaches genuinely offer interesting properties. But the fiat stack resolves layers 3, 4, and 5 with infrastructure that already exists and already works at global scale.
+
+---
+
+## What the five protocols are actually competing over
+
+Across the seventeen papers and sixteen vendors in this research, five major protocols are competing for the standard in agentic payments. They are not competing over the same thing.
+
+**Visa TAP** is competing for layer 1 — agent identity at the merchant edge. Its CDN proxy runs a 7-stage verification pipeline (header extraction → key retrieval → timestamp validation ±8 min → nonce-based replay prevention → domain binding → cryptographic verification → result injection) before any payment instruction reaches the merchant backend.<sup>[7](#sources)</sup>
+
+**Mastercard Agent Pay / Verifiable Intent** is competing for layer 2 — the delegation credential format. The bet is that a standardized three-layer credential chain (user → agent → transaction) expressed as SD-JWTs becomes the portable format any network can verify, protocol-agnostically.<sup>[11](#sources)</sup>
+
+**Google AP2** is competing for layers 1 through 4 simultaneously — a full-stack protocol launched September 2025 with 60+ founding partners including Visa, Mastercard, PayPal, Adyen, American Express, Coinbase, and UnionPay. It defines how agents discover merchants (via A2A AgentCards), how mandates are created and verified, and how payment instructions reach the network.<sup>[10](#sources)</sup>
+
+**Stripe ACP / OpenAI Delegated Payments** are competing at the application layer, just above the network. The Shared Payment Token (SPT) primitive — a one-time token scoped to a specific merchant and cart total that travels through the ACP REST interface — is designed so AI platforms and merchant backends exchange payment credentials without specifying what happens inside the network.<sup>[5](#sources)</sup>
+
+**x402** is competing for a different market entirely — pay-per-API-call micropayments on stablecoin rails, reviving the dormant HTTP 402 status code as a machine-readable payment handshake. At approximately $0.001 minimum viable payment and ~2 second end-to-end time, it addresses transaction sizes and settlement speeds where card rails have never worked.<sup>[16](#sources)</sup>
+
+None of these protocols is likely to win alone. The more probable outcome is that layers 1 and 4 remain owned by the card networks, layers 2 and 3 become contested between AP2-style open protocols and proprietary implementations, and x402 carves out a distinct niche for the micro-API-economy.
+
+<ProtocolCompetition client:load />
+
+---
+
+## The three open problems
+
+The stack described above works today for domestic card payments in human-present and some human-absent flows. Three problems remain unsolved at the architectural level — all explicitly flagged in the research literature.
+
+<OpenProblems client:load />
+
+**Multi-hop budget delegation.** DAAP, OIDC-A (arXiv:2509.25974), and AIP (arXiv:2603.24775) all handle *permission* delegation through agent hierarchies. None handle *spend budget* propagating through those hierarchies. If a user authorizes an orchestrator to spend $100, and that orchestrator spawns five sub-agents to complete a task, who enforces that the total does not exceed the budget? The T2 research brief covering seventeen agent payment papers identifies this explicitly: "No payment protocol handles multi-hop delegation where spend authorization propagates through an agent hierarchy."<sup>[9](#sources)</sup>
+
+**Prompt injection.** A University of Georgia red-team study (arXiv:2601.22569) found that AP2 is vulnerable to both direct and indirect prompt injection — allowing cart manipulation, product ranking poisoning, and data exfiltration via crafted merchant responses. Palo Alto Unit 42 confirmed IDPI (Indirect Prompt Injection) attacks in the wild against AI agents browsing the web.<sup>[17](#sources)</sup> Cryptographic mandates protect the cart *after* the agent has been influenced; they do not prevent the influence. No protocol at any layer currently provides a cryptographic defense. It is the most critical open security problem in the field.
+
+**Cross-border payments.** Everything described in this post applies to domestic card transactions. International wire transfers operate on SWIFT and correspondent banking chains that sit entirely outside the ISO 8583 stack. The SWIFT ISO 20022 Payment Initiation Relay Rulebook (March 2025) created a "Forwarding Agent" role that automated systems can fill — but it was written for ERP systems and contains no agent identity or mandate chain concepts. Formal ISO 20022 extensions for agent-initiated transactions are expected from BIS/SWIFT working groups in H2 2026.<sup>[18](#sources)</sup>
+
+---
+
+## Why Payarch is building this
+
+The academic literature on agentic payments is eighteen months old and almost entirely focused on protocols where settlement happens on-chain. That research is valuable — but it does not describe the system that processes 99% of the world's non-cash transactions.
+
+The fiat agentic payment stack — the five layers above, the interaction between TAP credentials and ISO 8583 fields, the policy engine architectures, the reconciliation improvements — exists in production. It processes real money. It has no equivalent documentation in the research literature.
+
+Payarch is building the map that does not exist: visual, architectural documentation of how AI agents are being wired into the payment infrastructure that already underlies global commerce. Not the blockchain version. The one that is running now.
+
+---
+
+<Callout type="tldr" title="tl;dr">
+The agentic payment stack on fiat card rails has five layers: agent identity, delegation and authorization, policy enforcement, the payment rail itself, and settlement and reconciliation. Seventeen academic papers published in 2025–2026 address this problem space — and almost all of them assume blockchain settlement. The card-rail stack, which is already in production at Visa, Mastercard, and Stripe, has essentially no academic treatment. The five major protocols (Visa TAP, Mastercard Agent Pay / Verifiable Intent, Google AP2, Stripe ACP, x402) are competing at different layers of the stack, not for the same prize. Three problems remain unsolved at the architectural level: multi-hop budget delegation, prompt injection defense, and cross-border payment integration. Payarch is documenting the stack that is running now.
+</Callout>
+
+---
+
+<div id="sources" className="not-prose" style={{ marginTop: '64px', paddingTop: '32px', borderTop: '1px solid #e0dbd0' }}>
+
+## Sources
+
+<ol style={{ fontSize: '13px', color: '#6b6560', lineHeight: '1.8', paddingLeft: '20px' }}>
+  <li id="source-1">Academic survey: 17 papers synthesized from arXiv covering agent payment architectures, identity protocols, and economic frameworks (2024–2026). Papers include TessPay (arXiv:2602.00213), A402 (arXiv:2603.01179), APEX (arXiv:2604.02023), AgenticPay (arXiv:2602.06008), AIP (arXiv:2603.24775), OIDC-A (arXiv:2509.25974), Faramesh (arXiv:2601.17744), Insured Agents (arXiv:2512.08737), and others.</li>
+  <li id="source-2">APEX: Agent Payment Execution with Policy for Autonomous Agent API Access — arXiv:2604.02023. The paper explicitly notes it is "fiat-oriented" and lowering barriers vs. crypto-only approaches. It is the sole paper in the survey to target card-rail integration.</li>
+  <li id="source-3">Visa Intelligent Commerce (VIC) and VDCAP developer documentation. VDCAP (Visa Digital Commerce Authentication Program) launched US/Canada April 2026. <a href="https://developer.visa.com/capabilities/visa-intelligent-commerce" target="_blank" rel="noopener noreferrer">developer.visa.com/capabilities/visa-intelligent-commerce</a></li>
+  <li id="source-4">Mastercard Agent Pay — announced April 29, 2025; US cardholder rollout committed before end-2025 holiday season (Citi and U.S. Bank cardholders first). <a href="https://developer.mastercard.com/mastercard-checkout-solutions/documentation/use-cases/agent-pay/" target="_blank" rel="noopener noreferrer">developer.mastercard.com</a></li>
+  <li id="source-5">Stripe Agentic Commerce Protocol (ACP) and Instant Checkout in ChatGPT. Stripe newsroom, 2025. <a href="https://docs.stripe.com/agentic-commerce/protocol" target="_blank" rel="noopener noreferrer">docs.stripe.com/agentic-commerce/protocol</a></li>
+  <li id="source-6">Visa Trusted Agent Protocol — published October 14, 2025. Open-source reference implementation. <a href="https://github.com/visa/trusted-agent-protocol" target="_blank" rel="noopener noreferrer">github.com/visa/trusted-agent-protocol</a> · <a href="https://developer.visa.com/capabilities/trusted-agent-protocol" target="_blank" rel="noopener noreferrer">developer.visa.com</a></li>
+  <li id="source-7">Visa TAP technical detail: 7-stage CDN verification pipeline, Ed25519 / RSA-PSS-SHA256, RFC 9421 HTTP Message Signatures with covered components `@authority`, `@path`, `@method`, `content-type`, `content-digest`. <a href="https://www.tenzro.com/docs/visa-tap" target="_blank" rel="noopener noreferrer">tenzro.com/docs/visa-tap</a> · <a href="https://www.rfc-editor.org/rfc/rfc9421" target="_blank" rel="noopener noreferrer">RFC 9421</a></li>
+  <li id="source-8">Mastercard Agent Pay — Remote Commerce Tokenization Program. Agentic Tokens carry DSRP cryptograms and DTVC. Enrollment: KYA verification → FIDO2 passkey/PKI binding → Intent Creation. <a href="https://developer.mastercard.com/mastercard-checkout-solutions/documentation/use-cases/agent-pay/" target="_blank" rel="noopener noreferrer">developer.mastercard.com</a></li>
+  <li id="source-9">AIP: Agent Identity Protocol for Verifiable Delegation Across MCP and A2A — arXiv:2603.24775. Invocation-Bound Capability Tokens (IBCTs). Finding: scan of ~2,000 MCP servers found all lacked authentication. Performance: +0.22 ms MCP overhead; 100% rejection of 600 adversarial attacks. Also source for the multi-hop budget delegation gap: explicitly identified as unsolved across the 17-paper survey.</li>
+  <li id="source-10">Google Agent Payments Protocol (AP2) — announced September 16, 2025, 60+ founding partners. Intent Mandate → Cart Mandate → Payment Mandate chain. PaymentMandate "appended to existing transaction authorization packets." <a href="https://ap2-protocol.org/specification/" target="_blank" rel="noopener noreferrer">ap2-protocol.org/specification</a> · <a href="https://cloud.google.com/blog/products/ai-machine-learning/announcing-agents-to-payments-ap2-protocol" target="_blank" rel="noopener noreferrer">Google Cloud Blog</a></li>
+  <li id="source-11">Mastercard Verifiable Intent (VI) — draft v0.1 published 2026-02-18. Three-layer SD-JWT credential architecture with `cnf.jwk` key confirmation binding. Protocol-agnostic. <a href="https://verifiableintent.dev/spec/" target="_blank" rel="noopener noreferrer">verifiableintent.dev/spec</a> · <a href="https://github.com/agent-intent/verifiable-intent" target="_blank" rel="noopener noreferrer">github.com/agent-intent/verifiable-intent</a></li>
+  <li id="source-12">DAAP — Delegated Agent Authorization Protocol. IETF Internet-Draft: draft-mishra-oauth-agent-grants-01. OAuth 2.0 extension with agent JWT claims (`agt`, `dev`, `grnt`, `scp`, `bdg`), atomic budget debit, cascade revocation, and five anomaly detection types. Reference implementation: Grantex (Fastify + PostgreSQL + Redis). <a href="https://tools.ietf.org/html/draft-mishra-oauth-agent-grants-01" target="_blank" rel="noopener noreferrer">tools.ietf.org/html/draft-mishra-oauth-agent-grants-01</a></li>
+  <li id="source-13">TessPay: Verify-then-Pay Infrastructure for Trusted Agentic Commerce — arXiv:2602.00213. Two-plane architecture: Control & Verification Plane (identity, orchestration) / Payment Settlement Plane (escrow, rail adapters). Key design: "AI reasoning plane never holds private keys."</li>
+  <li id="source-14">Faramesh: A Protocol-Agnostic Execution Control Plane for Autonomous Agent Systems — arXiv:2601.17744. Mandatory authorization layer inserted between agent orchestrators and real-world side-effectful actions. Every action evaluated against Policy and State via authorization function B(A,P,S). Compatible with OPA, Cedar, and Zanzibar backends.</li>
+  <li id="source-15">Mastercard DE 105 Transaction Link Identifier (TLID) — revised standards bulletin, October 2025. Requires issuers and acquirers to store and return TLID across all lifecycle messages. Source: Marqeta card network articles, October 2025.</li>
+  <li id="source-16">x402 — Coinbase Developer Platform. Announced May 6, 2025. Revives HTTP 402 as machine-readable payment handshake. USDC on Base L2. ~$0.001 minimum payment, ~2 second end-to-end. Apache 2.0. <a href="https://x402.org" target="_blank" rel="noopener noreferrer">x402.org</a> · <a href="https://github.com/coinbase/x402" target="_blank" rel="noopener noreferrer">github.com/coinbase/x402</a></li>
+  <li id="source-17">AP2 red-team security analysis — arXiv:2601.22569, University of Georgia, January 2026. Found AP2 vulnerable to direct and indirect prompt injection: cart manipulation, product ranking poisoning, data exfiltration. Palo Alto Unit 42 IDPI in the wild: <a href="https://unit42.paloaltonetworks.com/ai-agent-prompt-injection/" target="_blank" rel="noopener noreferrer">unit42.paloaltonetworks.com</a></li>
+  <li id="source-18">SWIFT Rulebook for Payment Initiation Relay — March 10, 2025. Establishes Forwarding Agent role for `pain.001` relay. No AI agent presence field or mandate chain concepts. Formal ISO 20022 AI extensions expected from BIS/SWIFT working groups H2 2026. <a href="https://www.swift.com/swift-resource/252387/download" target="_blank" rel="noopener noreferrer">swift.com/swift-resource/252387/download</a></li>
+</ol>
+
+</div>
+
+---
+
+*Want to go deeper on any layer? The [TAP cryptographic flow](/blog/agentic-checkout-e2e) and the [Visa + Ramp B2B deployment](/blog/visa-ramp-corporate-bill-pay) are the first two technical deep-dives in this series.*
