@@ -327,7 +327,7 @@ export default function FiveLayerStack() {
                             Vendors
                           </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                            {layer.vendors.map((v) => (
+                            {layer.vendors.map((v, i) => (
                               <div key={i} style={{
                                 fontSize: 10,
                                 fontFamily: "'Courier New',monospace",
