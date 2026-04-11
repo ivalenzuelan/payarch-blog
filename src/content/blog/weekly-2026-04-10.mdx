@@ -1,0 +1,24 @@
+---
+title: 'Visa ICC, Mastercard live, and the x402 bridge'
+description: 'Visa standardizes agent-to-fiat integration with ICC. Mastercard goes live across five markets. x402 and Google enter the protocol race.'
+pubDate: 'Apr 10 2026'
+tags: [architecture, agentic-payments, visa, mastercard, protocol, x402]
+---
+
+Visa launched [Intelligent Commerce Connect (ICC)](https://www.paymentsjournal.com/visa-unveils-agentic-commerce-platform-for-merchants/), a merchant-facing platform that lets AI agents discover products and complete purchases on the existing Visa fiat rail. Architecturally this is the most important move of the week: a major card network is now providing a standardized API layer for agent-initiated transactions rather than expecting every merchant to figure out agent acceptance independently. ICC abstracts credential verification, transaction routing, and agent identity into a single integration point.
+
+Mastercard confirmed live agentic transactions across Latin America, the Caribbean, Singapore, Malaysia, and Thailand. The phrase they're using — "authenticated agentic transactions" — signals that fraud detection and identity verification are embedded directly into the transaction flow rather than bolted on top. Five simultaneous market launches suggests this is production infrastructure, not a pilot.
+
+[Stripe announced](https://stripe.com/blog/supporting-additional-payment-methods-for-agentic-commerce) support for agentic network tokens and BNPL tokens through a single primitive. Separately, Stripe integrated x402 on Base for AI computation payments. The x402 angle is the interesting one: it's a crypto-native protocol for usage-based machine-to-machine payments, and Stripe plugging it into their stack is the clearest signal yet that the fiat/crypto boundary in agent payments is collapsing.
+
+UnionPay unveiled an Agentic Payment Open Protocol Framework the same week Google announced its own payment protocol for AI-driven commerce ([covered by PYMNTS](https://www.pymnts.com/)). Four competing approaches — Visa ICC, Mastercard's authenticated flow, x402, and now Google's protocol — with no interoperability story yet. That fragmentation is the architectural problem nobody has solved.
+
+**Watch:** Google's protocol details. If it maps to existing card rails it's significant. If it's a new credential scheme, that's a problem for every merchant already integrating with Visa and Mastercard.
+
+## Sources
+- [Visa Unveils Agentic Commerce Platform for Merchants](https://www.paymentsjournal.com/visa-unveils-agentic-commerce-platform-for-merchants/) — PaymentsJournal
+- [Supporting additional payment methods for agentic commerce](https://stripe.com/blog/supporting-additional-payment-methods-for-agentic-commerce) — Stripe Blog
+- [Mastercard advances agentic payments live across multiple markets](https://www.mastercard.com/news/press/) — Mastercard
+- [Developers of x402 implement usage-based AI computation payments](https://forklog.com/) — ForkLog
+- [UnionPay unveils Agentic Payment Open Protocol Framework](https://futurecio.tech/) — FutureCIO
+- [Google unveils a payment protocol for AI-driven commerce](https://www.pymnts.com/) — PYMNTS
