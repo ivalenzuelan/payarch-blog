@@ -487,8 +487,6 @@ const pageSchema = [
         <span aria-current="page">{title}</span>
       </nav>
       <div class="post-eyebrow">
-        <span>By {PERSON_NAME}</span>
-        <span class="post-eyebrow-dot"></span>
         <FormattedDate date={pubDate} />
         {updatedDate && <><span class="post-eyebrow-dot"></span><span>Updated <FormattedDate date={updatedDate} /></span></>}
         {tags && tags.length > 0 && <span class="post-eyebrow-dot"></span>}
