@@ -1,0 +1,404 @@
+---
+title: 'Visa Intelligent Commerce: the complete architecture'
+description: 'VIC is not one product — it is three integrated systems. TAP handles cryptographic identity. The VIC API manages the payment credential lifecycle. VDCAP makes the data quality that agents produce economically rewarded. Here is how all three work, and how they fit together into a single authorization flow.'
+pubDate: 'Apr 17 2026'
+tags: ['visa', 'vic', 'tap', 'vdcap', 'agentic-commerce', 'tokenization', 'iso8583', 'architecture', 'trusted-agent-protocol']
+---
+
+import Callout from '../../components/Callout.tsx';
+
+Visa Intelligent Commerce launched in April 2025 with a deceptively simple tagline: a way for AI agents to pay. What it actually shipped was three distinct systems that solve three distinct problems — and you cannot build a production agent payment integration without understanding all three.
+
+Most of the developer content in circulation treats VIC as a monolith — the "Visa agent payments thing." That framing collapses important distinctions. TAP (Trusted Agent Protocol) is not the same thing as the VIC API. The VIC API is not the same thing as VDCAP. Conflating them produces integrations that work in sandbox and fail in production, or that work today and break when Visa rolls new policy requirements.
+
+This post maps the system. Not the headline version — the actual architecture.
+
+---
+
+## The three systems
+
+VIC is composed of three components that are conceptually separate, even though they ship as one platform.
+
+**The VIC API** is the payment credential lifecycle manager. It issues agent-scoped tokens, registers payment instructions, returns tokenized credentials at checkout, and receives post-transaction signals. The five API operations are: `enroll_card`, `initiate_purchase_instruction`, `update_or_cancel_instruction`, `retrieve_payment_credentials`, and `submit_commerce_signal`. This is the part that handles *what* the agent is authorized to buy.
+
+**The Trusted Agent Protocol** is the cryptographic identity layer. It answers a different question: *who is this agent, and is this request genuine?* TAP uses Ed25519 keypairs, RFC 9421 HTTP Message Signatures, and Cloudflare's Web Bot Auth infrastructure to verify that the entity making a checkout request is a registered agent platform — and that the request has not been tampered with in transit. TAP runs at the HTTP layer, before the VIC API is ever called.
+
+**VDCAP** — Visa Digital Commerce Authentication Program — is the economics layer. It has nothing to do with authentication or credentials. It is a fee incentive: merchants who supply enriched transaction data to VisaNet qualify for an interchange fee reduction. An AI agent generates exactly this kind of enriched data as a side effect of its existing work. VDCAP is Visa's way of making the data quality that agents produce worth money.
+
+Three systems. Three problems. One authorization flow.
+
+---
+
+## System 1: The VIC API
+
+The VIC API lives at the Visa Acceptance Platform — `developer.visaacceptance.com`. It is a REST API with five operations that map directly to the lifecycle of a single agent payment.
+
+### Enroll Card
+
+The first operation happens once per consumer–agent pairing, not per transaction.
+
+```
+POST /v1/enrollment/enroll-card
+{
+  "user_id": "consumer-123",
+  "card_number": "4111000000001111",
+  "expiration_date": "12/27",
+  "cvv": "123",
+  "agent_id": "skyfire-agent-001",
+  "spending_controls": {
+    "limit_per_transaction": 50000,
+    "categories": ["5945", "5732", "5065"],
+    "daily_velocity_limit": 3
+  }
+}
+```
+
+Behind this call, Visa's Token Service performs a step-up verification with the issuing bank — 3DS, OTP, or biometric — to confirm the cardholder's identity. If that succeeds, Visa issues an agent-bound Virtual Card Number (VCN): a 16-digit token that looks like a card number but is bound exclusively to the enrolled agent ID. The real PAN never leaves Visa's Token Service vault. Not the agent, not the merchant, not the acquirer — none of them see it.
+
+The consumer also creates a FIDO2 Passkey at this stage, stored in the device's secure enclave. Every subsequent payment instruction will require a Passkey assertion to activate the VCN. Without the consumer's device, the token cannot be used.
+
+### Initiate Purchase Instruction
+
+This is the operation that fires when the consumer says "buy this." It is what makes the VIC model different from a standard tokenized payment.
+
+```
+POST /v1/payment-instructions/initiate
+{
+  "user_id": "consumer-123",
+  "merchant_id": "bose-com",
+  "amount": 8999,
+  "currency": "USD",
+  "item_ref": "bose-qc45-black",
+  "passkey_assertion": "o2NmbXR..."
+}
+```
+
+The `passkey_assertion` is the signed Passkey credential from the consumer's device. This is the moment of explicit consumer authorization. The agent cannot produce this — only the consumer's device can sign the Passkey challenge. This means the consumer's knowledge and device possession are required once, at instruction time, before the agent acts. Once the instruction is registered, the agent can complete the checkout autonomously.
+
+VIC returns an `instruction_ref` — a UUID that ties together every subsequent step in this transaction. This reference will travel through the TAP credential, into the ISO 8583 message, through VisaNet's validation, and into the post-transaction signal. It is the audit trail anchor.
+
+### Update or Cancel Instruction
+
+```
+PUT  /v1/payment-instructions/{instruction_ref}
+DELETE /v1/payment-instructions/{instruction_ref}
+```
+
+The consumer or the agent platform can update the amount (within ±10% tolerance) or cancel the instruction entirely before credentials are retrieved. This is the consumer's escape hatch — a way to revoke authorization after giving it. No instruction = no credential = no payment. The cancellation is registered in VIC's registry, and any subsequent attempt to retrieve credentials against that `instruction_ref` returns a 404.
+
+### Retrieve Payment Credentials
+
+```
+POST /v1/credentials/retrieve
+{
+  "instruction_ref": "pi-abc123",
+  "tap_context": {
+    "agent_id": "skyfire-agent-001",
+    "signature": "MEQCIBx7zK...",
+    "timestamp": 1742518234
+  }
+}
+```
+
+The agent calls this at the moment of checkout, after TAP verification has passed. VIC returns the VCN and expiry — the tokenized card number the acquirer will use to build the ISO 8583 authorization message. VIC validates the `tap_context` before releasing credentials: the TAP signature must be valid, the `instruction_ref` must be active, and the agent identity in the TAP context must match the enrolled agent. All three checks must pass.
+
+### Submit Commerce Signal
+
+```
+POST /v1/signals/commerce
+{
+  "instruction_ref": "pi-abc123",
+  "outcome": "success",
+  "order_id": "bose-order-78234",
+  "fulfillment_status": "confirmed"
+}
+```
+
+This is not optional. The commerce signal closes the instruction lifecycle and feeds Visa's fraud intelligence. Without it, VIC has an instruction that was authorized and credentials that were retrieved — but no confirmation of whether the purchase completed. From Visa's perspective, that looks like credential extraction without fulfillment, which is a fraud signal pattern.
+
+More practically: the `instruction_ref` + authorization code + `order_id` trinity is the evidence chain for dispute resolution. If the consumer disputes the charge, the linked Passkey assertion (proving they authorized the specific instruction), the TAP credential (proving the agent's identity), and the commerce signal (proving fulfillment occurred) are what Visa submits to the issuer.
+
+<Callout type="insight" title="Why five operations instead of one">
+The five-step lifecycle looks over-engineered compared to a standard card-not-present checkout. It is not. Each step serves a different party. Enrollment serves the issuer (verified cardholder identity). Initiation serves the consumer (explicit per-purchase authorization with device possession). Credential retrieval serves the agent (just-in-time, single-use credential). Commerce signals serve the network (fraud intelligence and dispute evidence). The separation is a security property, not bureaucracy — it means compromising any single step does not compromise the whole chain.
+</Callout>
+
+---
+
+## System 2: The Trusted Agent Protocol
+
+TAP solves a different problem than the VIC API. The VIC API answers: does this consumer have an active instruction for this amount at this merchant? TAP answers: is the entity making this checkout request actually the agent it claims to be, and has this request been modified in transit?
+
+The VIC API cannot answer the second question. It operates at the application layer — by the time an API call reaches VIC, an attacker could have intercepted and modified the HTTP request. TAP operates at the transport layer, below the application, where the request is signed before it leaves the agent and verified before it reaches the merchant.
+
+### The key infrastructure
+
+Every agent platform that integrates VIC registers an Ed25519 keypair with Visa. The public key is published in a well-known directory at `tap.visa.com/.well-known/agents/{agent_id}` — the same pattern as a JWKS endpoint. The private key never leaves the agent platform's secure enclave. Cloudflare CDN nodes cache the public keys at edge locations globally, with a 5-minute TTL.
+
+### The signed request
+
+Every checkout request from a TAP-registered agent carries an RFC 9421 HTTP Message Signature:
+
+```http
+POST /checkout/complete HTTP/1.1
+Host: bose.com
+Content-Type: application/json
+Content-Digest: sha-256=:base64hash==:
+Signature-Input: tap-sig=("@method" "@authority" "@path"
+  "content-type" "content-digest" "x-tap-agent-id" "x-tap-nonce");
+  keyid="skyfire-agent-001"; tag="tap-purchase";
+  created=1742518234; nonce="a3f8c2e1d9b7"
+Signature: tap-sig=:MEQCIBx7zK...base64==:
+X-Tap-Agent-Id: skyfire-agent-001
+X-Tap-Nonce: a3f8c2e1d9b7
+X-Tap-Consumer-Token: eyJhbGciOiJFZERTQSJ9...
+```
+
+The `Signature-Input` header defines the signing base — the exact set of headers and components included in the signature. Any field in this list that is modified after signing will cause verification to fail. The `content-digest` covers the request body, so modifying the cart total or item after the request is signed is detectable.
+
+Four elements of the signed request are security-critical:
+
+**`tag="tap-purchase"`** — signals payment intent vs. catalog browsing. Merchants that expose a TAP-aware checkout flow can gate it on this tag specifically: normal bot traffic uses `tap-browse`, payment-capable traffic uses `tap-purchase`. This is how merchants accept AI shopping agents without accepting automated checkout from unregistered bots.
+
+**`nonce`** — a cryptographically random value, unique per request. Nonces are stored permanently by Visa after first use. A replayed request — same signature, same nonce — is rejected immediately.
+
+**`created`** — a Unix timestamp. Requests older than 300 seconds are rejected by Visa's CDN layer. This limits the window during which an intercepted, signed request is useful to an attacker.
+
+**`X-Tap-Consumer-Token`** — a JWT issued by the VIC API, containing the consumer's hashed identity, the merchant the instruction was registered for, the `instruction_ref`, and the token expiry (90 seconds). This is what binds the TAP identity check to the VIC payment instruction — it is the cryptographic link between "this agent is who it says it is" and "this agent is authorized to buy this specific thing."
+
+### The 7-stage verification pipeline
+
+When the signed request arrives at Cloudflare's edge, before it reaches the merchant's origin server, it runs through seven verification stages:
+
+```
+1. Header extraction — parse Signature-Input, extract signing base
+2. Key retrieval     — fetch public key from tap.visa.com cache
+3. Timestamp check   — created within ±300s of server time
+4. Nonce check       — not seen before (distributed nonce store query)
+5. Domain binding    — @authority in signing base matches request Host
+6. Signature verify  — Ed25519 verify(signature, signing_base, pubkey)
+7. Result injection  — inject X-Tap-Verified: true + agent metadata
+   into request before forwarding to origin
+```
+
+All seven stages run at edge, before the request reaches the merchant's infrastructure. The merchant's TAP SDK (or any downstream validator) receives a request that Cloudflare has already cleared — but can still verify independently using the embedded signature and the consumer token JWT.
+
+Total latency at the edge: approximately 2–4ms per request. The merchant's local SDK verification adds another 1–3ms. Total TAP overhead: under 10ms.
+
+### Merchant-side integration
+
+For merchants using the Cloudflare-proxied path, TAP verification is essentially zero-integration: Cloudflare injects `X-Tap-Verified: true` and `X-Tap-Agent-Id` headers, and the merchant decides what to do with them. Many merchants simply pass these headers through to their fraud scoring system as trust signals.
+
+For merchants that want explicit local verification — useful if the merchant is not behind Cloudflare, or wants an audit-independent check — Visa publishes a TAP SDK that replicates all 7 stages locally.
+
+---
+
+## System 3: VDCAP
+
+The Visa Digital Commerce Authentication Program is the part of VIC that most developers overlook — because it does not affect whether a transaction is authorized or declined. It affects how much the merchant pays in interchange fees.
+
+### What it is
+
+VDCAP is a fee incentive program that rewards merchants for supplying enriched transaction data elements in their authorization requests. The data elements in question are exactly the ones that AI agents produce naturally: Device ID, IP address, email address, and billing address AVS data.
+
+**Tier 1 — enriched data**: Merchants who include these four data elements in their authorization messages qualify for a **0.05% interchange fee reduction** per transaction.
+
+**Tier 2 — enriched data + Network Tokens**: Merchants who include the data elements *and* process the transaction against a Visa Network Token (as issued by the VIC enrollment flow) qualify for a **0.10% interchange fee reduction** per transaction.
+
+On a $1,000 transaction, the difference is $0.50 or $1.00. That sounds small. At $1 million monthly volume — which is not exceptional for a mid-sized B2B merchant — VDCAP is worth $500–$1,000 per month. At $10 million monthly volume, it is $5,000–$10,000.
+
+### Why it exists
+
+VDCAP was designed to solve an adoption problem. Enriched transaction data makes fraud decisioning more accurate — it helps issuers distinguish legitimate agent transactions from automated attacks. But requiring merchants to supply it would create a compliance burden. Rewarding them for supplying it creates the same outcome without the mandate.
+
+The alignment is clean. AI agents generate enriched data automatically: the agent platform knows the device and IP it is running on, it can access the consumer's registered email, and VIC provides the AVS data as part of the credential. The merchant does not have to collect any of this — it flows from the agent's operating context.
+
+### The VDCAP data flow
+
+```
+VIC credential retrieval response:
+{
+  "tokenized_pan": "4111xxxxAGNT",
+  "expiry": "12/27",
+  "enriched_data": {
+    "device_id": "tap-device-sha256-abc",
+    "ip_address": "104.21.x.x",      ← Cloudflare edge IP
+    "email_hash": "sha256:def...",    ← hashed, not raw
+    "avs_data": {
+      "postal_code": "10001",
+      "address_line": "1 Main St"
+    }
+  }
+}
+```
+
+The merchant passes this enriched data in specific ISO 8583 fields:
+
+- **DE 48, Tag 91** — Device ID
+- **DE 48, Tag 33** — IP address
+- **DE 48, Tag 42** — email hash (SHA-256, not plaintext)
+- **DE 3** — transaction type indicator (VDCAP-eligible transactions use a specific value)
+- **DE 2 / DE 35** — the Network Token (not raw PAN) to qualify for Tier 2
+
+VisaNet validates the presence and format of these fields. If they pass, the transaction is flagged as VDCAP-eligible, and the interchange reduction applies.
+
+<Callout type="insight" title="VDCAP is a CFO argument, not an engineering argument">
+The 0.10% fee reduction from VDCAP is not why engineering teams integrate VIC. They integrate for identity verification and fraud reduction. But when engineering teams present VIC integration to a CFO, VDCAP is the line item that makes the economics obvious. A $10M/month merchant saves $120,000/year in interchange — more than enough to justify the integration cost. The CFO approves the project for a different reason than the engineer builds it, and both are right.
+</Callout>
+
+---
+
+## How the three systems connect
+
+A complete VIC transaction has the following shape. The numbers indicate which system is responsible at each step.
+
+```
+── ENROLLMENT (once per consumer-agent pairing) ──────────────────────
+
+Consumer → [VIC API] enroll_card({ card, agent_id, controls })
+         ← { token_ref, passkey_challenge }                       (1)
+Consumer → [Device] navigator.credentials.create(passkey_challenge)
+         ← fido2_credential stored in secure enclave             (2)
+
+── TRANSACTION ───────────────────────────────────────────────────────
+
+Consumer → [VIC API] initiate_purchase_instruction({
+             merchant, amount, passkey_assertion })
+         ← { instruction_ref: "pi-abc123" }                       (3)
+
+Agent → [TAP] POST merchant/checkout
+        Authorization: TAP-1.0
+        Signature: Ed25519(request, nonce, timestamp)
+        X-Tap-Consumer-Token: JWT(instruction_ref, exp=+90s)
+
+[Cloudflare] → 7-stage verify(signature, nonce, domain, exp)      (4)
+            → injects X-Tap-Verified: true
+
+Merchant → [VIC API] retrieve_payment_credentials({
+             instruction_ref, tap_context })
+         ← { tokenized_pan: "4111xxxxAGNT",
+             enriched_data: { device_id, ip, email_hash, avs } }  (5)
+
+Merchant → Acquirer: ISO 8583 MTI 0100
+  F002: tokenized_pan                  ← agent-bound VCN
+  F022: 81                             ← agent-initiated (not 01)
+  F048/Tag91: device_id                ← VDCAP Tier 1
+  F048/Tag33: ip_address               ← VDCAP Tier 1
+  F048/Tag42: email_hash               ← VDCAP Tier 1
+  F126: pi-abc123:sha256:...           ← TAP instruction hash     (6)
+
+VisaNet → validate F126 against instruction registry
+        → amount matches? merchant matches? → pass
+        → de-tokenize VCN → route to issuer
+
+Issuer → load agent spending policy for token
+       → balance check, category check, velocity check
+       → F039: 00 (approved)                                       (7)
+
+Merchant → [VIC API] submit_commerce_signal({
+             instruction_ref, outcome, order_id })                 (8)
+```
+
+Steps (1)–(2) are VIC API + device.  
+Steps (3) and (5) are VIC API.  
+Steps (4) and (6) are TAP.  
+Step (7) is VisaNet + VDCAP validation.  
+Step (8) closes the VIC API lifecycle.
+
+The three systems never overlap in function. TAP does not issue credentials — that is VIC API's job. VIC API does not verify request authenticity — that is TAP's job. VDCAP does not do either — it reads the already-enriched data that VIC API provides and maps it to a fee outcome.
+
+---
+
+## The ISO 8583 integration
+
+The ISO 8583 message is where all three systems converge into a single authorization packet.
+
+**F022 = 81** — POS Entry Mode. This single field change is the most consequential modification in the entire agentic payment stack. F022 has been set to `01` (manual key entry) for card-not-present ecommerce since the 1990s. `81` is the new value for agent-initiated transactions. When the issuer sees `F022=81`, it does not run human behavioral risk models — it loads the agent's pre-authorized spending policy and runs deterministic checks. The 3DS step-up path is bypassed entirely.
+
+**F002** — Primary Account Number. Contains the VCN issued by the VIC enrollment, not the consumer's real card number. The VCN is an agent-bound token: it cannot be used by a different agent, it expires if the instruction is cancelled, and it activates only when a Passkey assertion was used to create the instruction. Even if an attacker captures the ISO 8583 message, they cannot reuse the VCN — it has already been consumed against `pi-abc123`.
+
+**F048** (Additional Data — Private Use) — carries the enriched VDCAP data elements (device ID, IP, email hash) under vendor-specific tags 91, 33, and 42. Also carries the agent identifier in a sub-field format: `AGNT:skyfire-agent-001`.
+
+**F126** (Extended Data) — carries the TAP integrity hash: `pi-abc123:sha256:{hash}`. VisaNet validates this field against the instruction registered in VIC's registry. The hash covers the amount and merchant ID from the payment instruction. If anything in the authorization message was modified after the instruction was registered — wrong amount, substituted merchant — this field fails validation and the transaction is declined with response code 58.
+
+The backward compatibility is by design. None of the existing acquirer, network, or issuer infrastructure changes. The message format is still ISO 8583. The routing is still VisaNet. The settlement is still T+1. Every new piece of agent context is carried in fields that have always existed in the spec — F048 has been "private use" for decades — now populated with defined semantics.
+
+---
+
+## Production status
+
+As of April 2026:
+
+- **Sandbox**: available globally across all five Visa regions (North America, Asia-Pacific, Europe, CEMEA, Latin America & Caribbean)
+- **Production**: gated by partner approval; contact Visa for access
+- **VDCAP**: launched US and Canada, April 2026
+- **TAP open source**: published October 14, 2025 at `github.com/visa/trusted-agent-protocol`
+- **VIC MCP server**: `github.com/visa/mcp` — any Claude or GPT-based agent can access full VIC functionality through standard MCP tool calls
+
+Partners confirmed in production or advanced sandbox: Cloudflare, Skyfire, Stripe, Adyen, Worldpay, Crossmint (virtual card issuance via Visa Intelligent Platform), Ramp (B2B deployment, April 1, 2026).
+
+---
+
+## Integration paths
+
+There are three ways to integrate VIC. They differ in build time, control, and scope.
+
+**Direct integration via Visa Acceptance Platform**
+
+Start at `developer.visa.com/capabilities/visa-intelligent-commerce`. Register an agent identity, obtain Ed25519 keypair instructions, implement the five VIC API operations, and implement TAP signature generation against RFC 9421. Estimated time to sandbox: 2–4 weeks. Production access requires Visa partner agreement.
+
+Best for: agent platforms that will handle many merchants and need full control over the credential lifecycle.
+
+**VIC via MCP server**
+
+`github.com/visa/mcp` exposes all five VIC operations as MCP tools. Any agent built on Claude, GPT-4o, or any MCP-compatible runtime can call `visa_enroll_card`, `visa_initiate_purchase_instruction`, and `visa_retrieve_credentials` as standard tool calls — no custom HTTP signing, no RFC 9421 implementation required. TAP is handled by the MCP server.
+
+Best for: agents that already run in an MCP-compatible runtime and want fast time-to-market.
+
+**Via Skyfire or Crossmint**
+
+Skyfire's KYAPay protocol and Crossmint's Agentic Checkout both sit on top of VIC. They handle TAP registration, VIC enrollment, and credential lifecycle management — the developer integrates against their API, not Visa's directly. Crossmint adds dual-key wallet architecture (agent holds one key, operator holds another) and handles KYC/PCI compliance on behalf of the developer.
+
+Best for: consumer-facing applications that need a complete, compliance-ready agent payment stack without direct Visa partnership.
+
+---
+
+## What VIC does not solve
+
+**Multi-agent authorization.** The current VIC spec assumes one agent per payment instruction. When a supervisor agent delegates to a subagent, and the subagent initiates the checkout, which agent ID is in the TAP credential? The `instruction_ref` was registered against the supervisor's session. Neither VIC nor TAP specifies how delegation chains propagate through sub-agents.
+
+**Cross-network interoperability.** A consumer with a Visa card on a Mastercard-integrated platform creates a gap — Mastercard's CDN layer does not recognize TAP credentials, and VIC does not issue Mastercard Agentic Tokens. An agent built for multi-network acceptance today must implement both independently.
+
+**Cross-border payments.** VDCAP and the VIC API apply to card-network authorizations. International wire transfers run on SWIFT `pain.001` / `pacs.008` messages, where none of this architecture applies. The SWIFT Payment Initiation Relay Rulebook (March 2025) introduced a Forwarding Agent role for automated systems, but it has no agent identity or instruction registry concepts.
+
+**Prompt injection defense.** VDCAP and TAP protect the integrity of the authorization chain after the cart is locked. They do not protect the agent's decision-making before the cart is created. If a malicious merchant website crafts a product listing that manipulates the agent's shopping logic, no part of VIC can detect it. The cryptographic chain starts at instruction registration — below whatever the agent has already decided.
+
+---
+
+<Callout type="tldr" title="tl;dr">
+Visa Intelligent Commerce is three systems, not one. The VIC API manages the payment credential lifecycle across five operations (enroll, initiate, update/cancel, retrieve, signal), with per-instruction consumer authorization via FIDO2 Passkey. TAP provides cryptographic identity at the HTTP layer, using Ed25519 keypairs, RFC 9421 signatures, and Cloudflare edge verification, so merchants can distinguish registered agent platforms from automated bots before payment begins. VDCAP rewards merchants 0.05–0.10% interchange reduction for supplying the enriched transaction data (device ID, IP, email hash, AVS) that agent integrations produce automatically. All three converge in a single ISO 8583 authorization message, with F022=81 signaling agent-initiated mode to downstream risk models. The stack is in production in consumer retail (Skyfire, Bose.com) and corporate B2B (Ramp, April 2026). VDCAP launched US/Canada April 2026. Multi-agent delegation, cross-network interoperability, and cross-border payments remain unsolved.
+</Callout>
+
+---
+
+<div id="sources" className="not-prose" style={{ marginTop: '64px', paddingTop: '32px', borderTop: '1px solid #e0dbd0' }}>
+
+## Sources
+
+<ol style={{ fontSize: '13px', color: '#6b6560', lineHeight: '1.8', paddingLeft: '20px' }}>
+  <li>Visa Intelligent Commerce developer documentation — canonical product reference. <a href="https://developer.visa.com/capabilities/visa-intelligent-commerce" target="_blank" rel="noopener noreferrer">developer.visa.com/capabilities/visa-intelligent-commerce</a> · <a href="https://developer.visaacceptance.com/docs/vas/en-us/intelligent-commerce/developer/all/rest/intelligent-commerce.html" target="_blank" rel="noopener noreferrer">developer.visaacceptance.com</a></li>
+  <li>Visa Trusted Agent Protocol — open source reference implementation published October 14, 2025. <a href="https://github.com/visa/trusted-agent-protocol" target="_blank" rel="noopener noreferrer">github.com/visa/trusted-agent-protocol</a></li>
+  <li>Visa MCP Server — full VIC access via standard MCP tool calls. <a href="https://github.com/visa/mcp" target="_blank" rel="noopener noreferrer">github.com/visa/mcp</a></li>
+  <li>IETF RFC 9421 — HTTP Message Signatures. Defines the signature base construction and covered components. <a href="https://www.rfc-editor.org/rfc/rfc9421" target="_blank" rel="noopener noreferrer">rfc-editor.org/rfc/rfc9421</a></li>
+  <li>Cloudflare Web Bot Auth + TAP integration — announced October 14, 2025. 7-stage CDN verification pipeline. <a href="https://blog.cloudflare.com/secure-agentic-commerce" target="_blank" rel="noopener noreferrer">blog.cloudflare.com/secure-agentic-commerce</a></li>
+  <li>VDCAP (Visa Digital Commerce Authentication Program) — launched US/Canada April 2026. 0.05% interchange reduction for enriched data; 0.10% combined with Network Tokens. DEV Community technical breakdown by Tom Wang, April 2026.</li>
+  <li>Visa and Ramp production B2B deployment — announced April 1, 2026. 50,000 corporate customers. First confirmed production VIC deployment outside consumer retail. See also <a href="/blog/visa-ramp-corporate-bill-pay">the full B2B breakdown</a> on this site.</li>
+  <li>Skyfire KYAPay Protocol — enterprise GA announced March 6, 2025; open-sourced June 26, 2025. Sits on top of VIC + TAP. <a href="https://www.skyfire.xyz/product" target="_blank" rel="noopener noreferrer">skyfire.xyz</a></li>
+  <li>Crossmint Agentic Checkout — AP2 launch partner; built on Visa Intelligent Platform for virtual card issuance. <a href="https://www.crossmint.com/solutions/ai-agents" target="_blank" rel="noopener noreferrer">crossmint.com/solutions/ai-agents</a></li>
+  <li>SWIFT Payment Initiation Relay Rulebook — March 10, 2025. Forwarding Agent role for pain.001 relay. <a href="https://www.swift.com/swift-resource/252387/download" target="_blank" rel="noopener noreferrer">swift.com</a></li>
+</ol>
+
+</div>
+
+---
+
+*This post is the architecture reference for VIC as a system. The transaction narrative — how a consumer dispatch flows from "buy this" to confirmed purchase — is in [How an AI agent buys something](/blog/agentic-checkout-e2e). The B2B variation, including corporate TAP credentials and Level 3 data, is in [Visa and Ramp rebuilding corporate bill pay](/blog/visa-ramp-corporate-bill-pay). The protocol competition across TAP, Mastercard Agent Pay, AP2, and x402 is in [The agentic payment stack nobody is mapping](/blog/agentic-payment-stack).*
