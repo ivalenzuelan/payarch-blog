@@ -11,11 +11,11 @@ import TapHandshake from '../../components/tap-handshake-diagram.jsx';
 import Iso8583Diagram from '../../components/iso8583-diagram.jsx';
 
 
-You say "buy me those Bose headphones." Your AI assistant does it. 1,100 milliseconds later, the purchase is confirmed — no checkout page, no card number entered, no CAPTCHA solved.
+You say "buy me the HEAD Delta Pro padel racket." Your AI assistant does it. 1,100 milliseconds later, the purchase is confirmed — no checkout page, no card number entered, no CAPTCHA solved.
 
-This already happened. In December 2025, a consumer dispatched an AI agent to find the best headphones at the best price. The agent evaluated options on Consumer Reports, navigated to Bose.com, authenticated itself using Skyfire's KYAPay protocol and Visa's Trusted Agent Protocol, and completed the checkout. The consumer received a confirmation email automatically.
+Use that as the running example: one concrete retail purchase, one merchant, one amount, one payment instruction. The agent resolves the product, navigates to HEAD.com, authenticates itself using Skyfire's KYAPay-style flow and Visa's Trusted Agent Protocol, and completes checkout without putting the consumer through a form.
 
-This post breaks down every technical layer of what happened: the new identity protocol Visa and Cloudflare built, the exact changes to ISO 8583 for agent-initiated transactions, the VIC API sequence, and the competitive landscape across TAP, x402, and AP2.
+This post breaks down every technical layer in that flow: the new identity protocol Visa and Cloudflare built, the exact changes to ISO 8583 for agent-initiated transactions, the VIC API sequence, and the competitive landscape across TAP, x402, and AP2.
 
 <AgenticArchitecture client:load diagram={agenticCheckoutE2E} />
 
@@ -165,7 +165,7 @@ The signed HTTP request looks like this:
 
 ```http
 POST /checkout/complete HTTP/1.1
-Host: bose.com
+Host: head.com
 Signature-Input: tap-sig=("@method" "@target-uri" "@authority"
   "content-digest" "x-tap-agent-id" "x-tap-intent");
   keyid="skyfire-agent-001"; tag="tap-purchase";
@@ -254,10 +254,10 @@ const passkey = await navigator.credentials.create({
 // 3. Initiate payment instruction — when consumer says "buy this"
 const instruction = await vic.tools.initiate_purchase_instruction({
   user_id: "consumer-123",
-  merchant_id: "bose-com",
-  amount: 89.99,
+  merchant_id: "head-com",
+  amount: 249.00,
   currency: "USD",
-  item_ref: "bose-qc45",
+  item_ref: "head-delta-pro",
   passkey_assertion: await signWithPasskey(passkey, instructionPayload)
 })
 // → { instruction_ref: "pi-abc123", status: "authorized" }
@@ -273,7 +273,7 @@ const creds = await vic.tools.retrieve_payment_credentials({
 await vic.tools.submit_commerce_signal({
   instruction_ref: "pi-abc123",
   outcome: "success",
-  order_id: "bose-order-78234"
+  order_id: "head-order-78234"
 })
 ```
 
@@ -281,9 +281,9 @@ Step 5 is not optional. It creates the audit trail that makes disputes solvable:
 
 ---
 
-## Real deployments
+## Deployment patterns
 
-**Skyfire + Consumer Reports + Bose.com** is the most complete example. Skyfire's KYAPay protocol sits on top of VIC and TAP. The agent queried Consumer Reports via MCP, evaluated headphone options, navigated to Bose.com, presented TAP credentials, and completed checkout — no consumer interaction required after the initial "find me headphones" instruction.
+**Skyfire-style retail checkout** is the most complete consumer pattern. KYAPay sits on top of VIC and TAP: the agent queries a product source, evaluates padel racket options, navigates to HEAD.com, presents TAP credentials, and completes checkout — no consumer interaction required after the initial "find me a padel racket" instruction.
 
 **Nekuda on Gensmo** demonstrates multi-merchant checkout. When the AI stylist assembles an outfit, Nekuda's payment layer executes purchases across multiple merchants simultaneously from a single agent instruction — each leg independently TAP-verified.
 

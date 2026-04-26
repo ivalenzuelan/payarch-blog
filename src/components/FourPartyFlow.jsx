@@ -116,7 +116,7 @@ const FIXED_STEPS = [
     info:"✓ F126 validated vs VIC registry · amount + merchant match\n→ Agentic Token binding verified · agent-aware risk model applied" },
   { path:"n-iss",      from:"network", to:"issuer",  label:"agent policy",     status:"pass",
     layer:"Issuer Bank",
-    info:"✓ F022=81 → load agent spending policy (not human model)\n→ $89.99 ≤ $500 limit ✓ · MCC ✓ · velocity ✓ · Passkey pre-authorized → APPROVED · No 3DS" },
+    info:"✓ F022=81 → load agent spending policy (not human model)\n→ $249.00 ≤ $500 limit ✓ · MCC ✓ · velocity ✓ · Passkey pre-authorized → APPROVED · No 3DS" },
   { path:"iss-n-r",    from:"issuer",  to:"network", label:"F039=00",          status:"pass",
     info:"APPROVED · F038: 123456 · F039: 00 · F126: agent-confirmed" },
   { path:"n-acq-r",    from:"network", to:"acquirer",label:"MTI 0110",         status:"pass",
@@ -126,7 +126,7 @@ const FIXED_STEPS = [
   { path:"m-agent-r",  from:"merchant",to:"agent",   label:"confirmed",        status:"pass",
     info:"✓ Order confirmed → Agent receives result first" },
   { path:"agent-c-notify", from:"agent",to:"consumer", label:"push notification", status:"pass",
-    info:"✓ Consumer receives push notification: Bought Bose QC45 · $89.99 · authorized\n→ 1,100ms total · no checkout page visited · no card number entered" },
+    info:"✓ Consumer receives push notification: Bought HEAD Delta Pro · $249.00 · authorized\n→ 1,100ms total · no checkout page visited · no card number entered" },
 ]
 
 const isAgentMode = (m) => m === "agent" || m === "fixed"

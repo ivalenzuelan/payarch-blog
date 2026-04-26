@@ -348,10 +348,10 @@ function TamperTest({ publicKey, sigP, sigVal }) {
 export default function TapSimulator() {
   const [cfg, setCfg] = useState({
     agentId: 'skyfire-001',
-    domain: 'bose.com',
+    domain: 'head.com',
     path: '/checkout',
     type: 'checkout',
-    amount: '89.99',
+    amount: '249.00',
     currency: 'USD',
   })
   const [steps, setSteps] = useState([])

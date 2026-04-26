@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react"
 const ACTORS = [
   { id: "agent", label: "AI Agent", sub: "Skyfire · Claude", color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" },
   { id: "visa", label: "Visa TAP", sub: "tap.visa.com · Cloudflare", color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))" },
-  { id: "merchant", label: "Merchant", sub: "bose.com · TAP SDK", color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" },
+  { id: "merchant", label: "Merchant", sub: "head.com · TAP SDK", color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" },
 ]
 
 const STEPS = [
@@ -37,7 +37,7 @@ const STEPS = [
       { key: "2. Ed25519 verify", val: "Reconstruct canonical form → verify signature → ✓ valid", hi: true },
       { key: "3. Nonce check", val: "a3f8c2e1d9b7 not in store → ✓ unused · stored permanently", hi: true },
       { key: "4. Timestamp", val: "created=1742518234 · delta 8s < 60s limit → ✓", hi: false },
-      { key: "5. Wallet policy", val: "token vts-AGNT-001 · active · $89.99 ≤ $500 → ✓", hi: false },
+      { key: "5. Wallet policy", val: "token vts-AGNT-001 · active · $249.00 ≤ $500 → ✓", hi: false },
       { key: "6. Cloudflare WBA", val: "Request patterns ✓ · TLS fingerprint ✓ · velocity ✓", hi: false },
     ],
     note: "Two independent trust signals: cryptographic (Ed25519) and behavioral (Cloudflare edge). Both must pass.",
@@ -53,7 +53,7 @@ const STEPS = [
     rows: [
       { key: "iss", val: "tap.visa.com", hi: false },
       { key: "sub", val: "skyfire-agent-001", hi: false },
-      { key: "aud", val: "bose.com", hi: false },
+      { key: "aud", val: "head.com", hi: false },
       { key: "exp", val: "1742518324 — TTL 90 seconds only", hi: true },
       { key: "nonce", val: "a3f8c2e1d9b7 — replay-protected", hi: true },
       { key: "consumer_recognized", val: "true — returning customer", hi: true },
@@ -72,7 +72,7 @@ const STEPS = [
     title: "Agent presents credential at merchant checkout",
     rows: [
       { key: "Authorization", val: "TAP-1.0 eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9...", hi: true },
-      { key: "Body", val: '{ "items": [{"sku":"BOSE-QC45","qty":1}], "amount":89.99, "instruction_ref":"pi-abc123" }', hi: false },
+      { key: "Body", val: '{ "items": [{"sku":"HEAD-DELTA-PRO","qty":1}], "amount":249.00, "instruction_ref":"pi-abc123" }', hi: false },
     ],
     note: 'tag="tap-purchase" in the original Signature-Input tells the MerchantSDK this agent intends to buy, not just browse. The SDK can gate purchase flows differently from catalog browsing.',
   },
@@ -88,8 +88,8 @@ const STEPS = [
       { key: "Signature", val: "Ed25519 verify with cached Visa public key → ✓ valid", hi: true },
       { key: "exp", val: "1742518324 > now · 36s remaining → ✓", hi: false },
       { key: "nonce", val: "a3f8c2e1d9b7 not in local store → ✓ · stored", hi: true },
-      { key: "aud", val: '"bose.com" === this merchant → ✓', hi: false },
-      { key: "amount", val: "89.99 === cart total → ✓", hi: false },
+      { key: "aud", val: '"head.com" === this merchant → ✓', hi: false },
+      { key: "amount", val: "249.00 === cart total → ✓", hi: false },
       { key: "consumer_recognized", val: "true → skip new-customer onboarding", hi: true },
     ],
     note: "All checks pass in under 5ms with no external call. Total TAP handshake: ~60ms. Order created. Stripe PaymentIntent called. The ISO 8583 leg begins.",
@@ -103,7 +103,7 @@ const STEPS = [
     time: "t + 60ms · total",
     title: "Order accepted — zero friction",
     rows: [
-      { key: "order_id", val: "BOSE-2026-78234", hi: true },
+      { key: "order_id", val: "HEAD-2026-78234", hi: true },
       { key: "status", val: "pending_payment", hi: false },
       { key: "next_step", val: "Stripe PaymentIntent → ISO 8583 0100 → VisaNet → issuer", hi: true },
     ],
@@ -216,7 +216,7 @@ const CRYPTO_DETAILS = {
         lines: [
           '{ "iss": "tap.visa.com",',
           '  "sub": "skyfire-agent-001",',
-          '  "aud": "bose.com",',
+          '  "aud": "head.com",',
           '  "iat": 1742518234,',
           '  "exp": 1742518324,          // +90 seconds only',
           '  "nonce": "a3f8c2e1d9b7",   // replay protection',

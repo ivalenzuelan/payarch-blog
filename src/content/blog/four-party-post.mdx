@@ -45,7 +45,7 @@ The 4-party model is also a fraud prevention stack. Each participant has a speci
 
 Before an authorization request ever leaves the merchant, the gateway runs behavioral checks: CAPTCHA, WAF rules, device fingerprinting, velocity limits. The point is to catch automated scripts brute-forcing card numbers before they hit the banking system.
 
-An AI agent fails every one of these checks — not because it's malicious, but because it's optimal. No mouse movement. Machine-speed execution from a data center IP. Headless Chrome fingerprint. Algorithmically timed requests. A legitimate agent buying a $90 pair of headphones looks indistinguishable from a coordinated carding attack. The merchant blocks the request before payment is even attempted. Nothing downstream matters if the agent can't get through the front door.
+An AI agent fails every one of these checks — not because it's malicious, but because it's optimal. No mouse movement. Machine-speed execution from a data center IP. Headless Chrome fingerprint. Algorithmically timed requests. A legitimate agent buying a $249 padel racket looks indistinguishable from a coordinated carding attack. The merchant blocks the request before payment is even attempted. Nothing downstream matters if the agent can't get through the front door.
 
 ### Layer 2: Acquirer + Processor
 
@@ -57,7 +57,7 @@ The real issue here is `F022`. That's the POS Entry Mode field in ISO 8583, set 
 
 The network has cross-merchant visibility that no single bank has. It runs large-scale ML models trained to catch distributed attacks. By definition, machine-speed transactions from data center IPs with no human behavioral signal are what those models were built to flag.
 
-A Skyfire agent buying headphones gets the maximum risk score. Not because it did anything wrong, but because it matches the exact behavioral fingerprint of every attack the model was trained on. There's also no mechanism to verify that the consumer already authorized this specific purchase before the transaction arrived.
+A Skyfire agent buying a HEAD Delta Pro padel racket gets the maximum risk score. Not because it did anything wrong, but because it matches the exact behavioral fingerprint of every attack the model was trained on. There's also no mechanism to verify that the consumer already authorized this specific purchase before the transaction arrived.
 
 ### Layer 4: Issuer Bank
 

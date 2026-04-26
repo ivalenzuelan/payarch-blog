@@ -20,8 +20,8 @@ const REQUEST_FIELDS = [
     agentNote: "Unchanged."
   },
   {
-    id: "F004", name: "Amount", humanVal: "000000008999", agentVal: "000000008999", bytes: 12, type: "std",
-    humanNote: "$89.99 with implied 2 decimal places. Zero-padded to 12 digits.",
+    id: "F004", name: "Amount", humanVal: "000000024900", agentVal: "000000024900", bytes: 12, type: "std",
+    humanNote: "$249.00 with implied 2 decimal places. Zero-padded to 12 digits.",
     agentNote: "Unchanged. VisaNet validates this against the stored payment instruction — any tampering in transit = decline."
   },
   {
@@ -48,7 +48,7 @@ const REQUEST_FIELDS = [
     agentNote: "Agent terminal ID — AGNT prefix distinguishes from human checkout terminals in acquirer reporting."
   },
   {
-    id: "F042", name: "Merchant ID", humanVal: "BOSE-001", agentVal: "BOSE-001", bytes: 8, type: "std",
+    id: "F042", name: "Merchant ID", humanVal: "HEAD-001", agentVal: "HEAD-001", bytes: 8, type: "std",
     humanNote: "Merchant identifier registered with the acquirer.", agentNote: "Unchanged — same merchant."
   },
   {
@@ -70,7 +70,7 @@ const REQUEST_FIELDS = [
 const RESPONSE_FIELDS = [
   { id: "F002", name: "Primary Account Number", val: "4111xxxxAGNT", bytes: 19, type: "std", note: "VCN echoed back — confirms token was accepted." },
   { id: "F003", name: "Processing Code", val: "000000", bytes: 6, type: "std", note: "Echoed from request." },
-  { id: "F004", name: "Amount", val: "000000008999", bytes: 12, type: "std", note: "$89.99 — echoed and confirmed." },
+  { id: "F004", name: "Amount", val: "000000024900", bytes: 12, type: "std", note: "$249.00 — echoed and confirmed." },
   { id: "F007", name: "Date/Time", val: "0321143422", bytes: 10, type: "std", note: "Echoed from request." },
   { id: "F011", name: "STAN", val: "000123", bytes: 6, type: "std", note: "Echoed — used to match request to response." },
   { id: "F038", name: "Authorization Code", val: "123456", bytes: 6, type: "new", note: "★ 6-digit auth code issued by the issuer. Required for settlement. Must match at T+1 clearing." },
@@ -103,7 +103,7 @@ const ALL_FIELDS = [
   { id:"F001", name:"Bitmap, Secondary",                  cat:"security",       dtype:"b",   maxLen:8,    human:"C", agent:"C", type:"std", desc:"Set when the message contains fields F065–F128. First bit of the message." },
   { id:"F002", name:"Primary Account Number (PAN)",       cat:"identification", dtype:"n",   maxLen:19,   human:"C", agent:"C", type:"mod", desc:"The card number. In agent transactions replaced by a VCN (Virtual Card Number) — the real PAN never leaves Visa Token Service." },
   { id:"F003", name:"Processing Code",                    cat:"processing",     dtype:"n",   maxLen:6,    human:"M", agent:"M", type:"std", desc:"6-digit code describing the transaction type. 000000 = purchase. First 2 digits: transaction type. Digits 3–4: from-account type. Digits 5–6: to-account type." },
-  { id:"F004", name:"Transaction Amount",                 cat:"amounts",        dtype:"n",   maxLen:12,   human:"M", agent:"M", type:"std", desc:"Amount in the smallest currency unit. $89.99 USD = 000000008999. VisaNet validates this against F126 for agent transactions." },
+  { id:"F004", name:"Transaction Amount",                 cat:"amounts",        dtype:"n",   maxLen:12,   human:"M", agent:"M", type:"std", desc:"Amount in the smallest currency unit. $249.00 USD = 000000024900. VisaNet validates this against F126 for agent transactions." },
   { id:"F005", name:"Settlement Amount",                  cat:"amounts",        dtype:"n",   maxLen:12,   human:"O", agent:"O", type:"std", desc:"Amount in settlement currency. Populated by the network if different from transaction currency." },
   { id:"F006", name:"Cardholder Billing Amount",          cat:"amounts",        dtype:"n",   maxLen:12,   human:"O", agent:"O", type:"std", desc:"Amount billed to the cardholder in their billing currency after conversion." },
   { id:"F007", name:"Transmission Date/Time",             cat:"datetime",       dtype:"n",   maxLen:10,   human:"M", agent:"M", type:"std", desc:"MMDDhhmmss format. Set by the originator. Used to match messages and detect replays." },
