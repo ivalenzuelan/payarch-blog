@@ -79,11 +79,15 @@ export default function TapPipelineDiagram() {
       <style>{`
         .tap-pipeline {
           display: grid;
-          grid-template-columns: minmax(120px, 0.7fr) auto minmax(320px, 2.8fr) auto minmax(180px, 1fr);
-          gap: 12px;
+          grid-template-columns: minmax(112px, 0.55fr) 18px minmax(0, 4fr) 18px minmax(160px, 0.9fr);
+          gap: 10px;
           align-items: center;
           margin: 32px 0;
           color: var(--ink-900);
+          width: min(1040px, calc(100vw - 32px));
+          position: relative;
+          left: 50%;
+          transform: translateX(-50%);
         }
 
         .tap-node,
@@ -91,6 +95,7 @@ export default function TapPipelineDiagram() {
           border: 1px solid var(--ink-300);
           background: var(--paper);
           border-radius: 8px;
+          min-width: 0;
         }
 
         .tap-node {
@@ -121,6 +126,7 @@ export default function TapPipelineDiagram() {
           font-size: 13px;
           line-height: 1.25;
           color: var(--ink-900);
+          overflow-wrap: anywhere;
         }
 
         .tap-origin em {
@@ -141,6 +147,7 @@ export default function TapPipelineDiagram() {
           padding: 16px;
           background: var(--ink-100);
           box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--paper-pure) 50%, transparent);
+          overflow: hidden;
         }
 
         .tap-edge-header {
@@ -161,13 +168,19 @@ export default function TapPipelineDiagram() {
         .tap-step,
         .tap-gate {
           display: grid;
-          grid-template-columns: 34px 1fr;
-          gap: 10px;
+          grid-template-columns: 30px minmax(0, 1fr);
+          gap: 8px;
           align-items: start;
           border: 1px solid var(--ink-200);
           background: var(--paper-pure);
           border-radius: 6px;
-          padding: 10px;
+          padding: 9px;
+          min-width: 0;
+        }
+
+        .tap-step > div,
+        .tap-gate > div {
+          min-width: 0;
         }
 
         .tap-step p,
@@ -176,13 +189,14 @@ export default function TapPipelineDiagram() {
           font-size: 12px;
           line-height: 1.35;
           color: var(--ink-700);
+          overflow-wrap: anywhere;
         }
 
         .tap-num {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 28px;
+          width: 26px;
           height: 24px;
           border: 1px solid var(--ink-200);
           border-radius: 4px;
@@ -192,15 +206,17 @@ export default function TapPipelineDiagram() {
 
         .tap-gates {
           display: grid;
-          grid-template-columns: 1fr 72px;
-          gap: 10px;
+          grid-template-columns: minmax(0, 1fr) 58px;
+          gap: 8px;
           align-items: stretch;
+          min-width: 0;
         }
 
         .tap-gate-list {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 8px;
+          min-width: 0;
         }
 
         .tap-reject {
@@ -212,6 +228,8 @@ export default function TapPipelineDiagram() {
           justify-content: center;
           align-items: center;
           gap: 4px;
+          min-width: 0;
+          padding: 0 6px;
         }
 
         .tap-reject strong {
@@ -231,9 +249,12 @@ export default function TapPipelineDiagram() {
           text-align: right;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 820px) {
           .tap-pipeline {
             grid-template-columns: 1fr;
+            width: 100%;
+            left: auto;
+            transform: none;
           }
 
           .tap-arrow {
