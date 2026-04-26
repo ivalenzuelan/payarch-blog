@@ -1,0 +1,213 @@
+---
+title: "Why the 4-party model breaks for agents"
+description: "The card network architecture that has moved money for fifty years assumes a human is present. Agent payments do not replace the rails; they replace the trust signals around them."
+pubDate: 2026-04-26
+tags: ["four-party-model", "agentic-commerce", "iso8583", "tap", "agent-pay", "ap2", "x402", "tokenization"]
+---
+
+import AgentDefenseStackDiagram from '../../components/AgentDefenseStackDiagram.jsx';
+import AgentPrimitiveMapDiagram from '../../components/AgentPrimitiveMapDiagram.jsx';
+import AgentComposedFlowDiagram from '../../components/AgentComposedFlowDiagram.jsx';
+
+In 1971, Bank of America spun out its card business into National BankAmericard Inc. The architecture that followed was simple enough to become universal: consumer, merchant, acquirer, issuer, with the network in the middle to route authorization and clearing.
+
+That architecture has survived for fifty-five years because it does more than move money. It also decides whether the person initiating the payment is probably the cardholder.
+
+Agent payments break that assumption at the root. The consumer is not sitting at the keyboard, typing a card number, responding to a 3DS challenge, or creating the behavioral trail fraud systems were trained to read. They delegated intent to software.
+
+The important thing is that the rails do not need to be replaced. ISO 8583 still moves the authorization. Acquirers still route to networks. Issuers still approve or decline. What changes is the trust substrate around the rails: identity, credential binding, prior intent, and policy.
+
+<div className="not-prose" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1px', margin: '32px 0', border: '1px solid var(--ink-200)', borderRadius: '8px', overflow: 'hidden', background: 'var(--ink-200)' }}>
+  <div style={{ background: 'var(--paper-pure)', padding: '16px' }}>
+    <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '20px', fontWeight: 700, color: 'var(--ink-900)' }}>1971</div>
+    <div style={{ fontSize: '12px', color: 'var(--ink-700)', marginTop: '6px', lineHeight: 1.4 }}>BankAmericard becomes a cooperative</div>
+  </div>
+  <div style={{ background: 'var(--paper-pure)', padding: '16px' }}>
+    <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '20px', fontWeight: 700, color: 'var(--ink-900)' }}>1987</div>
+    <div style={{ fontSize: '12px', color: 'var(--ink-700)', marginTop: '6px', lineHeight: 1.4 }}>ISO 8583 card authorization format lands</div>
+  </div>
+  <div style={{ background: 'var(--paper-pure)', padding: '16px' }}>
+    <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '20px', fontWeight: 700, color: 'var(--ink-900)' }}>Apr 2025</div>
+    <div style={{ fontSize: '12px', color: 'var(--ink-700)', marginTop: '6px', lineHeight: 1.4 }}>Mastercard Agent Pay and Visa Intelligent Commerce announced one day apart</div>
+  </div>
+  <div style={{ background: 'var(--paper-pure)', padding: '16px' }}>
+    <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '20px', fontWeight: 700, color: 'var(--ink-900)' }}>Oct 2025</div>
+    <div style={{ fontSize: '12px', color: 'var(--ink-700)', marginTop: '6px', lineHeight: 1.4 }}>Cloudflare, Visa, and Mastercard converge on Web Bot Auth-style verification</div>
+  </div>
+</div>
+
+This post sits underneath the [Visa vs Mastercard comparison](/blog/four-party-post/). That piece asks which network architecture you should integrate. This one asks a more durable question: what does the 4-party model actually verify, and which primitives must exist before an autonomous agent can safely transact through it?
+
+---
+
+## The model is a fraud stack
+
+Most diagrams present the 4-party model as a settlement loop. That is correct, but it misses the part that matters for agents. The model is also a layered fraud defense system. Each participant answers a different security question, and each answer assumes a human is present in real time.
+
+<AgentDefenseStackDiagram client:load />
+
+When the principal is a human, the layers compound. The merchant sees a browser, a device, mouse movement, and normal request timing. The acquirer sees an ecommerce entry mode and a familiar merchant baseline. The network sees behavior that resembles prior cardholder purchases rather than distributed automation. The issuer can fall back to 3DS if the signal is ambiguous.
+
+An agent removes the shared substrate. The stack does not degrade gradually. The same transaction can be blocked at the gateway, downgraded by the acquirer, scored as high risk by the network, and finally killed by issuer step-up.
+
+The system is doing what it was built to do. It is producing the wrong answer because the thing it was built to verify did not happen.
+
+---
+
+## Layer 1: merchant and gateway
+
+The gateway filters automated traffic before a payment request reaches the acquirer. CAPTCHAs, WAF rules, device fingerprints, mouse trajectory, residential IP reputation, and request velocity all exist to stop card-testing and credential-stuffing attacks.
+
+A legitimate shopping agent fails those checks because it has the same external shape as hostile automation. It may run from a data center IP, drive a headless browser, submit form data at machine speed, and produce no human motion signal. A Skyfire-style agent buying a HEAD Delta Pro padel racket looks less like a shopper and more like the exact category of traffic the gateway was tuned to reject.
+
+The fix is not a better CAPTCHA. The fix is changing the question from "does this look human" to "did a registered agent sign this request."
+
+That is why Visa TAP, Web Bot Auth, and AP2-style request assertions all converge on signed HTTP messages. The merchant or edge network verifies a public-key signature over the request. Replay protection comes from the nonce. Freshness comes from the timestamp. Tamper protection comes from signing the canonical request components.
+
+---
+
+## Layer 2: acquirer and processor
+
+If the request reaches payment, the acquirer evaluates it against the merchant's transaction baseline. This layer has a field-level problem: `F022`, the POS Entry Mode in ISO 8583.
+
+For ecommerce, the default is historically `01`, which tells downstream systems to apply card-not-present human rules. With an agent, that is exactly the wrong instruction. The transaction now carries a data center IP, no familiar device fingerprint, and often no clean AVS story, while the message still says "manual key entry."
+
+The replacement is an agent-specific entry mode plus an agent-bound credential. In Visa's architecture, the message can carry a token in `F002`, agent mode in `F022`, agent context in `F048`, and an instruction hash in `F126`. Mastercard solves more of the binding through token metadata. Either way, the old credential model changes: a credential lifted out of one agent's context should be useless in another.
+
+This is the most practical engineering point in the whole post. The 4-party rails continue to work because the payment credential becomes contextual, and the ISO message says so.
+
+---
+
+## Layer 3: network
+
+The network sees what no single merchant or issuer can see: cross-merchant behavior. Its fraud models are trained to catch distributed attacks that look benign in isolation.
+
+That is a problem for agents. Machine-speed checkout from cloud infrastructure with weak human-behavioral signal is not an edge case for those models. It is the canonical attack profile.
+
+The missing signal is prior intent. There is nothing in a legacy card authorization that proves the consumer already approved this amount, merchant, item, and agent before the transaction arrived.
+
+The replacement is a registered payment instruction. The consumer authorizes an instruction before checkout. The network stores or references it. When the authorization arrives, the network compares the live ISO message with the registered instruction. Amount changed? Merchant changed? Instruction expired? Decline before the issuer has to guess.
+
+This is the moment agent payments stop being a "bot allowed through checkout" problem and become a cryptographic evidence problem.
+
+---
+
+## Layer 4: issuer
+
+The issuer is the final authorization decision. In the human model, ambiguous risk can be resolved with 3DS: send the cardholder an SMS, push notification, or banking-app challenge and wait for a live answer.
+
+That fallback cannot be made agent-native. If the point of the agent is delegation, the cardholder may be asleep, in a meeting, or deliberately out of the loop. If every high-risk agent purchase wakes the cardholder for step-up, the architecture has failed its core job.
+
+The replacement is a pre-authorized spending policy. At enrollment or instruction time, the consumer uses a passkey or equivalent strong authenticator to bind the agent to limits: transaction cap, daily velocity, merchant categories, geography, token lifetime, revocation state. At transaction time, the issuer evaluates rules rather than attempting a live challenge.
+
+This is a bigger conceptual shift than it first looks. The issuer is no longer asking "is the cardholder here right now." It is asking "does this transaction fit a policy the cardholder already authorized."
+
+---
+
+## The four primitives
+
+Visa TAP, Mastercard Agent Pay, AP2, and x402 are not the same kind of thing. Visa and Mastercard are extending card networks. AP2 is an evidence protocol around mandates. x402 is an HTTP-native payment transport. But when you reduce them to architecture, the same primitives keep appearing.
+
+<AgentPrimitiveMapDiagram client:load />
+
+**Primitive 1: cryptographic agent identity.** A request from an agent needs to be attributable. Signed HTTP messages give merchants a local verification path: public key lookup, signature check, nonce, timestamp, body digest. The verifier can be a merchant SDK, CDN edge, gateway, or protocol middleware. The invariant is the same: the request is accepted because an accountable agent signed it, not because it looked like a human.
+
+**Primitive 2: agent-bound credential.** A payment credential must be scoped to the agent and context that received it. A stolen token without the agent's signing key should not be enough. This is where network tokenization becomes a security boundary rather than only a PAN-protection tool.
+
+**Primitive 3: registered payment instruction.** The network or payment protocol needs an object that says what the consumer actually authorized before the transaction. It may be an instruction reference, a mandate, or a token-bound intent. Without it, the network sees behavior but not consent.
+
+**Primitive 4: pre-authorized spending policy.** The issuer or wallet needs deterministic rules that can be checked without waking the user. Passkeys matter because they move strong authentication to enrollment or instruction time, where the consumer is actually present.
+
+The primitives are compositional. Agent identity without a scoped credential still lets a legitimate agent misuse a broad payment instrument. A scoped credential without an instruction does not prove this transaction was intended. An instruction without issuer policy still collapses into 3DS when risk rises.
+
+---
+
+## What the rails do not have to change
+
+The easiest mistake is to assume agent payments require new payment rails. They do not.
+
+ISO 8583 can still carry the authorization request. The acquirer still sends MTI 0100. The issuer still returns MTI 0110. Clearing, settlement, chargebacks, and merchant acquiring remain the boring parts of the system, which is exactly why the card networks are extending them rather than replacing them.
+
+The architecture changes in two places:
+
+- **Inside the message:** the token, entry mode, agent identifier, and instruction reference carry the agent context.
+- **Outside the message:** HTTP signatures, public-key directories, passkey enrollment, and instruction registries create the evidence the message points to.
+
+Stablecoin and HTTP-native protocols solve a different problem: programmable settlement and internet-native payment at the protocol layer. That can be powerful, especially for API payments and agent-to-agent commerce, but it does not automatically recreate issuer policy, consumer dispute handling, network tokenization, or chargeback evidence.
+
+For consumer commerce, the boring card rails are a feature. The new work is all around proof.
+
+---
+
+## The composed system
+
+Once the four primitives are in place, the flow becomes easier to reason about. More work happens before checkout. Less judgment happens during authorization.
+
+<AgentComposedFlowDiagram client:load />
+
+This is the main architectural inversion.
+
+Human checkout makes the transaction the moment of truth. The user is present, so every layer tries to read that presence in real time.
+
+Agent checkout makes enrollment and instruction the moments of truth. The transaction becomes evidence transport. The network checks whether the message matches the instruction. The issuer checks whether the instruction fits policy. The merchant checks whether the request came from the registered agent.
+
+That is why the agentic version feels more like a direct-debit mandate or delegated wallet than a normal card-not-present purchase. It still rides the card rails, but the trust model has moved.
+
+---
+
+## Still unsolved
+
+The four primitives are enough for single-agent, single-purchase flows. They do not settle the harder edges.
+
+**Multi-agent delegation.** If a planning agent delegates the actual purchase to a subagent, the chain needs to show who held authority, who executed, and which policy applied. AP2-style mandate chains point in the right direction, but production interoperability across wallets, networks, and orchestration frameworks is still early as of April 26, 2026.
+
+**Cross-network identity.** A Visa-recognized agent and a Mastercard-recognized agent are not automatically the same principal. Shared directories are technically straightforward and politically hard. In the near term, serious agent platforms will register with multiple networks.
+
+**Dispute evidence.** A chargeback file for a human checkout can point to a checkout session, 3DS result, delivery event, and receipt. A multi-step agent workflow needs richer evidence: original instruction, agent transcript, merchant response, post-purchase signal, and revocation state at the time of authorization.
+
+**PSD2 Strong Customer Authentication.** Existing European SCA guidance predates autonomous agent checkout. It discusses authentication elements and exemptions, but it does not give a clean, agent-specific answer for delegated card transactions. A strict interpretation that requires live transaction-time step-up would undermine the architecture for EU-issued cards.
+
+**Refund routing.** Refunds need to land on the consumer's underlying funding source even if the agent token has rotated or been revoked. That means the original instruction reference and token lifecycle records become operational data, not just authorization evidence.
+
+---
+
+## Engineer takeaways
+
+If you are integrating agent payments, start with the primitives rather than the vendor names.
+
+The identity layer is the cleanest: HTTP signatures, key discovery, nonce storage, timestamp windows. You can reason about it locally.
+
+The credential layer is where vendor behavior matters most. Token lifecycle, revocation, rotation, and agent re-assignment are easy to under-design.
+
+The instruction layer is where most authorization bugs will live. Amount drift, merchant mismatch, expired instructions, partial captures, split shipments, and retries all need explicit state transitions.
+
+The policy layer is the product problem. Consumers need to understand what they are authorizing, how to revoke it, and what happens when the agent acts inside the policy but outside their expectation. The cryptography can be correct while the user model is still wrong.
+
+That is the shape of the rebuild: not new rails, but new proof surfaces around old rails.
+
+---
+
+## Sources
+
+- [ISO 8583:1987, ISO standard page](https://www.iso.org/standard/15870.html)
+- [Visa Trusted Agent Protocol overview](https://developer.visa.com/capabilities/trusted-agent-protocol/overview)
+- [Visa Trusted Agent Protocol specifications](https://developer.visa.com/capabilities/trusted-agent-protocol/trusted-agent-protocol-specifications/)
+- [Visa Intelligent Commerce developer documentation](https://developer.visa.com/capabilities/visa-intelligent-commerce/docs)
+- [Mastercard Agent Pay launch](https://www.mastercard.com/news/press/2025/april/mastercard-unveils-agent-pay-pioneering-agentic-payments-technology-to-power-commerce-in-the-age-of-ai)
+- [RFC 9421: HTTP Message Signatures](https://www.rfc-editor.org/rfc/rfc9421)
+- [Web Bot Auth IETF draft](https://datatracker.ietf.org/doc/draft-meunier-web-bot-auth-architecture/)
+- [Agent Payments Protocol (AP2)](https://github.com/google-agentic-commerce/AP2)
+- [x402 protocol](https://www.x402.org/)
+- [Cloudflare agentic commerce announcement](https://www.cloudflare.net/news/news-details/2025/Cloudflare-Collaborates-with-Leading-Payments-Companies-to-Secure-and-Enable-Agentic-Commerce/default.aspx)
+- [FIDO Alliance Payments Working Group](https://fidoalliance.org/fido-alliance-launches-payments-working-group/)
+- [EBA opinion on SCA elements under PSD2](https://eba.europa.eu/publications-and-media/press-releases/eba-publishes-opinion-elements-strong-customer-authentication)
+
+---
+
+## Coming next
+
+This post sits between the [end-to-end checkout walkthrough](/blog/agentic-checkout-e2e/) and the [4-party model vendor comparison](/blog/four-party-post/). The next pieces in the architecture series:
+
+- **ISO 8583 for agents:** every modified field, valid values, response codes, and what changed at the issuer.
+- **The Trusted Agent Protocol, line by line:** Ed25519 key registration, nonce-store design, replay protection, and merchant verification.
+- **AP2 vs TAP vs x402:** same primitives, different ownership boundaries, and how to pick between them.
