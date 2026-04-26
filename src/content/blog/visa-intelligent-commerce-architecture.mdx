@@ -6,6 +6,7 @@ tags: ['visa', 'vic', 'tap', 'vdcap', 'agentic-commerce', 'tokenization', 'iso85
 ---
 
 import Callout from '../../components/Callout.tsx';
+import TapPipelineDiagram from '../../components/TapPipelineDiagram.jsx';
 
 Visa Intelligent Commerce launched in April 2025 with a deceptively simple tagline: a way for AI agents to pay. What it actually shipped was three distinct systems that solve three distinct problems — and you cannot build a production agent payment integration without understanding all three.
 
@@ -126,13 +127,13 @@ The five-step lifecycle looks over-engineered compared to a standard card-not-pr
 
 ## System 2: The Trusted Agent Protocol
 
-TAP solves a different problem than the VIC API. The VIC API answers: does this consumer have an active instruction for this amount at this merchant? TAP answers: is the entity making this checkout request actually the agent it claims to be, and has this request been modified in transit?
+VIC API and TAP run at different layers. VIC asks whether this consumer has an active purchase instruction for this amount at this merchant. TAP asks whether the HTTP request came from a registered agent, and whether anything changed after the agent signed it.
 
-The VIC API cannot answer the second question. It operates at the application layer — by the time an API call reaches VIC, an attacker could have intercepted and modified the HTTP request. TAP operates at the transport layer, below the application, where the request is signed before it leaves the agent and verified before it reaches the merchant.
+That second question has to be answered before VIC is called, which is why TAP runs at Cloudflare's edge.
 
 ### The key infrastructure
 
-Every agent platform that integrates VIC registers an Ed25519 keypair with Visa. The public key is published in a well-known directory at `tap.visa.com/.well-known/agents/{agent_id}` — the same pattern as a JWKS endpoint. The private key never leaves the agent platform's secure enclave. Cloudflare CDN nodes cache the public keys at edge locations globally, with a 5-minute TTL.
+Every agent platform that integrates VIC registers an Ed25519 keypair with Visa. Public keys are served from `tap.visa.com/.well-known/agents/{agent_id}`, following the JWKS pattern, and Cloudflare edge nodes cache them for 5 minutes. Private keys stay inside the agent platform's secure enclave.
 
 ### The signed request
 
@@ -153,42 +154,26 @@ X-Tap-Nonce: a3f8c2e1d9b7
 X-Tap-Consumer-Token: eyJhbGciOiJFZERTQSJ9...
 ```
 
-The `Signature-Input` header defines the signing base — the exact set of headers and components included in the signature. Any field in this list that is modified after signing will cause verification to fail. The `content-digest` covers the request body, so modifying the cart total or item after the request is signed is detectable.
+The `Signature-Input` header defines the signing base: the exact headers and request components covered by the signature. Change any covered field after signing and verification fails. The `content-digest` covers the body, so cart and amount tampering also fails verification.
 
-Four elements of the signed request are security-critical:
+Four fields in this header carry security weight:
 
-**`tag="tap-purchase"`** — signals payment intent vs. catalog browsing. Merchants that expose a TAP-aware checkout flow can gate it on this tag specifically: normal bot traffic uses `tap-browse`, payment-capable traffic uses `tap-purchase`. This is how merchants accept AI shopping agents without accepting automated checkout from unregistered bots.
+- **`tag="tap-purchase"`** separates payment intent from catalog browsing. Merchants gate checkout on this value specifically, not on TAP signatures generally.
+- **`nonce`** is single-use. Visa stores nonces after first sight; replays are rejected at stage 4.
+- **`created`** gives Cloudflare the replay window. Requests older than 300 seconds are rejected at the CDN layer.
+- **`X-Tap-Consumer-Token`** is a 90-second JWT issued by the VIC API at instruction time. It binds "who is this agent" from TAP to "what is this agent allowed to buy" from VIC.
 
-**`nonce`** — a cryptographically random value, unique per request. Nonces are stored permanently by Visa after first use. A replayed request — same signature, same nonce — is rejected immediately.
+### The pipeline
 
-**`created`** — a Unix timestamp. Requests older than 300 seconds are rejected by Visa's CDN layer. This limits the window during which an intercepted, signed request is useful to an attacker.
+<TapPipelineDiagram client:load />
 
-**`X-Tap-Consumer-Token`** — a JWT issued by the VIC API, containing the consumer's hashed identity, the merchant the instruction was registered for, the `instruction_ref`, and the token expiry (90 seconds). This is what binds the TAP identity check to the VIC payment instruction — it is the cryptographic link between "this agent is who it says it is" and "this agent is authorized to buy this specific thing."
-
-### The 7-stage verification pipeline
-
-When the signed request arrives at Cloudflare's edge, before it reaches the merchant's origin server, it runs through seven verification stages:
-
-```
-1. Header extraction — parse Signature-Input, extract signing base
-2. Key retrieval     — fetch public key from tap.visa.com cache
-3. Timestamp check   — created within ±300s of server time
-4. Nonce check       — not seen before (distributed nonce store query)
-5. Domain binding    — @authority in signing base matches request Host
-6. Signature verify  — Ed25519 verify(signature, signing_base, pubkey)
-7. Result injection  — inject X-Tap-Verified: true + agent metadata
-   into request before forwarding to origin
-```
-
-All seven stages run at edge, before the request reaches the merchant's infrastructure. The merchant's TAP SDK (or any downstream validator) receives a request that Cloudflare has already cleared — but can still verify independently using the embedded signature and the consumer token JWT.
-
-Total latency at the edge: approximately 2–4ms per request. The merchant's local SDK verification adds another 1–3ms. Total TAP overhead: under 10ms.
+Total budget: roughly 2-4ms at edge, plus 1-3ms in the merchant SDK if the merchant verifies locally. Under 10ms either way.
 
 ### Merchant-side integration
 
-For merchants using the Cloudflare-proxied path, TAP verification is essentially zero-integration: Cloudflare injects `X-Tap-Verified: true` and `X-Tap-Agent-Id` headers, and the merchant decides what to do with them. Many merchants simply pass these headers through to their fraud scoring system as trust signals.
+Cloudflare-fronted merchants receive `X-Tap-Verified: true` and `X-Tap-Agent-Id` on requests that cleared the pipeline. Most merchants pass those headers into fraud scoring and checkout policy.
 
-For merchants that want explicit local verification — useful if the merchant is not behind Cloudflare, or wants an audit-independent check — Visa publishes a TAP SDK that replicates all 7 stages locally.
+Merchants outside the Cloudflare path, or merchants that want an audit-independent check, run Visa's TAP SDK and replicate the same checks at origin.
 
 ---
 
