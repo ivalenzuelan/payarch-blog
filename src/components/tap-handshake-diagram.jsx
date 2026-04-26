@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react"
 
 const ACTORS = [
-  { id: "agent", label: "AI Agent", sub: "Skyfire · Claude", color: "#7040c0", bg: "#f8f4ff", border: "#ddd0f8" },
-  { id: "visa", label: "Visa TAP", sub: "tap.visa.com · Cloudflare", color: "#1a56a0", bg: "#f0f4ff", border: "#c0d0f0" },
-  { id: "merchant", label: "Merchant", sub: "bose.com · TAP SDK", color: "#1a7a50", bg: "#f0f8f4", border: "#b0d8c0" },
+  { id: "agent", label: "AI Agent", sub: "Skyfire · Claude", color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" },
+  { id: "visa", label: "Visa TAP", sub: "tap.visa.com · Cloudflare", color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))" },
+  { id: "merchant", label: "Merchant", sub: "bose.com · TAP SDK", color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" },
 ]
 
 const STEPS = [
@@ -12,7 +12,7 @@ const STEPS = [
     arrow: "agent → visa",
     label: "POST /v1/validate",
     sub: "HTTP Message Signature · Ed25519",
-    color: "#7040c0",
+    color: "var(--diagram-4)",
     time: "t + 0ms",
     title: "Agent constructs signed HTTP request",
     rows: [
@@ -29,7 +29,7 @@ const STEPS = [
     arrow: "visa internal",
     label: "Validate signature + policy",
     sub: "Key directory · nonce store · behavioral",
-    color: "#1a56a0",
+    color: "var(--diagram-1)",
     time: "t + 12ms",
     title: "Visa TAP runs three independent checks",
     rows: [
@@ -47,7 +47,7 @@ const STEPS = [
     arrow: "visa → agent",
     label: "200 OK · TAP JWT",
     sub: "Signed credential · TTL 90s",
-    color: "#1a56a0",
+    color: "var(--diagram-1)",
     time: "t + 48ms",
     title: "Visa issues signed JWT — valid 90 seconds",
     rows: [
@@ -67,7 +67,7 @@ const STEPS = [
     arrow: "agent → merchant",
     label: "POST /checkout",
     sub: "Authorization: TAP-1.0 {jwt}",
-    color: "#7040c0",
+    color: "var(--diagram-4)",
     time: "t + 52ms",
     title: "Agent presents credential at merchant checkout",
     rows: [
@@ -81,7 +81,7 @@ const STEPS = [
     arrow: "merchant internal",
     label: "Verify JWT locally",
     sub: "No external call · < 5ms",
-    color: "#1a7a50",
+    color: "var(--success)",
     time: "t + 56ms",
     title: "MerchantSDK validates — seven checks, all local",
     rows: [
@@ -99,7 +99,7 @@ const STEPS = [
     arrow: "merchant → agent",
     label: "200 OK · Order confirmed",
     sub: "No CAPTCHA · No redirect · No form",
-    color: "#1a7a50",
+    color: "var(--success)",
     time: "t + 60ms · total",
     title: "Order accepted — zero friction",
     rows: [
@@ -285,13 +285,13 @@ export default function TapHandshake() {
 
   return (
     <div style={{ 
-      fontFamily: "'Georgia','Times New Roman',serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", 
+      fontFamily: "'Georgia','Times New Roman',serif", color: "var(--ink-900)", background: "var(--paper)", borderRadius: 12, border: "1px solid var(--ink-200)", overflow: "hidden", 
       width: "100vw", maxWidth: 1040, position: "relative", left: "50%", transform: "translateX(-50%)", margin: "20px 0"
     }}>
 
       {/* Header */}
-      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
+      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           Trusted Agent Protocol · Handshake Sequence
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
@@ -299,7 +299,7 @@ export default function TapHandshake() {
             <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 3px" }}>
               Agent authentication &amp; credential issuance
             </h2>
-            <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+            <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
               6 steps · ~60ms total · click any step to expand
             </div>
           </div>
@@ -308,9 +308,9 @@ export default function TapHandshake() {
             style={{
               padding: "5px 12px", borderRadius: 5, fontSize: 10, flexShrink: 0,
               fontFamily: "'Courier New',monospace", cursor: "pointer",
-              border: `1px solid ${showCrypto ? "#7040c0" : "#d8d3c8"}`,
-              background: showCrypto ? "#f5f0ff" : "transparent",
-              color: showCrypto ? "#7040c0" : "#9a9288",
+              border: `1px solid ${showCrypto ? "var(--diagram-4)" : "var(--ink-300)"}`,
+              background: showCrypto ? "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))" : "transparent",
+              color: showCrypto ? "var(--diagram-4)" : "var(--ink-500)",
               transition: "all .15s",
             }}>
             {showCrypto ? "▾ crypto internals" : "▸ crypto internals"}
@@ -324,7 +324,7 @@ export default function TapHandshake() {
           <div key={a.id} style={{ padding: "0 15px" }}>
             <div style={{ background: a.bg, border: `1px solid ${a.border}`, borderRadius: 8, padding: "9px 12px", textAlign: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: a.color, fontFamily: "'Courier New',monospace" }}>{a.label}</div>
-              <div style={{ fontSize: 9.5, color: "#9a9288", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{a.sub}</div>
+              <div style={{ fontSize: 9.5, color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{a.sub}</div>
             </div>
           </div>
         ))}
@@ -338,7 +338,7 @@ export default function TapHandshake() {
           <div key={i} style={{
             position: "absolute", top: 6, bottom: 16,
             left: `${pos}%`,
-            width: 1, borderLeft: "1px dashed #ddd8d0", pointerEvents: "none", zIndex: 0
+            width: 1, borderLeft: "1px dashed var(--ink-200)", pointerEvents: "none", zIndex: 0
           }} />
         ))}
 
@@ -365,7 +365,7 @@ export default function TapHandshake() {
               <div style={{ position: "relative", height: isSelf ? 40 : 28, marginBottom: 2 }}>
 
                 {/* Time label */}
-                <div style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", width: 70, textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, color: "#c8c3b8" }}>
+                <div style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", width: 70, textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, color: "var(--ink-300)" }}>
                   {s.time}
                 </div>
 
@@ -373,7 +373,7 @@ export default function TapHandshake() {
                 <svg width="100%" height="100%" style={{ overflow: "visible", display: "block", position: "absolute", left: 0, top: 0 }}>
                   <defs>
                     <marker id={`arr-${i}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                      <path d="M1 1.5L6.5 4L1 6.5" fill="none" stroke={isActive ? s.color : "#d0cbc0"} strokeWidth="1.5" strokeLinecap="round" />
+                      <path d="M1 1.5L6.5 4L1 6.5" fill="none" stroke={isActive ? s.color : "var(--ink-300)"} strokeWidth="1.5" strokeLinecap="round" />
                     </marker>
                   </defs>
 
@@ -382,7 +382,7 @@ export default function TapHandshake() {
                     <path
                       d={`M ${x1}% 4 C ${x1 + 8}% 4, ${x1 + 8}% 36, ${x1}% 36`}
                       fill="none"
-                      stroke={isActive ? s.color : "#d0cbc0"}
+                      stroke={isActive ? s.color : "var(--ink-300)"}
                       strokeWidth={isCurrent ? 1.8 : 1.2}
                       strokeDasharray={isActive ? "none" : "3 4"}
                       markerEnd={`url(#arr-${i})`}
@@ -391,7 +391,7 @@ export default function TapHandshake() {
                     <line
                       x1={`${x1}%`} y1="50%"
                       x2={`${x2 + (goingLeft ? 1.5 : -1.5)}%`} y2="50%"
-                      stroke={isActive ? s.color : "#d0cbc0"}
+                      stroke={isActive ? s.color : "var(--ink-300)"}
                       strokeWidth={isCurrent ? 1.8 : 1.2}
                       strokeDasharray={isActive ? "none" : "3 4"}
                       markerEnd={`url(#arr-${i})`}
@@ -410,13 +410,13 @@ export default function TapHandshake() {
                       onClick={() => goTo(i)}
                       style={{
                         display: "inline-block",
-                        background: isActive ? "#faf9f6" : "#f5f3ee",
-                        border: `1px solid ${isActive ? s.color : "#d8d3c8"}`,
+                        background: isActive ? "var(--paper)" : "var(--ink-100)",
+                        border: `1px solid ${isActive ? s.color : "var(--ink-300)"}`,
                         borderRadius: 4,
                         padding: "2px 7px",
                         fontSize: 9.5,
                         fontFamily: "'Courier New',monospace",
-                        color: isActive ? s.color : "#b8b3a8",
+                        color: isActive ? s.color : "var(--ink-400)",
                         whiteSpace: "nowrap",
                         cursor: "pointer",
                         fontWeight: isCurrent ? 600 : 400,
@@ -447,50 +447,50 @@ export default function TapHandshake() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                     <tbody>
                       {s.rows.map((row, j) => (
-                        <tr key={j} style={{ borderBottom: "1px solid #e8e3da" }}>
-                          <td style={{ padding: "4px 12px 4px 0", fontFamily: "'Courier New',monospace", color: "#9a9288", whiteSpace: "nowrap", verticalAlign: "top", width: 160, fontSize: 10.5 }}>
+                        <tr key={j} style={{ borderBottom: "1px solid var(--ink-200)" }}>
+                          <td style={{ padding: "4px 12px 4px 0", fontFamily: "'Courier New',monospace", color: "var(--ink-500)", whiteSpace: "nowrap", verticalAlign: "top", width: 160, fontSize: 10.5 }}>
                             {row.key}
                           </td>
-                          <td style={{ padding: "4px 0", fontFamily: "'Courier New',monospace", fontSize: 10.5, color: row.hi ? s.color : "#4a4440", lineHeight: 1.55 }}>
+                          <td style={{ padding: "4px 0", fontFamily: "'Courier New',monospace", fontSize: 10.5, color: row.hi ? s.color : "var(--ink-700)", lineHeight: 1.55 }}>
                             {row.val}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <div style={{ marginTop: 8, fontSize: 11, color: "#6b6560", lineHeight: 1.65, fontStyle: "italic", borderTop: "1px solid #e0dbd0", paddingTop: 8, fontFamily: "Georgia,serif" }}>
+                  <div style={{ marginTop: 8, fontSize: 11, color: "var(--ink-500)", lineHeight: 1.65, fontStyle: "italic", borderTop: "1px solid var(--ink-200)", paddingTop: 8, fontFamily: "Georgia,serif" }}>
                     {s.note}
                   </div>
 
                   {/* Crypto internals panel */}
                   {showCrypto && CRYPTO_DETAILS[i] && (
-                    <div style={{ marginTop: 12, borderTop: "1px solid #ddd0f8", paddingTop: 12 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, color: "#7040c0", fontFamily: "'Courier New',monospace", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>
+                    <div style={{ marginTop: 12, borderTop: "1px solid color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))", paddingTop: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: "var(--diagram-4)", fontFamily: "'Courier New',monospace", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>
                         ◈ {CRYPTO_DETAILS[i].title}
                       </div>
                       {CRYPTO_DETAILS[i].sections.map((sec, si) => (
                         <div key={si} style={{ marginBottom: 10 }}>
-                          <div style={{ fontSize: 10, color: "#7040c0", fontFamily: "'Courier New',monospace", marginBottom: 4, fontWeight: 500 }}>
+                          <div style={{ fontSize: 10, color: "var(--diagram-4)", fontFamily: "'Courier New',monospace", marginBottom: 4, fontWeight: 500 }}>
                             {sec.label}
                           </div>
                           {sec.mono ? (
                             <div style={{
-                              background: "#1a1814", borderRadius: 6, padding: "8px 12px",
+                              background: "var(--ink-900)", borderRadius: 6, padding: "8px 12px",
                               fontFamily: "'Courier New',monospace", fontSize: 10.5, lineHeight: 1.7,
-                              color: "#d8d0c8", overflowX: "auto",
+                              color: "var(--ink-300)", overflowX: "auto",
                             }}>
                               {sec.lines.map((line, li) => (
                                 <div key={li} style={{ whiteSpace: "pre" }}>{line}</div>
                               ))}
                             </div>
                           ) : (
-                            <div style={{ fontSize: 11, color: "#5e5750", lineHeight: 1.65, fontFamily: "Georgia,serif" }}>
+                            <div style={{ fontSize: 11, color: "var(--ink-700)", lineHeight: 1.65, fontFamily: "Georgia,serif" }}>
                               {sec.lines[0]}
                             </div>
                           )}
                         </div>
                       ))}
-                      <div style={{ fontSize: 11, color: "#7040c0", lineHeight: 1.65, fontStyle: "italic", borderTop: "1px solid #ddd0f8", paddingTop: 8, fontFamily: "Georgia,serif", opacity: 0.85 }}>
+                      <div style={{ fontSize: 11, color: "var(--diagram-4)", lineHeight: 1.65, fontStyle: "italic", borderTop: "1px solid color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))", paddingTop: 8, fontFamily: "Georgia,serif", opacity: 0.85 }}>
                         {CRYPTO_DETAILS[i].note}
                       </div>
                     </div>
@@ -503,40 +503,40 @@ export default function TapHandshake() {
       </div>
 
       {/* Controls */}
-      <div style={{ padding: "11px 20px", borderTop: "1px solid #e0dbd0", background: "#f5f3ee", display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ padding: "11px 20px", borderTop: "1px solid var(--ink-200)", background: "var(--ink-100)", display: "flex", alignItems: "center", gap: 8 }}>
         <button
           onClick={() => { if (playing) { playingRef.current = false; setPlaying(false) } else { setPlaying(true) } }}
-          style={{ padding: "5px 14px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: "pointer", border: `1px solid ${playing ? "#1a56a0" : "#c8c3b8"}`, background: playing ? "#f0f4ff" : "#faf9f6", color: playing ? "#1a56a0" : "#4a4440", transition: "all .15s" }}>
+          style={{ padding: "5px 14px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: "pointer", border: `1px solid ${playing ? "var(--diagram-1)" : "var(--ink-300)"}`, background: playing ? "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))" : "var(--paper)", color: playing ? "var(--diagram-1)" : "var(--ink-700)", transition: "all .15s" }}>
           {playing ? "⏸ pause" : "▶ play"}
         </button>
         <button
           onClick={() => activeStep > 0 && goTo(activeStep - 1)}
           disabled={activeStep <= 0}
-          style={{ padding: "5px 11px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: activeStep <= 0 ? "default" : "pointer", border: "1px solid #d8d3c8", background: "transparent", color: activeStep <= 0 ? "#c8c3b8" : "#4a4440" }}>
+          style={{ padding: "5px 11px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: activeStep <= 0 ? "default" : "pointer", border: "1px solid var(--ink-300)", background: "transparent", color: activeStep <= 0 ? "var(--ink-300)" : "var(--ink-700)" }}>
           ←
         </button>
         <button
           onClick={() => activeStep < STEPS.length - 1 && goTo(activeStep + 1)}
           disabled={activeStep >= STEPS.length - 1}
-          style={{ padding: "5px 11px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: activeStep >= STEPS.length - 1 ? "default" : "pointer", border: "1px solid #d8d3c8", background: "transparent", color: activeStep >= STEPS.length - 1 ? "#c8c3b8" : "#4a4440" }}>
+          style={{ padding: "5px 11px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: activeStep >= STEPS.length - 1 ? "default" : "pointer", border: "1px solid var(--ink-300)", background: "transparent", color: activeStep >= STEPS.length - 1 ? "var(--ink-300)" : "var(--ink-700)" }}>
           →
         </button>
 
         {/* Progress bar */}
-        <div style={{ flex: 1, height: 3, background: "#e0dbd0", borderRadius: 2, overflow: "hidden" }}>
-          <div style={{ height: "100%", background: "#1a56a0", borderRadius: 2, width: `${progress}%`, transition: "width .4s ease" }} />
+        <div style={{ flex: 1, height: 3, background: "var(--ink-200)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: "100%", background: "var(--diagram-1)", borderRadius: 2, width: `${progress}%`, transition: "width .4s ease" }} />
         </div>
 
-        <span style={{ fontSize: 10, fontFamily: "'Courier New',monospace", color: "#9a9288", flexShrink: 0 }}>
+        <span style={{ fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-500)", flexShrink: 0 }}>
           {Math.max(0, activeStep + 1)} / {STEPS.length}
         </span>
         <button
           onClick={reset}
-          style={{ padding: "5px 10px", borderRadius: 5, fontSize: 10, fontFamily: "'Courier New',monospace", cursor: "pointer", border: "1px solid #d8d3c8", background: "transparent", color: "#9a9288" }}>
+          style={{ padding: "5px 10px", borderRadius: 5, fontSize: 10, fontFamily: "'Courier New',monospace", cursor: "pointer", border: "1px solid var(--ink-300)", background: "transparent", color: "var(--ink-500)" }}>
           reset
         </button>
         {showCrypto && (
-          <div style={{ fontSize: 9.5, fontFamily: "'Courier New',monospace", color: "#7040c0", padding: "3px 8px", background: "#f5f0ff", borderRadius: 4, border: "1px solid #ddd0f8" }}>
+          <div style={{ fontSize: 9.5, fontFamily: "'Courier New',monospace", color: "var(--diagram-4)", padding: "3px 8px", background: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", borderRadius: 4, border: "1px solid color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" }}>
             crypto on
           </div>
         )}

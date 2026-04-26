@@ -63,17 +63,17 @@ export default function VicTransactionFlow() {
           left: 50%;
           transform: translateX(-50%);
           margin: 32px 0;
-          border: 1px solid #e0dbd0;
+          border: 1px solid var(--ink-200);
           border-radius: 10px;
-          background: #faf9f6;
+          background: var(--paper);
           overflow: hidden;
-          color: #1a1814;
+          color: var(--ink-900);
         }
 
         .vic-flow-head {
           padding: 18px 22px;
-          border-bottom: 1px solid #e0dbd0;
-          background: #f5f3ee;
+          border-bottom: 1px solid var(--ink-200);
+          background: var(--ink-100);
           display: flex;
           flex-direction: column;
           gap: 5px;
@@ -87,7 +87,7 @@ export default function VicTransactionFlow() {
           font-size: 10px;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #8a8278;
+          color: var(--ink-500);
         }
 
         .vic-flow-head strong {
@@ -112,8 +112,8 @@ export default function VicTransactionFlow() {
         .vic-phase-label {
           position: sticky;
           top: 80px;
-          border: 1px solid #e0dbd0;
-          background: #fffdfa;
+          border: 1px solid var(--ink-200);
+          background: var(--paper-pure);
           border-radius: 5px;
           padding: 8px 10px;
           text-align: center;
@@ -132,7 +132,7 @@ export default function VicTransactionFlow() {
           bottom: 16px;
           left: 16px;
           width: 1px;
-          background: #d8d3c8;
+          background: var(--ink-300);
         }
 
         .vic-flow-step {
@@ -141,9 +141,9 @@ export default function VicTransactionFlow() {
           grid-template-columns: 34px 1fr auto;
           gap: 12px;
           align-items: center;
-          border: 1px solid #e0dbd0;
+          border: 1px solid var(--ink-200);
           border-radius: 8px;
-          background: #fffdfa;
+          background: var(--paper-pure);
           padding: 10px;
         }
 
@@ -154,9 +154,9 @@ export default function VicTransactionFlow() {
           width: 32px;
           height: 32px;
           border-radius: 999px;
-          border: 1px solid #d8d3c8;
-          background: #f5f3ee;
-          color: #4a4840;
+          border: 1px solid var(--ink-300);
+          background: var(--ink-100);
+          color: var(--ink-700);
           letter-spacing: 0;
           z-index: 1;
         }
@@ -169,25 +169,25 @@ export default function VicTransactionFlow() {
 
         .vic-step-main p {
           margin: 3px 0 0;
-          color: #4a4840;
+          color: var(--ink-700);
           font-size: 12.5px;
           line-height: 1.4;
         }
 
         .vic-owner {
-          border: 1px solid #d8d3c8;
+          border: 1px solid var(--ink-300);
           border-radius: 5px;
           padding: 5px 8px;
-          background: #f5f3ee;
-          color: #4a4840;
+          background: var(--ink-100);
+          color: var(--ink-700);
           white-space: nowrap;
         }
 
-        .vic-owner-api { border-color: #b9c9e4; background: #f1f5fb; color: #1a4a90; }
-        .vic-owner-tap { border-color: #b8d9d3; background: #eef8f6; color: #0f766e; }
-        .vic-owner-device { border-color: #d4c5e8; background: #f8f4ff; color: #5b21b6; }
-        .vic-owner-iso { border-color: #c8decf; background: #f3faf5; color: #065f46; }
-        .vic-owner-network { border-color: #e8cdbb; background: #fff4ed; color: #9a4a18; }
+        .vic-owner-api { border-color: color-mix(in srgb, var(--diagram-1) 25%, var(--ink-200)); background: var(--signal-100); color: var(--diagram-1); }
+        .vic-owner-tap { border-color: color-mix(in srgb, var(--diagram-2) 25%, var(--ink-200)); background: color-mix(in srgb, var(--diagram-2) 10%, var(--paper-pure)); color: var(--diagram-2); }
+        .vic-owner-device { border-color: color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200)); background: color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure)); color: var(--diagram-4); }
+        .vic-owner-iso { border-color: color-mix(in srgb, var(--success) 25%, var(--ink-200)); background: color-mix(in srgb, var(--success) 8%, var(--paper-pure)); color: var(--success); }
+        .vic-owner-network { border-color: color-mix(in srgb, var(--diagram-3) 25%, var(--ink-200)); background: color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure)); color: var(--diagram-3); }
 
         @media (max-width: 760px) {
           .vic-phase {

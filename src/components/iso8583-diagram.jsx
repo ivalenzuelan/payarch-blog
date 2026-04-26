@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react"
 
 const COLORS = {
-  new: { bg: "#fff4ee", border: "#e8855a", text: "#c04a10", dot: "#e06030", label: "New field" },
-  mod: { bg: "#eef3ff", border: "#6b8fd4", text: "#1a3a80", dot: "#2a5ab8", label: "Modified" },
-  std: { bg: "#f8f7f4", border: "#d8d3c8", text: "#6b6560", dot: "#b8b3a8", label: "Unchanged" },
+  new: { bg: "color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-3) 45%, var(--ink-200))", text: "var(--diagram-3)", dot: "var(--diagram-3)", label: "New field" },
+  mod: { bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 45%, var(--ink-200))", text: "var(--diagram-1)", dot: "var(--diagram-1)", label: "Modified" },
+  std: { bg: "var(--paper)", border: "var(--ink-300)", text: "var(--ink-500)", dot: "var(--ink-400)", label: "Unchanged" },
 }
 
 // ─── TRANSACTION VIEW DATA (existing 12 agent-relevant fields) ────────────────
@@ -235,7 +235,7 @@ const ALL_FIELDS = [
 function PacketBar({ fields, mode, hovered, setHovered, isResponse }) {
   const totalBytes = fields.reduce((s, f) => s + f.bytes, 0)
   return (
-    <div style={{ display: "flex", width: "100%", borderRadius: 6, overflow: "hidden", border: "1px solid #d8d3c8" }}>
+    <div style={{ display: "flex", width: "100%", borderRadius: 6, overflow: "hidden", border: "1px solid var(--ink-300)" }}>
       {fields.map((f, i) => {
         const type = isResponse ? f.type : (mode === "human" ? "std" : f.type)
         const c = COLORS[type]
@@ -249,7 +249,7 @@ function PacketBar({ fields, mode, hovered, setHovered, isResponse }) {
             title={f.id}
             style={{
               width: w + "%", minWidth: 14,
-              background: isHov ? (type === "new" ? "#ffe8da" : type === "mod" ? "#dde8ff" : "#ede9e2") : c.bg,
+              background: isHov ? (type === "new" ? "color-mix(in srgb, var(--diagram-3) 18%, var(--paper-pure))" : type === "mod" ? "color-mix(in srgb, var(--diagram-1) 18%, var(--paper-pure))" : "var(--ink-200)") : c.bg,
               borderRight: i < fields.length - 1 ? `1px solid ${c.border}` : "none",
               padding: "7px 2px 6px",
               textAlign: "center",
@@ -310,23 +310,23 @@ export default function Iso8583Diagram() {
   }, [search, category, agentOnly])
 
   const presenceDot = (v) => {
-    if (v === "M") return { color: "#186040", label: "M" }
-    if (v === "C") return { color: "#1a3a80", label: "C" }
-    if (v === "O") return { color: "#8a8278", label: "O" }
-    return { color: "#d8d3c8", label: "—" }
+    if (v === "M") return { color: "var(--success)", label: "M" }
+    if (v === "C") return { color: "var(--diagram-1)", label: "C" }
+    if (v === "O") return { color: "var(--ink-500)", label: "O" }
+    return { color: "var(--ink-300)", label: "—" }
   }
 
   return (
     <div style={{
-      fontFamily: "'Georgia','Times New Roman',serif", color: "#1a1814",
-      background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden",
+      fontFamily: "'Georgia','Times New Roman',serif", color: "var(--ink-900)",
+      background: "var(--paper)", borderRadius: 12, border: "1px solid var(--ink-200)", overflow: "hidden",
       width: "100vw", maxWidth: 1040, position: "relative", left: "50%", transform: "translateX(-50%)",
       margin: "20px 0"
     }}>
 
       {/* ── Header ── */}
-      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 6 }}>
+      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 6 }}>
           ISO 8583 · {view === "transaction" ? "Authorization · Human vs. Agent" : "Complete Field Reference · All 128 Fields"}
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
@@ -337,14 +337,14 @@ export default function Iso8583Diagram() {
           </h2>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {/* View toggle */}
-            <div style={{ display: "flex", gap: 2, background: "#e8e3da", borderRadius: 5, padding: 2 }}>
+            <div style={{ display: "flex", gap: 2, background: "var(--ink-200)", borderRadius: 5, padding: 2 }}>
               {[["transaction","Transaction"], ["reference","Field Reference"]].map(([v, label]) => (
                 <button key={v} onClick={() => setView(v)} style={{
                   padding: "4px 11px", borderRadius: 3, fontSize: 10, fontFamily: "'Courier New',monospace",
                   cursor: "pointer", border: "none", letterSpacing: "0.04em",
-                  background: view === v ? "#faf9f6" : "transparent",
-                  color: view === v ? "#1a1814" : "#9a9288",
-                  boxShadow: view === v ? "0 1px 2px rgba(0,0,0,0.07)" : "none",
+                  background: view === v ? "var(--paper)" : "transparent",
+                  color: view === v ? "var(--ink-900)" : "var(--ink-500)",
+                  boxShadow: view === v ? "0 1px 2px color-mix(in srgb, var(--ink-900) 7%, transparent)" : "none",
                   fontWeight: view === v ? 600 : 400, transition: "all .15s"
                 }}>{label}</button>
               ))}
@@ -353,27 +353,27 @@ export default function Iso8583Diagram() {
             {/* Transaction-view controls */}
             {view === "transaction" && (
               <>
-                <div style={{ display: "flex", gap: 2, background: "#e8e3da", borderRadius: 5, padding: 2 }}>
+                <div style={{ display: "flex", gap: 2, background: "var(--ink-200)", borderRadius: 5, padding: 2 }}>
                   {[["request","0100"],["response","0110"]].map(([v, label]) => (
                     <button key={v} onClick={() => { setMti(v); setHovered(null) }} style={{
                       padding: "4px 11px", borderRadius: 3, fontSize: 10, fontFamily: "'Courier New',monospace",
                       cursor: "pointer", border: "none", letterSpacing: "0.04em",
-                      background: mti === v ? "#faf9f6" : "transparent",
-                      color: mti === v ? "#1a1814" : "#9a9288",
-                      boxShadow: mti === v ? "0 1px 2px rgba(0,0,0,0.07)" : "none",
+                      background: mti === v ? "var(--paper)" : "transparent",
+                      color: mti === v ? "var(--ink-900)" : "var(--ink-500)",
+                      boxShadow: mti === v ? "0 1px 2px color-mix(in srgb, var(--ink-900) 7%, transparent)" : "none",
                       fontWeight: mti === v ? 600 : 400, transition: "all .15s"
                     }}>MTI {label}</button>
                   ))}
                 </div>
                 {!isResponse && (
-                  <div style={{ display: "flex", gap: 2, background: "#e8e3da", borderRadius: 5, padding: 2 }}>
+                  <div style={{ display: "flex", gap: 2, background: "var(--ink-200)", borderRadius: 5, padding: 2 }}>
                     {["human","agent","diff"].map(m => (
                       <button key={m} onClick={() => setMode(m)} style={{
                         padding: "4px 11px", borderRadius: 3, fontSize: 10, fontFamily: "'Courier New',monospace",
                         cursor: "pointer", border: "none", letterSpacing: "0.04em",
-                        background: mode === m ? "#faf9f6" : "transparent",
-                        color: mode === m ? "#1a1814" : "#9a9288",
-                        boxShadow: mode === m ? "0 1px 2px rgba(0,0,0,0.07)" : "none",
+                        background: mode === m ? "var(--paper)" : "transparent",
+                        color: mode === m ? "var(--ink-900)" : "var(--ink-500)",
+                        boxShadow: mode === m ? "0 1px 2px color-mix(in srgb, var(--ink-900) 7%, transparent)" : "none",
                         fontWeight: mode === m ? 600 : 400, transition: "all .15s"
                       }}>{m}</button>
                     ))}
@@ -389,14 +389,14 @@ export default function Iso8583Diagram() {
       {view === "transaction" && (
         <>
           {/* Legend */}
-          <div style={{ padding: "9px 24px", borderBottom: "1px solid #e0dbd0", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ padding: "9px 24px", borderBottom: "1px solid var(--ink-200)", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
             {Object.entries(COLORS).map(([k, v]) => (
-              <div key={k} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#6b6560", fontFamily: "'Courier New',monospace" }}>
+              <div key={k} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
                 <div style={{ width: 8, height: 8, borderRadius: 1, background: v.dot }} />
                 {v.label}
               </div>
             ))}
-            <div style={{ marginLeft: "auto", fontSize: 10, color: "#b8b3a8", fontFamily: "'Courier New',monospace" }}>
+            <div style={{ marginLeft: "auto", fontSize: 10, color: "var(--ink-400)", fontFamily: "'Courier New',monospace" }}>
               {totalBytes} bytes total · width ∝ field length
             </div>
           </div>
@@ -412,23 +412,23 @@ export default function Iso8583Diagram() {
                 return (
                   <div style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 11, fontFamily: "'Courier New',monospace" }}>
                     <span style={{ color: c.text, fontWeight: 700 }}>{activeField.id}</span>
-                    <span style={{ color: "#9a9288" }}>{activeField.name}</span>
+                    <span style={{ color: "var(--ink-500)" }}>{activeField.name}</span>
                     <span style={{ background: c.bg, color: c.text, padding: "2px 7px", borderRadius: 3, border: `1px solid ${c.border}` }}>{val}</span>
                   </div>
                 )
               })() : (
-                <div style={{ fontSize: 11, color: "#c8c3b8", fontFamily: "'Courier New',monospace" }}>hover a field to inspect ↑</div>
+                <div style={{ fontSize: 11, color: "var(--ink-300)", fontFamily: "'Courier New',monospace" }}>hover a field to inspect ↑</div>
               )}
             </div>
           </div>
 
           {/* Table */}
-          <div style={{ borderTop: "1px solid #e0dbd0" }}>
+          <div style={{ borderTop: "1px solid var(--ink-200)" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead>
-                <tr style={{ background: "#f0ece4" }}>
+                <tr style={{ background: "var(--ink-100)" }}>
                   {["Field","Name", isResponse ? "Value" : mode === "diff" ? "Human → Agent" : "Value", "Note"].map(h => (
-                    <th key={h} style={{ padding: "7px 16px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400 }}>{h}</th>
+                    <th key={h} style={{ padding: "7px 16px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400 }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -444,7 +444,7 @@ export default function Iso8583Diagram() {
                   } else if (mode === "diff" && f.type !== "std") {
                     valCell = (
                       <span style={{ fontFamily: "'Courier New',monospace" }}>
-                        <span style={{ color: "#9a9288", textDecoration: "line-through", marginRight: 6 }}>{f.humanVal}</span>
+                        <span style={{ color: "var(--ink-500)", textDecoration: "line-through", marginRight: 6 }}>{f.humanVal}</span>
                         <span style={{ color: c.text, fontWeight: 600 }}>{f.agentVal}</span>
                       </span>
                     )
@@ -455,14 +455,14 @@ export default function Iso8583Diagram() {
                     <tr key={f.id}
                       onMouseEnter={() => setHovered(f.id)}
                       onMouseLeave={() => setHovered(null)}
-                      style={{ background: isHov ? c.bg : (i % 2 === 0 ? "#faf9f6" : "#f5f3ee"), borderBottom: "1px solid #e8e3da", transition: "background .1s", cursor: "default" }}>
+                      style={{ background: isHov ? c.bg : (i % 2 === 0 ? "var(--paper)" : "var(--ink-100)"), borderBottom: "1px solid var(--ink-200)", transition: "background .1s", cursor: "default" }}>
                       <td style={{ padding: "6px 16px", fontFamily: "'Courier New',monospace", fontSize: 11 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <div style={{ width: 7, height: 7, borderRadius: 1, background: c.dot, flexShrink: 0 }} />
                           <span style={{ color: c.text, fontWeight: 600 }}>{f.id}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "6px 16px", fontFamily: "'Courier New',monospace", fontSize: 11, color: "#1a1814" }}>
+                      <td style={{ padding: "6px 16px", fontFamily: "'Courier New',monospace", fontSize: 11, color: "var(--ink-900)" }}>
                         {f.name}
                         {type !== "std" && (
                           <span style={{ marginLeft: 6, fontSize: 8.5, padding: "1px 5px", borderRadius: 2, background: c.bg, color: c.text, border: `1px solid ${c.border}`, letterSpacing: "0.04em" }}>
@@ -471,7 +471,7 @@ export default function Iso8583Diagram() {
                         )}
                       </td>
                       <td style={{ padding: "6px 16px", fontFamily: "'Courier New',monospace", fontSize: 11 }}>{valCell}</td>
-                      <td style={{ padding: "6px 16px", fontSize: 11, color: "#6b6560", lineHeight: 1.5, fontFamily: "Georgia,serif" }}>
+                      <td style={{ padding: "6px 16px", fontSize: 11, color: "var(--ink-500)", lineHeight: 1.5, fontFamily: "Georgia,serif" }}>
                         {note && note.startsWith("★")
                           ? <span><span style={{ color: c.text, fontWeight: 600 }}>★ </span>{note.slice(2)}</span>
                           : note}
@@ -484,31 +484,31 @@ export default function Iso8583Diagram() {
           </div>
 
           {/* Summary footer */}
-          <div style={{ padding: "11px 24px", borderTop: "1px solid #e0dbd0", background: "#f5f3ee", display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ padding: "11px 24px", borderTop: "1px solid var(--ink-200)", background: "var(--ink-100)", display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
             {isResponse ? (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.new.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.new.text, fontWeight: 600 }}>3 new fields in response</span>
-                  <span style={{ color: "#9a9288" }}>F038 auth code · F039 result · F126 TAP confirmation</span>
+                  <span style={{ color: "var(--ink-500)" }}>F038 auth code · F039 result · F126 TAP confirmation</span>
                 </div>
-                <div style={{ marginLeft: "auto", fontFamily: "'Courier New',monospace", fontSize: 10, color: "#9a9288" }}>~180ms round-trip</div>
+                <div style={{ marginLeft: "auto", fontFamily: "'Courier New',monospace", fontSize: 10, color: "var(--ink-500)" }}>~180ms round-trip</div>
               </>
             ) : mode !== "human" ? (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.new.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.new.text, fontWeight: 600 }}>2 new fields</span>
-                  <span style={{ color: "#9a9288" }}>F048 agent-id · F126 TAP hash</span>
+                  <span style={{ color: "var(--ink-500)" }}>F048 agent-id · F126 TAP hash</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.mod.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.mod.text, fontWeight: 600 }}>3 modified fields</span>
-                  <span style={{ color: "#9a9288" }}>F002 PAN→VCN · F022 01→81 · F025 00→59</span>
+                  <span style={{ color: "var(--ink-500)" }}>F002 PAN→VCN · F022 01→81 · F025 00→59</span>
                 </div>
               </>
             ) : (
-              <div style={{ fontFamily: "'Courier New',monospace", fontSize: 10, color: "#b8b3a8" }}>switch to agent or diff to see what changes</div>
+              <div style={{ fontFamily: "'Courier New',monospace", fontSize: 10, color: "var(--ink-400)" }}>switch to agent or diff to see what changes</div>
             )}
           </div>
         </>
@@ -518,7 +518,7 @@ export default function Iso8583Diagram() {
       {view === "reference" && (
         <>
           {/* Search + filters */}
-          <div style={{ padding: "14px 24px", borderBottom: "1px solid #e0dbd0", background: "#faf9f6", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ padding: "14px 24px", borderBottom: "1px solid var(--ink-200)", background: "var(--paper)", display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               <input
                 type="text"
@@ -527,22 +527,22 @@ export default function Iso8583Diagram() {
                 placeholder="Search fields by ID, name, or description…"
                 style={{
                   flex: 1, minWidth: 200, padding: "7px 12px",
-                  border: "1px solid #d8d3c8", borderRadius: 6,
+                  border: "1px solid var(--ink-300)", borderRadius: 6,
                   fontSize: 12, fontFamily: "'Courier New',monospace",
-                  background: "#f5f3ee", color: "#1a1814",
+                  background: "var(--ink-100)", color: "var(--ink-900)",
                   outline: "none",
                 }}
               />
-              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontFamily: "'Courier New',monospace", color: "#6b6560", cursor: "pointer", userSelect: "none" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontFamily: "'Courier New',monospace", color: "var(--ink-500)", cursor: "pointer", userSelect: "none" }}>
                 <input
                   type="checkbox"
                   checked={agentOnly}
                   onChange={e => setAgentOnly(e.target.checked)}
-                  style={{ accentColor: "#c04a10" }}
+                  style={{ accentColor: "var(--diagram-3)" }}
                 />
                 Agent fields only
               </label>
-              <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+              <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
                 {refFields.length} of 128 fields
               </div>
             </div>
@@ -552,9 +552,9 @@ export default function Iso8583Diagram() {
                 <button key={cat.id} onClick={() => setCategory(cat.id)} style={{
                   padding: "4px 11px", borderRadius: 4, fontSize: 10,
                   fontFamily: "'Courier New',monospace", cursor: "pointer",
-                  border: `1px solid ${category === cat.id ? "#4a4440" : "#d8d3c8"}`,
-                  background: category === cat.id ? "#1a1814" : "transparent",
-                  color: category === cat.id ? "#faf9f6" : "#6b6560",
+                  border: `1px solid ${category === cat.id ? "var(--ink-700)" : "var(--ink-300)"}`,
+                  background: category === cat.id ? "var(--ink-900)" : "transparent",
+                  color: category === cat.id ? "var(--paper)" : "var(--ink-500)",
                   fontWeight: category === cat.id ? 600 : 400,
                   transition: "all .15s", letterSpacing: "0.03em",
                 }}>
@@ -565,16 +565,16 @@ export default function Iso8583Diagram() {
           </div>
 
           {/* Legend */}
-          <div style={{ padding: "8px 24px", borderBottom: "1px solid #e0dbd0", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ padding: "8px 24px", borderBottom: "1px solid var(--ink-200)", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
             {Object.entries(COLORS).map(([k, v]) => (
-              <div key={k} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#6b6560", fontFamily: "'Courier New',monospace" }}>
+              <div key={k} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
                 <div style={{ width: 8, height: 8, borderRadius: 1, background: v.dot }} />
                 {v.label}
               </div>
             ))}
             <div style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-              {[["M","Mandatory","#186040"],["C","Conditional","#1a3a80"],["O","Optional","#8a8278"],["—","Not used","#d8d3c8"]].map(([code, label, color]) => (
-                <div key={code} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9.5, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+              {[["M","Mandatory","var(--success)"],["C","Conditional","var(--diagram-1)"],["O","Optional","var(--ink-500)"],["—","Not used","var(--ink-300)"]].map(([code, label, color]) => (
+                <div key={code} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9.5, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
                   <span style={{ color, fontWeight: 600 }}>{code}</span> {label}
                 </div>
               ))}
@@ -585,14 +585,14 @@ export default function Iso8583Diagram() {
           <div style={{ overflowY: "auto", maxHeight: 640 }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
               <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                <tr style={{ background: "#f0ece4" }}>
-                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400, width: 62 }}>Field</th>
-                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400 }}>Name</th>
-                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400, width: 50 }}>Type</th>
-                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400, width: 44 }}>Max</th>
-                  <th style={{ padding: "8px 14px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400, width: 44 }}>Human</th>
-                  <th style={{ padding: "8px 14px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400, width: 44 }}>Agent</th>
-                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288", fontWeight: 400 }}>Description</th>
+                <tr style={{ background: "var(--ink-100)" }}>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400, width: 62 }}>Field</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400 }}>Name</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400, width: 50 }}>Type</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400, width: 44 }}>Max</th>
+                  <th style={{ padding: "8px 14px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400, width: 44 }}>Human</th>
+                  <th style={{ padding: "8px 14px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400, width: 44 }}>Agent</th>
+                  <th style={{ padding: "8px 14px", textAlign: "left", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)", fontWeight: 400 }}>Description</th>
                 </tr>
               </thead>
               <tbody>
@@ -601,14 +601,14 @@ export default function Iso8583Diagram() {
                   const hDot = presenceDot(f.human)
                   const aDot = presenceDot(f.agent)
                   return (
-                    <tr key={f.id} style={{ background: i % 2 === 0 ? "#faf9f6" : "#f5f3ee", borderBottom: "1px solid #e8e3da" }}>
+                    <tr key={f.id} style={{ background: i % 2 === 0 ? "var(--paper)" : "var(--ink-100)", borderBottom: "1px solid var(--ink-200)" }}>
                       <td style={{ padding: "6px 14px", fontFamily: "'Courier New',monospace", fontSize: 11, whiteSpace: "nowrap" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                           <div style={{ width: 6, height: 6, borderRadius: 1, background: c.dot, flexShrink: 0 }} />
                           <span style={{ color: c.text, fontWeight: 600 }}>{f.id}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "6px 14px", fontSize: 11, color: "#1a1814" }}>
+                      <td style={{ padding: "6px 14px", fontSize: 11, color: "var(--ink-900)" }}>
                         <span style={{ fontFamily: "'Courier New',monospace" }}>{f.name}</span>
                         {f.type !== "std" && (
                           <span style={{ marginLeft: 6, fontSize: 8, padding: "1px 4px", borderRadius: 2, background: c.bg, color: c.text, border: `1px solid ${c.border}`, letterSpacing: "0.04em", fontFamily: "'Courier New',monospace" }}>
@@ -616,11 +616,11 @@ export default function Iso8583Diagram() {
                           </span>
                         )}
                       </td>
-                      <td style={{ padding: "6px 14px", fontFamily: "'Courier New',monospace", fontSize: 10, color: "#9a9288" }}>{f.dtype}</td>
-                      <td style={{ padding: "6px 14px", fontFamily: "'Courier New',monospace", fontSize: 10, color: "#9a9288" }}>{f.maxLen === 999 ? "var" : f.maxLen}</td>
+                      <td style={{ padding: "6px 14px", fontFamily: "'Courier New',monospace", fontSize: 10, color: "var(--ink-500)" }}>{f.dtype}</td>
+                      <td style={{ padding: "6px 14px", fontFamily: "'Courier New',monospace", fontSize: 10, color: "var(--ink-500)" }}>{f.maxLen === 999 ? "var" : f.maxLen}</td>
                       <td style={{ padding: "6px 14px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 11, fontWeight: 600, color: hDot.color }}>{hDot.label}</td>
                       <td style={{ padding: "6px 14px", textAlign: "center", fontFamily: "'Courier New',monospace", fontSize: 11, fontWeight: 600, color: aDot.color }}>{aDot.label}</td>
-                      <td style={{ padding: "6px 14px", fontSize: 11, color: "#5e5750", lineHeight: 1.55, fontFamily: "Georgia,serif" }}>
+                      <td style={{ padding: "6px 14px", fontSize: 11, color: "var(--ink-700)", lineHeight: 1.55, fontFamily: "Georgia,serif" }}>
                         {f.desc.startsWith("★")
                           ? <span><span style={{ color: c.text, fontWeight: 600 }}>★ </span>{f.desc.slice(2)}</span>
                           : f.desc}
@@ -630,7 +630,7 @@ export default function Iso8583Diagram() {
                 })}
                 {refFields.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: "32px 24px", textAlign: "center", fontSize: 12, color: "#b8b3a8", fontFamily: "'Courier New',monospace" }}>
+                    <td colSpan={7} style={{ padding: "32px 24px", textAlign: "center", fontSize: 12, color: "var(--ink-400)", fontFamily: "'Courier New',monospace" }}>
                       no fields match — try a different search or category
                     </td>
                   </tr>

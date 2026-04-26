@@ -1,5 +1,6 @@
 import { agenticCheckoutE2E } from './diagrams/agenticCheckoutE2E';
 import { z } from 'zod';
+export * from './colors';
 
 // ---------------------------------------------------------
 // 1. EDGES

@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react"
 
 const T = {
-  cream: "#faf9f6", cream2: "#f5f3ee", cream3: "#ede9e2",
-  ink: "#1a1814", ink2: "#4a4440", ink3: "#5e5750", ink4: "#8a8278", ink5: "#b8b3a8",
-  border: "#e0dbd0",
-  pass: "#186040", passLight: "#f0f8f4", passBorder: "#a8d8b8",
-  fail: "#c02010", failLight: "#fff4f2", failBorder: "#f0b0a0",
-  warn: "#905010", warnLight: "#fff8ee", warnBorder: "#f0c880",
-  agent: "#6030b0", agentLight: "#f5f0ff", agentBorder: "#c8a8f0",
+  cream: "var(--paper)", cream2: "var(--ink-100)", cream3: "var(--ink-200)",
+  ink: "var(--ink-900)", ink2: "var(--ink-700)", ink3: "var(--ink-700)", ink4: "var(--ink-500)", ink5: "var(--ink-400)",
+  border: "var(--ink-200)",
+  pass: "var(--success)", passLight: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", passBorder: "color-mix(in srgb, var(--success) 25%, var(--ink-200))",
+  fail: "var(--danger)", failLight: "color-mix(in srgb, var(--danger) 6%, var(--paper-pure))", failBorder: "color-mix(in srgb, var(--danger) 25%, var(--ink-200))",
+  warn: "var(--warning)", warnLight: "color-mix(in srgb, var(--warning) 8%, var(--paper-pure))", warnBorder: "color-mix(in srgb, var(--warning) 32%, var(--ink-200))",
+  agent: "var(--diagram-4)", agentLight: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", agentBorder: "color-mix(in srgb, var(--diagram-4) 28%, var(--ink-200))",
 }
 
 const TYPE_STYLE = {
@@ -39,7 +39,7 @@ function StepRow({ step, index, isActive, isFuture, side }) {
           border: `1px solid ${isActive ? ts.text : T.border}`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 9, fontFamily: "'Courier New',monospace",
-          color: isActive ? "#fff" : T.ink4,
+          color: isActive ? "var(--paper-pure)" : T.ink4,
           fontWeight: 600, transition: "all .2s",
           flexShrink: 0,
         }}>
@@ -62,7 +62,7 @@ function StepRow({ step, index, isActive, isFuture, side }) {
           <span style={{
             fontSize: 8.5, padding: "1px 5px", borderRadius: 3, flexShrink: 0,
             background: isActive ? ts.text : T.cream3,
-            color: isActive ? "#fff" : T.ink5,
+            color: isActive ? "var(--paper-pure)" : T.ink5,
             fontFamily: "'Courier New',monospace", letterSpacing: "0.04em",
             border: `1px solid ${isActive ? ts.text : T.border}`,
             transition: "all .2s",

@@ -11,6 +11,7 @@ import {
 	SITE_KEYWORDS,
 	SITE_TITLE,
 } from '../consts';
+import { light } from '../lib/core/colors';
 import { buildFullTitle } from '../lib/seo';
 
 interface Props {
@@ -55,7 +56,7 @@ const schemaEntries = Array.isArray(schema) ? schema : schema ? [schema] : [];
 <meta name="robots" content={robots} />
 <meta name="author" content={PERSON_NAME} />
 <meta name="keywords" content={mergedKeywords.join(', ')} />
-<meta name="theme-color" content="#faf9f6" />
+<meta name="theme-color" content={light.paper} />
 <meta name="color-scheme" content="light" />
 <link rel="icon" type="image/svg+xml" href={faviconSvgUrl} />
 <link rel="icon" href="/favicon.ico" sizes="32x32" />

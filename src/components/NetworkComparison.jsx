@@ -86,24 +86,24 @@ export default function NetworkComparison() {
     : ROWS
 
   return (
-    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", maxWidth: 820 }}>
+    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", color: "var(--ink-900)", background: "var(--paper)", borderRadius: 12, border: "1px solid var(--ink-200)", overflow: "hidden", maxWidth: 820 }}>
 
       {/* Header */}
-      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
+      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           Visa VIC vs Mastercard Agent Pay · Architecture comparison
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
           <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: 0 }}>
             Same problem — different architecture
           </h2>
-          <div style={{ display: "flex", gap: 2, background: "#e8e3da", borderRadius: 5, padding: 2 }}>
+          <div style={{ display: "flex", gap: 2, background: "var(--ink-200)", borderRadius: 5, padding: 2 }}>
             {[["all", "all"], ["diff", "differences"], ["same", "shared"]].map(([v, label]) => (
               <button key={v} onClick={() => setFilter(v)} style={{
                 padding: "4px 11px", borderRadius: 3, fontSize: 10, fontFamily: "'Courier New',monospace",
                 cursor: "pointer", border: "none", letterSpacing: "0.04em",
-                background: filter === v ? "#faf9f6" : "transparent",
-                color: filter === v ? "#1a1814" : "#9a9288",
+                background: filter === v ? "var(--paper)" : "transparent",
+                color: filter === v ? "var(--ink-900)" : "var(--ink-500)",
                 fontWeight: filter === v ? 600 : 400, transition: "all .15s"
               }}>{label}</button>
             ))}
@@ -112,18 +112,18 @@ export default function NetworkComparison() {
       </div>
 
       {/* Column headers */}
-      <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 1fr", gap: 0, borderBottom: "1px solid #e0dbd0", background: "#f0ece4" }}>
-        <div style={{ padding: "8px 12px", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a9288" }}></div>
-        <div style={{ padding: "8px 16px", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#185FA5", borderLeft: "1px solid #e0dbd0", display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 1fr", gap: 0, borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ padding: "8px 12px", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--ink-500)" }}></div>
+        <div style={{ padding: "8px 16px", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--diagram-1)", borderLeft: "1px solid var(--ink-200)", display: "flex", alignItems: "center", gap: 6 }}>
           <svg width="14" height="10" viewBox="0 0 36 24">
-            <path d="M3 19Q18 2 33 19" fill="none" stroke="#185FA5" strokeWidth="1.8" strokeLinecap="round"/>
-            <circle cx="3" cy="19" r="2" fill="#185FA5"/>
-            <circle cx="33" cy="19" r="2" fill="#185FA5"/>
+            <path d="M3 19Q18 2 33 19" fill="none" stroke="var(--diagram-1)" strokeWidth="1.8" strokeLinecap="round"/>
+            <circle cx="3" cy="19" r="2" fill="var(--diagram-1)"/>
+            <circle cx="33" cy="19" r="2" fill="var(--diagram-1)"/>
           </svg>
           Visa Intelligent Commerce
         </div>
-        <div style={{ padding: "8px 16px", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#993C1D", borderLeft: "1px solid #e0dbd0", display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 14, height: 10, background: "#e8372a", borderRadius: 2 }} />
+        <div style={{ padding: "8px 16px", fontFamily: "'Courier New',monospace", fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--diagram-3)", borderLeft: "1px solid var(--ink-200)", display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 14, height: 10, background: "var(--danger)", borderRadius: 2 }} />
           Mastercard Agent Pay
         </div>
       </div>
@@ -131,30 +131,30 @@ export default function NetworkComparison() {
       {/* Rows */}
       {visible.map((row, i) => (
         <div key={row.category} onClick={() => setSelected(selected === row.category ? null : row.category)}
-          style={{ cursor: "pointer", borderBottom: "1px solid #e0dbd0", transition: "background .1s",
-            background: selected === row.category ? "#f0ece4" : (i % 2 === 0 ? "#faf9f6" : "#f5f3ee") }}>
+          style={{ cursor: "pointer", borderBottom: "1px solid var(--ink-200)", transition: "background .1s",
+            background: selected === row.category ? "var(--ink-100)" : (i % 2 === 0 ? "var(--paper)" : "var(--ink-100)") }}>
           <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 1fr" }}>
             {/* Category */}
             <div style={{ padding: "10px 12px", display: "flex", alignItems: "flex-start" }}>
-              <div style={{ fontSize: 10, fontFamily: "'Courier New',monospace", color: "#6b6560", fontWeight: 500 }}>{row.category}</div>
+              <div style={{ fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-500)", fontWeight: 500 }}>{row.category}</div>
               {!row.diff && (
-                <span style={{ marginLeft: 6, fontSize: 8, padding: "1px 4px", borderRadius: 2, background: "#f0f8f4", color: "#186040", border: "1px solid #b0d8c0", fontFamily: "'Courier New',monospace", flexShrink: 0 }}>shared</span>
+                <span style={{ marginLeft: 6, fontSize: 8, padding: "1px 4px", borderRadius: 2, background: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", color: "var(--success)", border: "1px solid color-mix(in srgb, var(--success) 28%, var(--ink-200))", fontFamily: "'Courier New',monospace", flexShrink: 0 }}>shared</span>
               )}
             </div>
 
             {/* Visa */}
-            <div style={{ padding: "10px 16px", borderLeft: "1px solid #e0dbd0" }}>
-              <div style={{ fontSize: 11, fontFamily: "'Courier New',monospace", color: "#185FA5", lineHeight: 1.4 }}>{row.visa.val}</div>
+            <div style={{ padding: "10px 16px", borderLeft: "1px solid var(--ink-200)" }}>
+              <div style={{ fontSize: 11, fontFamily: "'Courier New',monospace", color: "var(--diagram-1)", lineHeight: 1.4 }}>{row.visa.val}</div>
               {selected === row.category && (
-                <div style={{ marginTop: 6, fontSize: 11, color: "#4a4440", lineHeight: 1.6, fontFamily: "Georgia,serif" }}>{row.visa.note}</div>
+                <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-700)", lineHeight: 1.6, fontFamily: "Georgia,serif" }}>{row.visa.note}</div>
               )}
             </div>
 
             {/* Mastercard */}
-            <div style={{ padding: "10px 16px", borderLeft: "1px solid #e0dbd0" }}>
-              <div style={{ fontSize: 11, fontFamily: "'Courier New',monospace", color: "#993C1D", lineHeight: 1.4 }}>{row.mc.val}</div>
+            <div style={{ padding: "10px 16px", borderLeft: "1px solid var(--ink-200)" }}>
+              <div style={{ fontSize: 11, fontFamily: "'Courier New',monospace", color: "var(--diagram-3)", lineHeight: 1.4 }}>{row.mc.val}</div>
               {selected === row.category && (
-                <div style={{ marginTop: 6, fontSize: 11, color: "#4a4440", lineHeight: 1.6, fontFamily: "Georgia,serif" }}>{row.mc.note}</div>
+                <div style={{ marginTop: 6, fontSize: 11, color: "var(--ink-700)", lineHeight: 1.6, fontFamily: "Georgia,serif" }}>{row.mc.note}</div>
               )}
             </div>
           </div>
@@ -162,16 +162,16 @@ export default function NetworkComparison() {
       ))}
 
       {/* Footer */}
-      <div style={{ padding: "10px 20px", background: "#f5f3ee", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "#9a9288" }}>
-          <div style={{ width: 8, height: 8, borderRadius: 1, background: "#b0d8c0" }} />
+      <div style={{ padding: "10px 20px", background: "var(--ink-100)", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-500)" }}>
+          <div style={{ width: 8, height: 8, borderRadius: 1, background: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" }} />
           shared approach
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "#9a9288" }}>
-          <div style={{ width: 8, height: 8, borderRadius: 1, background: "#e0dbd0" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-500)" }}>
+          <div style={{ width: 8, height: 8, borderRadius: 1, background: "var(--ink-200)" }} />
           different approach
         </div>
-        <div style={{ marginLeft: "auto", fontSize: 10, color: "#b8b3a8", fontFamily: "'Courier New',monospace" }}>click any row to expand</div>
+        <div style={{ marginLeft: "auto", fontSize: 10, color: "var(--ink-400)", fontFamily: "'Courier New',monospace" }}>click any row to expand</div>
       </div>
 
     </div>

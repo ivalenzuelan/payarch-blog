@@ -11,17 +11,17 @@ import RebuildMap       from '../../components/RebuildMap.jsx';
 import NetworkComparison from '../../components/NetworkComparison.jsx';
 
 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', margin: '32px 0' }} className="not-prose">
-  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-    <div style={{ fontSize: '24px', fontWeight: 600, color: '#1a1814', fontFamily: 'Courier New, monospace' }}>Apr 29</div>
-    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Mastercard Agent Pay launched</div>
+  <div style={{ background: 'var(--ink-100)', border: '1px solid var(--ink-200)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--ink-900)', fontFamily: 'Courier New, monospace' }}>Apr 29</div>
+    <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Mastercard Agent Pay launched</div>
   </div>
-  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-    <div style={{ fontSize: '24px', fontWeight: 600, color: '#1a1814', fontFamily: 'Courier New, monospace' }}>Apr 30</div>
-    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Visa Intelligent Commerce launched</div>
+  <div style={{ background: 'var(--ink-100)', border: '1px solid var(--ink-200)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--ink-900)', fontFamily: 'Courier New, monospace' }}>Apr 30</div>
+    <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Visa Intelligent Commerce launched</div>
   </div>
-  <div style={{ background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-    <div style={{ fontSize: '24px', fontWeight: 600, color: '#1a1814', fontFamily: 'Courier New, monospace' }}>Oct 14</div>
-    <div style={{ fontSize: '11px', color: '#8a8278', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Both partnered with Cloudflare</div>
+  <div style={{ background: 'var(--ink-100)', border: '1px solid var(--ink-200)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+    <div style={{ fontSize: '24px', fontWeight: 600, color: 'var(--ink-900)', fontFamily: 'Courier New, monospace' }}>Oct 14</div>
+    <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'Courier New, monospace' }}>Both partnered with Cloudflare</div>
   </div>
 </div>
 
@@ -259,26 +259,26 @@ And critically: neither network replaced the rails. ISO 8583 still flows from ac
 
 ## Coming next
 
-<div style={{ border: '1px solid #e0dbd0', borderRadius: '12px', overflow: 'hidden', background: '#ffffff', margin: '24px 0' }} className="not-prose">
-  <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid #e8e3da' }}>
-    <div style={{ fontFamily: 'Courier New, monospace', fontWeight: 600, color: '#d8d3c8', fontSize: '14px', width: '24px' }}>03</div>
+<div style={{ border: '1px solid var(--ink-200)', borderRadius: '12px', overflow: 'hidden', background: 'var(--paper-pure)', margin: '24px 0' }} className="not-prose">
+  <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid var(--ink-200)' }}>
+    <div style={{ fontFamily: 'Courier New, monospace', fontWeight: 600, color: 'var(--ink-300)', fontSize: '14px', width: '24px' }}>03</div>
     <div>
-      <div style={{ fontWeight: 600, color: '#1a1814', fontSize: '14px' }}>ISO 8583 for agents: the complete field reference</div>
-      <div style={{ fontSize: '12px', color: '#8a8278', marginTop: '3px' }}>Every modified field, valid values, how issuers interpret F022=81, what T+1 clearing looks like.</div>
+      <div style={{ fontWeight: 600, color: 'var(--ink-900)', fontSize: '14px' }}>ISO 8583 for agents: the complete field reference</div>
+      <div style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '3px' }}>Every modified field, valid values, how issuers interpret F022=81, what T+1 clearing looks like.</div>
     </div>
   </div>
-  <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid #e8e3da' }}>
-    <div style={{ fontFamily: 'Courier New, monospace', fontWeight: 600, color: '#d8d3c8', fontSize: '14px', width: '24px' }}>04</div>
+  <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid var(--ink-200)' }}>
+    <div style={{ fontFamily: 'Courier New, monospace', fontWeight: 600, color: 'var(--ink-300)', fontSize: '14px', width: '24px' }}>04</div>
     <div>
-      <div style={{ fontWeight: 600, color: '#1a1814', fontSize: '14px' }}>The Trusted Agent Protocol spec, line by line</div>
-      <div style={{ fontSize: '12px', color: '#8a8278', marginTop: '3px' }}>Ed25519 key registration, nonce store design, and why replay protection is harder than it looks.</div>
+      <div style={{ fontWeight: 600, color: 'var(--ink-900)', fontSize: '14px' }}>The Trusted Agent Protocol spec, line by line</div>
+      <div style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '3px' }}>Ed25519 key registration, nonce store design, and why replay protection is harder than it looks.</div>
     </div>
   </div>
   <div style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-    <div style={{ fontFamily: 'Courier New, monospace', fontWeight: 600, color: '#d8d3c8', fontSize: '14px', width: '24px' }}>05</div>
+    <div style={{ fontFamily: 'Courier New, monospace', fontWeight: 600, color: 'var(--ink-300)', fontSize: '14px', width: '24px' }}>05</div>
     <div>
-      <div style={{ fontWeight: 600, color: '#1a1814', fontSize: '14px' }}>x402 in depth: HTTP-native payments for agents</div>
-      <div style={{ fontSize: '12px', color: '#8a8278', marginTop: '3px' }}>The payment flow, facilitator architecture, V2 spec changes, and when to use x402 over TAP.</div>
+      <div style={{ fontWeight: 600, color: 'var(--ink-900)', fontSize: '14px' }}>x402 in depth: HTTP-native payments for agents</div>
+      <div style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '3px' }}>The payment flow, facilitator architecture, V2 spec changes, and when to use x402 over TAP.</div>
     </div>
   </div>
 </div>

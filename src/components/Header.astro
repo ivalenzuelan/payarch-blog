@@ -31,7 +31,7 @@ import HeaderLink from './HeaderLink.astro';
 	header {
 		margin: 0;
 		padding: 0;
-		background: rgba(255, 255, 255, 0.85);
+		background: color-mix(in srgb, var(--paper-pure) 85%, transparent);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		border-bottom: 1px solid var(--border-color);
@@ -58,7 +58,7 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	h2 a {
 		text-decoration: none;
-		color: rgb(var(--black));
+		color: var(--ink-900);
 	}
 	.internal-links {
 		display: flex;
@@ -67,7 +67,7 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	nav a.link-item {
 		padding: 0.5em 0.8em;
-		color: rgb(var(--gray-dark));
+		color: var(--ink-700);
 		text-decoration: none;
 		font-size: 0.95em;
 		font-weight: 500;
@@ -76,7 +76,7 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	nav a.link-item:hover {
 		background: var(--bg-subtle);
-		color: rgb(var(--black));
+		color: var(--ink-900);
 	}
 	nav a.active {
 		color: var(--accent);
@@ -88,7 +88,7 @@ import HeaderLink from './HeaderLink.astro';
 		align-items: center;
 		gap: 6px;
 		text-decoration: none !important;
-		color: rgb(var(--black));
+		color: var(--ink-900);
 		transition: opacity 0.2s ease;
 		min-width: 0;
 	}

@@ -75,17 +75,17 @@ export default function Iso8583PacketDiagram() {
           left: 50%;
           transform: translateX(-50%);
           margin: 32px 0;
-          border: 1px solid #e0dbd0;
+          border: 1px solid var(--ink-200);
           border-radius: 10px;
-          background: #faf9f6;
+          background: var(--paper);
           overflow: hidden;
-          color: #1a1814;
+          color: var(--ink-900);
         }
 
         .iso-head {
           padding: 18px 22px;
-          border-bottom: 1px solid #e0dbd0;
-          background: #f5f3ee;
+          border-bottom: 1px solid var(--ink-200);
+          background: var(--ink-100);
           display: flex;
           flex-direction: column;
           gap: 5px;
@@ -99,7 +99,7 @@ export default function Iso8583PacketDiagram() {
           font-size: 10px;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #8a8278;
+          color: var(--ink-500);
         }
 
         .iso-head strong {
@@ -110,7 +110,7 @@ export default function Iso8583PacketDiagram() {
 
         .iso-shell {
           padding: 22px;
-          background: linear-gradient(180deg, #faf9f6 0%, #f5f3ee 100%);
+          background: linear-gradient(180deg, var(--paper) 0%, var(--ink-100) 100%);
         }
 
         .iso-mti {
@@ -118,15 +118,15 @@ export default function Iso8583PacketDiagram() {
           align-items: center;
           justify-content: space-between;
           gap: 16px;
-          border: 1px solid #d8d3c8;
+          border: 1px solid var(--ink-300);
           border-radius: 8px 8px 0 0;
-          background: #1a1814;
-          color: #faf9f6;
+          background: var(--ink-900);
+          color: var(--paper);
           padding: 12px 14px;
         }
 
         .iso-mti span {
-          color: #d8d3c8;
+          color: var(--ink-300);
         }
 
         .iso-mti strong {
@@ -136,9 +136,9 @@ export default function Iso8583PacketDiagram() {
         }
 
         .iso-fields {
-          border-left: 1px solid #d8d3c8;
-          border-right: 1px solid #d8d3c8;
-          border-bottom: 1px solid #d8d3c8;
+          border-left: 1px solid var(--ink-300);
+          border-right: 1px solid var(--ink-300);
+          border-bottom: 1px solid var(--ink-300);
           border-radius: 0 0 8px 8px;
           overflow: hidden;
         }
@@ -147,8 +147,8 @@ export default function Iso8583PacketDiagram() {
           display: grid;
           grid-template-columns: 88px 1fr;
           gap: 0;
-          background: #fffdfa;
-          border-top: 1px solid #e0dbd0;
+          background: var(--paper-pure);
+          border-top: 1px solid var(--ink-200);
         }
 
         .iso-field:first-child {
@@ -159,9 +159,9 @@ export default function Iso8583PacketDiagram() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #f5f3ee;
-          border-right: 1px solid #e0dbd0;
-          color: #1a1814;
+          background: var(--ink-100);
+          border-right: 1px solid var(--ink-200);
+          color: var(--ink-900);
           letter-spacing: 0.04em;
           font-weight: 700;
         }
@@ -191,9 +191,9 @@ export default function Iso8583PacketDiagram() {
         .iso-field code {
           display: inline-block;
           font-size: 12px;
-          color: #065f46;
-          background: #f3faf5;
-          border: 1px solid #c8decf;
+          color: var(--success);
+          background: color-mix(in srgb, var(--success) 8%, var(--paper-pure));
+          border: 1px solid color-mix(in srgb, var(--success) 25%, var(--ink-200));
           border-radius: 4px;
           padding: 3px 6px;
           overflow-wrap: anywhere;
@@ -201,7 +201,7 @@ export default function Iso8583PacketDiagram() {
 
         .iso-field p {
           margin: 7px 0 0;
-          color: #4a4840;
+          color: var(--ink-700);
           font-size: 12.5px;
           line-height: 1.4;
         }
@@ -221,7 +221,7 @@ export default function Iso8583PacketDiagram() {
           .iso-field-code {
             justify-content: flex-start;
             border-right: 0;
-            border-bottom: 1px solid #e0dbd0;
+            border-bottom: 1px solid var(--ink-200);
             padding: 8px 12px;
           }
 

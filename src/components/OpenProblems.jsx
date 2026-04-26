@@ -7,11 +7,11 @@ const PROBLEMS = [
     title: "Prompt Injection",
     sub: "No cryptographic defense exists at any layer",
     severity: "Critical",
-    severityColor: "#dc2626",
-    color: "#b91c1c",
-    bg: "#fff8f8",
-    border: "#fecaca",
-    accentBg: "#fef2f2",
+    severityColor: "var(--danger)",
+    color: "var(--danger)",
+    bg: "color-mix(in srgb, var(--danger) 5%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--danger) 25%, var(--ink-200))",
+    accentBg: "color-mix(in srgb, var(--danger) 8%, var(--paper-pure))",
     description: "When an AI agent browses a merchant site to build a cart, a malicious actor can embed hidden instructions in page content — invisible text, CSS-hidden divs, image alt text — that override the agent's task. Cryptographic mandates protect the cart after the agent has been manipulated. They do not prevent the manipulation.",
     source: "arXiv:2601.22569 · University of Georgia red-team, Jan 2026 · Palo Alto Unit 42 confirmed IDPI in the wild",
     flow: [
@@ -31,11 +31,11 @@ const PROBLEMS = [
     title: "Multi-Hop Budget Delegation",
     sub: "Permissions cascade. Spend budgets don't.",
     severity: "Unsolved",
-    severityColor: "#d97706",
-    color: "#92400e",
-    bg: "#fffbf0",
-    border: "#fcd34d",
-    accentBg: "#fefce8",
+    severityColor: "var(--diagram-3)",
+    color: "var(--warning)",
+    bg: "color-mix(in srgb, var(--warning) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--warning) 35%, var(--ink-200))",
+    accentBg: "color-mix(in srgb, var(--warning) 8%, var(--paper-pure))",
     description: "Delegation frameworks handle permission propagation through agent hierarchies — an orchestrator delegating to sub-agents, which delegate further. What they do not handle is spend budget propagating through those hierarchies. If a user authorizes an orchestrator to spend $100, and that orchestrator spawns five sub-agents, who enforces the total doesn't exceed $100?",
     source: "Explicitly flagged as unsolved in 17-paper survey. AIP (arXiv:2603.24775), OIDC-A (arXiv:2509.25974), DAAP all address permissions — none address budget propagation.",
     flow: [
@@ -56,11 +56,11 @@ const PROBLEMS = [
     title: "Cross-Border Payments",
     sub: "ISO 8583 ends at the border. SWIFT begins with a gap.",
     severity: "Gap",
-    severityColor: "#2563eb",
-    color: "#1e40af",
-    bg: "#f0f4ff",
-    border: "#bfdbfe",
-    accentBg: "#eff6ff",
+    severityColor: "var(--diagram-1)",
+    color: "var(--diagram-1)",
+    bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--diagram-1) 25%, var(--ink-200))",
+    accentBg: "var(--signal-100)",
     description: "Everything described in this post applies to domestic card transactions. International wire transfers operate on SWIFT and correspondent banking chains that sit entirely outside the ISO 8583 / card network stack. The agent authorization credential that travels in DE48 has no equivalent in a SWIFT pain.001 message.",
     source: "SWIFT ISO 20022 Payment Initiation Relay Rulebook (March 2025). BIS/SWIFT working groups active in 2025–2026. Formal ISO 20022 AI agent extensions expected H2 2026.",
     flow: [
@@ -77,14 +77,14 @@ const PROBLEMS = [
 ]
 
 const FLOW_STYLE = {
-  user: { color: "#b45309", bg: "#fffbf0", border: "#fcd34d", dot: "#d97706", label: "→" },
-  agent: { color: "#5b21b6", bg: "#f8f4ff", border: "#ddd0f8", dot: "#7c3aed", label: "↓" },
-  attack: { color: "#dc2626", bg: "#fef2f2", border: "#fecaca", dot: "#ef4444", label: "⚡" },
-  compromised: { color: "#dc2626", bg: "#fef2f2", border: "#fecaca", dot: "#f87171", label: "↓" },
-  mandate: { color: "#1e40af", bg: "#f0f4ff", border: "#bfdbfe", dot: "#3b82f6", label: "→" },
-  success: { color: "#065f46", bg: "#f0faf5", border: "#6ee7b7", dot: "#10b981", label: "✓" },
-  neutral: { color: "#6b6560", bg: "#f5f3ee", border: "#e0dbd0", dot: "#9a9288", label: "→" },
-  fail: { color: "#7f1d1d", bg: "#fef2f2", border: "#fca5a5", dot: "#dc2626", label: "✕" },
+  user: { color: "var(--diagram-3)", bg: "color-mix(in srgb, var(--warning) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--warning) 35%, var(--ink-200))", dot: "var(--diagram-3)", label: "→" },
+  agent: { color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))", dot: "var(--diagram-4)", label: "↓" },
+  attack: { color: "var(--danger)", bg: "color-mix(in srgb, var(--danger) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--danger) 25%, var(--ink-200))", dot: "var(--danger)", label: "⚡" },
+  compromised: { color: "var(--danger)", bg: "color-mix(in srgb, var(--danger) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--danger) 25%, var(--ink-200))", dot: "color-mix(in srgb, var(--danger) 68%, var(--paper-pure))", label: "↓" },
+  mandate: { color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 25%, var(--ink-200))", dot: "var(--diagram-1)", label: "→" },
+  success: { color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 35%, var(--ink-200))", dot: "var(--success)", label: "✓" },
+  neutral: { color: "var(--ink-500)", bg: "var(--ink-100)", border: "var(--ink-200)", dot: "var(--ink-500)", label: "→" },
+  fail: { color: "var(--danger)", bg: "color-mix(in srgb, var(--danger) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--danger) 35%, var(--ink-200))", dot: "var(--danger)", label: "✕" },
 }
 
 export default function OpenProblems() {
@@ -96,10 +96,10 @@ export default function OpenProblems() {
   return (
     <div style={{
       fontFamily: "'Georgia','Times New Roman',serif",
-      color: "#1a1814",
-      background: "#faf9f6",
+      color: "var(--ink-900)",
+      background: "var(--paper)",
       borderRadius: 14,
-      border: "1px solid #e0dbd0",
+      border: "1px solid var(--ink-200)",
       overflow: "hidden",
       width: "100vw",
       maxWidth: 1040,
@@ -110,8 +110,8 @@ export default function OpenProblems() {
     }}>
 
       {/* Header */}
-      <div style={{ padding: "18px 24px 0", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
+      <div style={{ padding: "18px 24px 0", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           Open Problems · Architecture Gaps
         </div>
         <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 14px", fontFamily: "'Georgia',serif" }}>
@@ -130,12 +130,12 @@ export default function OpenProblems() {
                   padding: "10px 20px",
                   border: "none",
                   borderBottom: `2px solid ${isActive ? p.color : "transparent"}`,
-                  background: isActive ? "#faf9f6" : "transparent",
+                  background: isActive ? "var(--paper)" : "transparent",
                   cursor: "pointer",
                   fontFamily: "'Courier New',monospace",
                   fontSize: 11.5,
                   fontWeight: isActive ? 700 : 400,
-                  color: isActive ? p.color : "#9a9288",
+                  color: isActive ? p.color : "var(--ink-500)",
                   transition: "all .15s",
                   display: "flex",
                   alignItems: "center",
@@ -147,8 +147,8 @@ export default function OpenProblems() {
                 <span style={{
                   fontSize: 9,
                   fontWeight: 700,
-                  color: isActive ? "#fff" : "#c8c3b8",
-                  background: isActive ? p.color : "#e0dbd0",
+                  color: isActive ? "var(--paper-pure)" : "var(--ink-300)",
+                  background: isActive ? p.color : "var(--ink-200)",
                   borderRadius: 4,
                   padding: "1px 5px",
                   letterSpacing: "0.04em",
@@ -187,7 +187,7 @@ export default function OpenProblems() {
               }}>
                 {problem.severity}
               </div>
-              <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+              <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
                 {problem.sub}
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function OpenProblems() {
             <p style={{
               fontSize: 13.5,
               lineHeight: 1.78,
-              color: "#2a2520",
+              color: "var(--ink-800)",
               fontFamily: "'Georgia',serif",
               margin: "0 0 16px",
             }}>
@@ -205,7 +205,7 @@ export default function OpenProblems() {
             {/* Source */}
             <div style={{
               fontSize: 10.5,
-              color: "#8a8278",
+              color: "var(--ink-500)",
               fontFamily: "'Courier New',monospace",
               borderLeft: `3px solid ${problem.border}`,
               paddingLeft: 10,
@@ -237,7 +237,7 @@ export default function OpenProblems() {
               <p style={{
                 fontSize: 12,
                 lineHeight: 1.72,
-                color: "#3a3530",
+                color: "var(--ink-800)",
                 fontFamily: "'Georgia',serif",
                 margin: 0,
                 fontStyle: "italic",
@@ -252,7 +252,7 @@ export default function OpenProblems() {
                 fontSize: 9.5,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                color: "#9a9288",
+                color: "var(--ink-500)",
                 fontFamily: "'Courier New',monospace",
                 marginBottom: 6,
               }}>
@@ -263,9 +263,9 @@ export default function OpenProblems() {
                   <div key={i} style={{
                     fontSize: 10,
                     fontFamily: "'Courier New',monospace",
-                    color: "#5a5550",
-                    background: "#f0ede8",
-                    border: "1px solid #ddd8d0",
+                    color: "var(--ink-700)",
+                    background: "var(--ink-100)",
+                    border: "1px solid var(--ink-200)",
                     borderRadius: 4,
                     padding: "2px 8px",
                   }}>
@@ -279,17 +279,17 @@ export default function OpenProblems() {
           {/* Right: flow diagram */}
           <div>
             <div style={{
-              background: "#f5f3ee",
-              border: "1px solid #e0dbd0",
+              background: "var(--ink-100)",
+              border: "1px solid var(--ink-200)",
               borderRadius: 10,
               overflow: "hidden",
             }}>
               <div style={{
                 padding: "10px 14px",
-                borderBottom: "1px solid #e0dbd0",
-                background: "#ece9e3",
+                borderBottom: "1px solid var(--ink-200)",
+                background: "var(--ink-200)",
               }}>
-                <div style={{ fontSize: 9.5, fontFamily: "'Courier New',monospace", color: "#8a8278", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <div style={{ fontSize: 9.5, fontFamily: "'Courier New',monospace", color: "var(--ink-500)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Attack / failure flow
                 </div>
               </div>
@@ -306,7 +306,7 @@ export default function OpenProblems() {
                         <div style={{
                           width: 1,
                           height: 8,
-                          background: step.type === "attack" || step.type === "fail" ? "#fca5a5" : "#d8d3c8",
+                          background: step.type === "attack" || step.type === "fail" ? "color-mix(in srgb, var(--danger) 35%, var(--ink-200))" : "var(--ink-300)",
                           margin: "0 auto",
                           marginLeft: 21,
                         }} />
@@ -338,7 +338,7 @@ export default function OpenProblems() {
                           flexShrink: 0,
                           marginTop: 1,
                           fontSize: 9,
-                          color: "#fff",
+                          color: "var(--paper-pure)",
                           fontWeight: 700,
                         }}>
                           {i + 1}
@@ -357,7 +357,7 @@ export default function OpenProblems() {
                           <div style={{
                             fontSize: 10.5,
                             fontFamily: step.type === "attack" || step.type === "fail" ? "'Courier New',monospace" : "'Georgia',serif",
-                            color: step.type === "attack" ? "#dc2626" : step.type === "fail" ? "#7f1d1d" : "#3a3530",
+                            color: step.type === "attack" ? "var(--danger)" : step.type === "fail" ? "var(--danger)" : "var(--ink-800)",
                             lineHeight: 1.45,
                             fontWeight: step.type === "attack" ? 600 : 400,
                           }}>
@@ -377,8 +377,8 @@ export default function OpenProblems() {
       {/* Footer — problem counter */}
       <div style={{
         padding: "10px 24px",
-        borderTop: "1px solid #e0dbd0",
-        background: "#f5f3ee",
+        borderTop: "1px solid var(--ink-200)",
+        background: "var(--ink-100)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -392,14 +392,14 @@ export default function OpenProblems() {
                 width: 28,
                 height: 4,
                 borderRadius: 2,
-                background: p.id === activeTab ? p.color : "#d8d3c8",
+                background: p.id === activeTab ? p.color : "var(--ink-300)",
                 cursor: "pointer",
                 transition: "background .2s",
               }}
             />
           ))}
         </div>
-        <div style={{ fontSize: 10, fontFamily: "'Courier New',monospace", color: "#b8b3a8" }}>
+        <div style={{ fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-400)" }}>
           {PROBLEMS.findIndex(p => p.id === activeTab) + 1} / {PROBLEMS.length} open problems
         </div>
       </div>

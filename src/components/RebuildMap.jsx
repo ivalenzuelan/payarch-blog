@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react"
 
 const T = {
-  cream:"#faf9f6", cream2:"#f5f3ee", cream3:"#ede9e2",
-  ink:"#1a1814", ink2:"#4a4440", ink3:"#5e5750", ink4:"#8a8278", ink5:"#b8b3a8",
-  pass:"#186040", passLight:"#f0f8f4", passBorder:"#a8d8b8",
-  fail:"#c02010", failLight:"#fff4f2", failBorder:"#f0b0a0",
-  visa:"#185FA5", blueLight:"#eef3ff", blueBorder:"#b8d0f0",
-  mc:"#8B3012", mcLight:"#fff3ee", mcBorder:"#f0b898",
-  border:"#e0dbd0",
+  cream:"var(--paper)", cream2:"var(--ink-100)", cream3:"var(--ink-200)",
+  ink:"var(--ink-900)", ink2:"var(--ink-700)", ink3:"var(--ink-700)", ink4:"var(--ink-500)", ink5:"var(--ink-400)",
+  pass:"var(--success)", passLight:"color-mix(in srgb, var(--success) 8%, var(--paper-pure))", passBorder:"color-mix(in srgb, var(--success) 25%, var(--ink-200))",
+  fail:"var(--danger)", failLight:"color-mix(in srgb, var(--danger) 6%, var(--paper-pure))", failBorder:"color-mix(in srgb, var(--danger) 25%, var(--ink-200))",
+  visa:"var(--diagram-1)", blueLight:"color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", blueBorder:"color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))",
+  mc:"var(--diagram-3)", mcLight:"color-mix(in srgb, var(--diagram-3) 8%, var(--paper-pure))", mcBorder:"color-mix(in srgb, var(--diagram-3) 35%, var(--ink-200))",
+  border:"var(--ink-200)",
 }
 
 const REBUILD = [
   {
-    id:"merchant", num:"01", actor:"Merchant + Gateway", color:"#1a1814",
+    id:"merchant", num:"01", actor:"Merchant + Gateway", color:"var(--ink-900)",
     question:"Is this a human?",
     before:[
       { tool:"CAPTCHA",            broken:"Requires visual perception — agent has none" },
@@ -23,7 +23,7 @@ const REBUILD = [
     mc:  { tool:"CDN agent verification", standard:"Web Bot Auth", detail:"Cloudflare verifies cryptographic agent identity at edge · unregistered agents never reach merchant · no code change required" },
   },
   {
-    id:"acquirer", num:"02", actor:"Acquirer + Processor", color:"#7a4a10",
+    id:"acquirer", num:"02", actor:"Acquirer + Processor", color:"var(--diagram-3)",
     question:"Does the transaction signal match?",
     before:[
       { tool:"AVS / CVV match",   broken:"Agent submits programmatically — no address to verify" },
@@ -34,7 +34,7 @@ const REBUILD = [
     mc:  { tool:"Agentic Token + F022 equiv.", standard:"ISO 8583 · MC", detail:"Agent identity embedded in Agentic Token metadata — not in message fields. New POS Entry Mode value tells issuer: load agent policy, not human rules." },
   },
   {
-    id:"network", num:"03", actor:"Card Network", color:"#186040",
+    id:"network", num:"03", actor:"Card Network", color:"var(--success)",
     question:"Is this a distributed attack?",
     before:[
       { tool:"ML behavioral model",  broken:"Trained to catch exactly this: machine-speed + data center IP" },
@@ -45,7 +45,7 @@ const REBUILD = [
     mc:  { tool:"Agentic Token binding", standard:"Mastercard Token Service", detail:"Network validates token was issued for this exact agent + consumer + context. Token carries cryptographic proof through entire authorization chain." },
   },
   {
-    id:"issuer", num:"04", actor:"Issuer Bank", color:"#185FA5",
+    id:"issuer", num:"04", actor:"Issuer Bank", color:"var(--diagram-1)",
     question:"Is the cardholder present?",
     before:[
       { tool:"Probabilistic risk score",broken:"High network risk score → step-up triggered" },
@@ -217,8 +217,8 @@ export default function RebuildMap() {
                         <span style={{ fontSize:9, letterSpacing:"0.08em", textTransform:"uppercase", color:T.visa, fontFamily:"'Courier New',monospace" }}>Visa</span>
                       </div>
                       <div style={{ fontSize:11, fontWeight:600, color:T.visa, fontFamily:"'Courier New',monospace", marginBottom:5 }}>{layer.visa.tool}</div>
-                      <div style={{ fontSize:10, color:"#1a4a90", lineHeight:1.65, marginBottom:8 }}>{layer.visa.detail}</div>
-                      <span style={{ fontSize:8, padding:"2px 6px", background:"#dce8ff", color:T.visa, border:`1px solid ${T.blueBorder}`, borderRadius:2, fontFamily:"'Courier New',monospace" }}>
+                      <div style={{ fontSize:10, color:"var(--diagram-1)", lineHeight:1.65, marginBottom:8 }}>{layer.visa.detail}</div>
+                      <span style={{ fontSize:8, padding:"2px 6px", background:"var(--signal-100)", color:T.visa, border:`1px solid ${T.blueBorder}`, borderRadius:2, fontFamily:"'Courier New',monospace" }}>
                         {layer.visa.standard}
                       </span>
                     </div>
@@ -227,14 +227,14 @@ export default function RebuildMap() {
                     <div style={{ background:T.mcLight, border:`1px solid ${T.mcBorder}`, borderRadius:8, padding:"12px 14px" }}>
                       <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8 }}>
                         <div style={{ position:"relative", width:24, height:14, flexShrink:0 }}>
-                          <div style={{ position:"absolute", left:0, top:0, width:14, height:14, background:"#e8372a", borderRadius:"50%", opacity:0.92 }}/>
-                          <div style={{ position:"absolute", left:10, top:0, width:14, height:14, background:"#f5a800", borderRadius:"50%", opacity:0.92 }}/>
+                          <div style={{ position:"absolute", left:0, top:0, width:14, height:14, background:"var(--danger)", borderRadius:"50%", opacity:0.92 }}/>
+                          <div style={{ position:"absolute", left:10, top:0, width:14, height:14, background:"var(--warning)", borderRadius:"50%", opacity:0.92 }}/>
                         </div>
                         <span style={{ fontSize:9, letterSpacing:"0.08em", textTransform:"uppercase", color:T.mc, fontFamily:"'Courier New',monospace" }}>Mastercard</span>
                       </div>
                       <div style={{ fontSize:11, fontWeight:600, color:T.mc, fontFamily:"'Courier New',monospace", marginBottom:5 }}>{layer.mc.tool}</div>
-                      <div style={{ fontSize:10, color:"#5a1a08", lineHeight:1.65, marginBottom:8 }}>{layer.mc.detail}</div>
-                      <span style={{ fontSize:8, padding:"2px 6px", background:"#ffe0d0", color:T.mc, border:`1px solid ${T.mcBorder}`, borderRadius:2, fontFamily:"'Courier New',monospace" }}>
+                      <div style={{ fontSize:10, color:"var(--diagram-3)", lineHeight:1.65, marginBottom:8 }}>{layer.mc.detail}</div>
+                      <span style={{ fontSize:8, padding:"2px 6px", background:"color-mix(in srgb, var(--diagram-3) 18%, var(--paper-pure))", color:T.mc, border:`1px solid ${T.mcBorder}`, borderRadius:2, fontFamily:"'Courier New',monospace" }}>
                         {layer.mc.standard}
                       </span>
                     </div>

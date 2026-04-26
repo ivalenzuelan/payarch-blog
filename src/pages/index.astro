@@ -56,18 +56,18 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
 <style is:global>
 :root {
-  --cream: #faf9f6;
-  --cream2: #f5f3ee;
-  --cream3: #ede9e2;
-  --ink: #1a1814;
-  --ink2: #4a4840;
-  --ink3: #8a8278;
-  --ink4: #b8b3a8;
-  --ink5: #d8d3c8;
-  --orange: #c05020;
-  --orange2: #e07040;
-  --blue: #1a4a90;
-  --border: #e0dbd0;
+  --cream: var(--paper);
+  --cream2: var(--ink-100);
+  --cream3: var(--ink-200);
+  --ink: var(--ink-900);
+  --ink2: var(--ink-700);
+  --ink3: var(--ink-500);
+  --ink4: var(--ink-400);
+  --ink5: var(--ink-300);
+  --orange: var(--signal-600);
+  --orange2: var(--signal-700);
+  --blue: var(--diagram-1);
+  --border: var(--ink-200);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
@@ -93,7 +93,7 @@ nav#landing-nav {
   justify-content: space-between;
   padding: 0 40px;
   height: 56px;
-  background: rgba(250,249,246,0.88);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid transparent;
   transition: border-color .3s;
@@ -138,7 +138,7 @@ nav#landing-nav.scrolled { border-bottom-color: var(--border) }
   border-radius: 4px;
   padding: 5px 12px;
 }
-.nav-links .nav-cta:hover { background: #fff6f2; color: var(--orange) }
+.nav-links .nav-cta:hover { background: color-mix(in srgb, var(--signal-600) 7%, var(--paper-pure)); color: var(--orange) }
 
 /* ── HERO ────────────────────────────── */
 .hero {
@@ -377,8 +377,8 @@ section {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--orange);
-  background: #fff6f2;
-  border: 1px solid #f0d0c0;
+  background: color-mix(in srgb, var(--signal-600) 7%, var(--paper-pure));
+  border: 1px solid color-mix(in srgb, var(--signal-600) 25%, var(--ink-200));
   border-radius: 3px;
   padding: 2px 7px;
   display: inline-block;
@@ -789,10 +789,10 @@ footer#landing-footer {
   <a href="/" class="nav-logo">
     <svg width="36" height="24" viewBox="0 0 36 24">
       <defs><path id="np" d="M 3 19 Q 18 2 33 19"/></defs>
-      <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="#1a1814" stroke-width="1.8" stroke-linecap="round"/>
-      <circle cx="3" cy="19" r="2.5" fill="#1a1814"/>
-      <circle cx="33" cy="19" r="2.5" fill="#1a1814"/>
-      <circle r="2" fill="#c05020">
+      <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="var(--ink-900)" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="3" cy="19" r="2.5" fill="var(--ink-900)"/>
+      <circle cx="33" cy="19" r="2.5" fill="var(--ink-900)"/>
+      <circle r="2" fill="var(--signal-600)">
         <animateMotion dur="2.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.37 0 0.63 1" keyTimes="0;1">
           <mpath href="#np"/>
         </animateMotion>
@@ -816,10 +816,10 @@ footer#landing-footer {
     <div class="hero-mark">
       <svg width="96" height="64" viewBox="0 0 96 64">
         <defs><path id="hp" d="M 8 52 Q 48 5 88 52"/></defs>
-        <path d="M 8 52 Q 48 5 88 52" fill="none" stroke="#1a1814" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="8"  cy="52" r="5" fill="#1a1814"/>
-        <circle cx="88" cy="52" r="5" fill="#1a1814"/>
-        <circle r="4" fill="#c05020">
+        <path d="M 8 52 Q 48 5 88 52" fill="none" stroke="var(--ink-900)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="8"  cy="52" r="5" fill="var(--ink-900)"/>
+        <circle cx="88" cy="52" r="5" fill="var(--ink-900)"/>
+        <circle r="4" fill="var(--signal-600)">
           <animateMotion dur="2.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.37 0 0.63 1" keyTimes="0;1">
             <mpath href="#hp"/>
           </animateMotion>
@@ -1049,9 +1049,9 @@ footer#landing-footer {
 <footer id="landing-footer">
   <div class="footer-left">
     <svg width="28" height="20" viewBox="0 0 36 24">
-      <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="#b8b3a8" stroke-width="1.5" stroke-linecap="round"/>
-      <circle cx="3" cy="19" r="2" fill="#b8b3a8"/>
-      <circle cx="33" cy="19" r="2" fill="#b8b3a8"/>
+      <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="var(--ink-400)" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="3" cy="19" r="2" fill="var(--ink-400)"/>
+      <circle cx="33" cy="19" r="2" fill="var(--ink-400)"/>
     </svg>
     <span class="footer-copy">© 2026 payarch</span>
   </div>

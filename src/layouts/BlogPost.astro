@@ -52,30 +52,30 @@ const pageSchema = [
   <style is:global>
     /* ── Landing design tokens ─────────────────────────────── */
     :root {
-      --cream:  #faf9f6;
-      --cream2: #f5f3ee;
-      --cream3: #ede9e2;
-      --ink:    #1a1814;
-      --ink2:   #4a4840;
-      --ink3:   #8a8278;
-      --ink4:   #b8b3a8;
-      --ink5:   #d8d3c8;
-      --orange: #c05020;
-      --orange2:#e07040;
-      --border: #e0dbd0;
+      --cream:  var(--paper);
+      --cream2: var(--ink-100);
+      --cream3: var(--ink-200);
+      --ink:    var(--ink-900);
+      --ink2:   var(--ink-700);
+      --ink3:   var(--ink-500);
+      --ink4:   var(--ink-400);
+      --ink5:   var(--ink-300);
+      --orange: var(--signal-600);
+      --orange2:var(--signal-700);
+      --border: var(--ink-200);
 
       /* remap global.css variables so existing components stay consistent */
-      --accent:       #c05020;
-      --accent-dark:  #a03010;
-      --accent-light: #fff6f2;
-      --bg-body:      #faf9f6;
-      --bg-subtle:    #f5f3ee;
-      --border-color: #e0dbd0;
-      --box-shadow:   0 2px 8px rgba(26,24,20,0.06), 0 8px 24px rgba(26,24,20,0.04);
-      --black: 26,24,20;
-      --gray:  138,130,120;
-      --gray-light: 237,233,226;
-      --gray-dark:  74,72,64;
+      --accent:       var(--signal-600);
+      --accent-dark:  var(--signal-700);
+      --accent-light: color-mix(in srgb, var(--signal-600) 7%, var(--paper-pure));
+      --bg-body:      var(--paper);
+      --bg-subtle:    var(--ink-100);
+      --border-color: var(--ink-200);
+      --box-shadow:   var(--shadow-card);
+      --black: 11, 13, 16;
+      --gray:  92, 99, 110;
+      --gray-light: 238, 240, 242;
+      --gray-dark:  42, 47, 55;
     }
 
     /* ── Base ──────────────────────────────────────────────── */
@@ -152,7 +152,7 @@ const pageSchema = [
       font-family: 'DM Mono', ui-monospace, monospace !important;
       color: var(--ink) !important;
     }
-    pre.astro-code { border-color: #3d444d; }
+    pre.astro-code { border-color: var(--ink-300); }
     pre.astro-code code { display: block; width: 100%; background: transparent !important; border: none !important; }
 
     /* ── Blockquote ────────────────────────────────────────── */
@@ -160,7 +160,7 @@ const pageSchema = [
       border-left: 3px solid var(--orange);
       padding: 0.5em 0 0.5em 1.5em;
       margin: 2em 0;
-      background: #fff6f2;
+      background: color-mix(in srgb, var(--signal-600) 7%, var(--paper-pure));
       border-radius: 0 6px 6px 0;
       font-style: italic;
       color: var(--ink3);
@@ -245,7 +245,7 @@ const pageSchema = [
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 40px; height: 56px;
-      background: rgba(250,249,246,0.9);
+      background: color-mix(in srgb, var(--paper) 90%, transparent);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
@@ -457,10 +457,10 @@ const pageSchema = [
     <a href="/" class="nav-logo">
       <svg width="36" height="24" viewBox="0 0 36 24">
         <defs><path id="np2" d="M 3 19 Q 18 2 33 19"/></defs>
-        <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="#1a1814" stroke-width="1.8" stroke-linecap="round"/>
-        <circle cx="3"  cy="19" r="2.5" fill="#1a1814"/>
-        <circle cx="33" cy="19" r="2.5" fill="#1a1814"/>
-        <circle r="2" fill="#c05020">
+        <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="var(--ink-900)" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="3"  cy="19" r="2.5" fill="var(--ink-900)"/>
+        <circle cx="33" cy="19" r="2.5" fill="var(--ink-900)"/>
+        <circle r="2" fill="var(--signal-600)">
           <animateMotion dur="2.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.37 0 0.63 1" keyTimes="0;1">
             <mpath href="#np2"/>
           </animateMotion>
@@ -513,9 +513,9 @@ const pageSchema = [
   <footer class="post-footer">
     <div class="footer-logo">
       <svg width="28" height="20" viewBox="0 0 36 24">
-        <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="#b8b3a8" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="3"  cy="19" r="2" fill="#b8b3a8"/>
-        <circle cx="33" cy="19" r="2" fill="#b8b3a8"/>
+        <path d="M 3 19 Q 18 2 33 19" fill="none" stroke="var(--ink-400)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="3"  cy="19" r="2" fill="var(--ink-400)"/>
+        <circle cx="33" cy="19" r="2" fill="var(--ink-400)"/>
       </svg>
       <span class="footer-copy">© 2026 payarch</span>
     </div>

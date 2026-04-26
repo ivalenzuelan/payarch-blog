@@ -5,26 +5,26 @@ import type { PayarchDiagram as DiagramDef } from '../lib/core'
 type Layer = 'business' | 'technical' | 'iso8583'
 
 // ── Internal layout config (independent of core node positions) ──
-const LAYOUT: Record<string, { x: number; y: number; w: number; h: number; color: string; colorLight: string; fill: string; fillLight: string }> = {
-  'n-agent-runtime': { x: 20,  y: 30,  w: 148, h: 72, color: '#9f97dd', colorLight: '#534AB7', fill: '#1e1a3a', fillLight: '#EEEDFE' },
-  'n-agent-wallet':  { x: 20,  y: 156, w: 148, h: 72, color: '#9f97dd', colorLight: '#534AB7', fill: '#1e1a3a', fillLight: '#EEEDFE' },
-  'n-tap':           { x: 228, y: 82,  w: 178, h: 72, color: '#4a7fff', colorLight: '#185FA5', fill: '#1a2a4a', fillLight: '#E6F1FB' },
-  'n-merchant':      { x: 468, y: 30,  w: 148, h: 72, color: '#4a7fff', colorLight: '#185FA5', fill: '#1a2a4a', fillLight: '#E6F1FB' },
-  'n-acquirer':      { x: 468, y: 183, w: 148, h: 72, color: '#d4902a', colorLight: '#854F0B', fill: '#1f1800', fillLight: '#FAEEDA' },
-  'n-visa':          { x: 660, y: 106, w: 148, h: 72, color: '#2db88a', colorLight: '#0F6E56', fill: '#0d2a20', fillLight: '#E1F5EE' },
-  'n-issuer':        { x: 660, y: 226, w: 148, h: 72, color: '#e06848', colorLight: '#993C1D', fill: '#200d08', fillLight: '#FAECE7' },
+const LAYOUT: Record<string, { x: number; y: number; w: number; h: number; color: string; fill: string }> = {
+  'n-agent-runtime': { x: 20,  y: 30,  w: 148, h: 72, color: 'var(--diagram-4)', fill: 'color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))' },
+  'n-agent-wallet':  { x: 20,  y: 156, w: 148, h: 72, color: 'var(--diagram-4)', fill: 'color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))' },
+  'n-tap':           { x: 228, y: 82,  w: 178, h: 72, color: 'var(--diagram-1)', fill: 'color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))' },
+  'n-merchant':      { x: 468, y: 30,  w: 148, h: 72, color: 'var(--diagram-1)', fill: 'color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))' },
+  'n-acquirer':      { x: 468, y: 183, w: 148, h: 72, color: 'var(--diagram-3)', fill: 'color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))' },
+  'n-visa':          { x: 660, y: 106, w: 148, h: 72, color: 'var(--diagram-2)', fill: 'color-mix(in srgb, var(--diagram-2) 10%, var(--paper-pure))' },
+  'n-issuer':        { x: 660, y: 226, w: 148, h: 72, color: 'var(--success)', fill: 'color-mix(in srgb, var(--success) 10%, var(--paper-pure))' },
 }
 
 const EDGE_PATHS: Record<string, { d: string; color: string }> = {
-  'e-agent-to-tap':        { d: 'M168,66 C196,66 210,118 228,118',    color: '#9f97dd' },
-  'e-wallet-to-tap':       { d: 'M168,192 C196,192 210,126 228,126',   color: '#9f97dd' },
-  'e-tap-validates':       { d: 'M406,118 C440,118 448,142 468,142',   color: '#4a7fff' }, // tap→visa (internal)
-  'e-tap-to-merchant':     { d: 'M406,106 C436,106 452,66 468,66',     color: '#4a7fff' },
-  'e-agent-to-merchant':   { d: 'M168,50 C318,50 368,50 468,50',       color: '#9f97dd' },
-  'e-merchant-to-acquirer':{ d: 'M542,102 L542,183',                   color: '#4a7fff' },
-  'e-acquirer-to-visa':    { d: 'M616,219 C636,219 648,178 660,178',   color: '#d4902a' },
-  'e-visa-to-issuer':      { d: 'M808,178 L812,178 L812,226',          color: '#2db88a' },
-  'e-issuer-to-visa':      { d: 'M808,262 C830,262 830,208 808,208',   color: '#e06848' },
+  'e-agent-to-tap':        { d: 'M168,66 C196,66 210,118 228,118',    color: 'var(--diagram-4)' },
+  'e-wallet-to-tap':       { d: 'M168,192 C196,192 210,126 228,126',   color: 'var(--diagram-4)' },
+  'e-tap-validates':       { d: 'M406,118 C440,118 448,142 468,142',   color: 'var(--diagram-1)' }, // tap→visa (internal)
+  'e-tap-to-merchant':     { d: 'M406,106 C436,106 452,66 468,66',     color: 'var(--diagram-1)' },
+  'e-agent-to-merchant':   { d: 'M168,50 C318,50 368,50 468,50',       color: 'var(--diagram-4)' },
+  'e-merchant-to-acquirer':{ d: 'M542,102 L542,183',                   color: 'var(--diagram-1)' },
+  'e-acquirer-to-visa':    { d: 'M616,219 C636,219 648,178 660,178',   color: 'var(--diagram-3)' },
+  'e-visa-to-issuer':      { d: 'M808,178 L812,178 L812,226',          color: 'var(--diagram-2)' },
+  'e-issuer-to-visa':      { d: 'M808,262 C830,262 830,208 808,208',   color: 'var(--success)' },
 }
 
 const EDGE_LABELS: Record<string, string> = {
@@ -39,19 +39,6 @@ const EDGE_LABELS: Record<string, string> = {
   'e-issuer-to-visa':       'MTI 0110 · F039=00',
 }
 
-function useDarkMode() {
-  const [dark, setDark] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    setDark(mq.matches)
-    const fn = (e: MediaQueryListEvent) => setDark(e.matches)
-    mq.addEventListener('change', fn)
-    return () => mq.removeEventListener('change', fn)
-  }, [])
-  return dark
-}
-
 interface Props {
   diagram: DiagramDef
   defaultLayer?: Layer
@@ -63,7 +50,6 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
   const [layer, setLayer] = useState<Layer>(defaultLayer)
   const [playing, setPlaying] = useState(autoPlay)
   const [visited, setVisited] = useState<Set<number>>(new Set([0]))
-  const dark = useDarkMode()
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const steps = diagram.stepsOrder
@@ -97,24 +83,21 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
     setVisited(v => new Set([...v, i]))
   }
 
-  const C = dark ? {
-    bg: 'transparent', surface: '#0e0f11', border: '#252830',
-    text: '#e8e6e0', textSec: '#7a7870', textTer: '#3a3c42',
-    edgeInactive: '#1e2228', controlBorder: '#252830',
-  } : {
-    bg: 'transparent', surface: '#ffffff', border: '#e8e5de',
-    text: '#1a1918', textSec: '#8a8780', textTer: '#c0bdb5',
-    edgeInactive: '#e2e0d8', controlBorder: '#e2e0d8',
+  const C = {
+    bg: 'transparent',
+    surface: 'var(--paper-pure)',
+    border: 'var(--ink-200)',
+    text: 'var(--ink-900)',
+    textSec: 'var(--ink-700)',
+    textTer: 'var(--ink-400)',
+    edgeInactive: 'var(--ink-200)',
+    controlBorder: 'var(--ink-200)',
   }
 
-  const layerColors: Record<Layer, { bg: string; text: string; border: string }> = dark ? {
-    business:  { bg: '#1e1a3a', text: '#9f97dd', border: '#2e2850' },
-    technical: { bg: '#1a2a4a', text: '#6a9fff', border: '#253a60' },
-    iso8583:   { bg: '#1f1800', text: '#d4902a', border: '#2e2000' },
-  } : {
-    business:  { bg: '#EEEDFE', text: '#3C3489', border: '#d0ccf8' },
-    technical: { bg: '#E6F1FB', text: '#0C447C', border: '#b8d4f0' },
-    iso8583:   { bg: '#FAEEDA', text: '#633806', border: '#f0d4a0' },
+  const layerColors: Record<Layer, { bg: string; text: string; border: string }> = {
+    business:  { bg: 'color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))', text: 'var(--diagram-4)', border: 'color-mix(in srgb, var(--diagram-4) 30%, var(--ink-200))' },
+    technical: { bg: 'color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))', text: 'var(--diagram-1)', border: 'color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))' },
+    iso8583:   { bg: 'color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))', text: 'var(--diagram-3)', border: 'color-mix(in srgb, var(--diagram-3) 30%, var(--ink-200))' },
   }
 
   // Get the best available layer text for current step/node
@@ -185,9 +168,9 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
         <text x="8" y="20" style={{ fontSize: 8, fontFamily: 'monospace', fill: C.textTer, letterSpacing: '0.07em' }}>AGENT</text>
         <text x="8" y="108" style={{ fontSize: 8, fontFamily: 'monospace', fill: C.textTer, letterSpacing: '0.07em' }}>TRUST</text>
         <text x="8" y="204" style={{ fontSize: 8, fontFamily: 'monospace', fill: C.textTer, letterSpacing: '0.07em' }}>RAILS</text>
-        <line x1="8" y1="25" x2="812" y2="25" stroke={dark ? '#1a1e24' : '#f0ede6'} strokeWidth="0.5" strokeDasharray="3 8"/>
-        <line x1="8" y1="112" x2="812" y2="112" stroke={dark ? '#1a1e24' : '#f0ede6'} strokeWidth="0.5" strokeDasharray="3 8"/>
-        <line x1="8" y1="208" x2="812" y2="208" stroke={dark ? '#1a1e24' : '#f0ede6'} strokeWidth="0.5" strokeDasharray="3 8"/>
+        <line x1="8" y1="25" x2="812" y2="25" stroke="var(--ink-200)" strokeWidth="0.5" strokeDasharray="3 8"/>
+        <line x1="8" y1="112" x2="812" y2="112" stroke="var(--ink-200)" strokeWidth="0.5" strokeDasharray="3 8"/>
+        <line x1="8" y1="208" x2="812" y2="208" stroke="var(--ink-200)" strokeWidth="0.5" strokeDasharray="3 8"/>
 
         {/* Edges */}
         {Object.entries(EDGE_PATHS).map(([id, ep]) => {
@@ -229,7 +212,7 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
             return diagram.nodes.find(n => n.id === node.id)?.data.steps?.[sid]?.active
           })
           const dimmed = !active && !vis && stepIdx > 0
-          const bg = active ? (dark ? L.fill : L.fillLight) : vis ? (dark ? `${L.fill}99` : `${L.fillLight}88`) : (dark ? '#141618' : '#ffffff')
+          const bg = active ? L.fill : vis ? `color-mix(in srgb, ${L.color} 6%, var(--paper-pure))` : 'var(--paper-pure)'
           const stroke = active ? L.color : vis ? L.color : C.border
           const sw = active ? 1.5 : vis ? 0.8 : 0.5
 
@@ -247,21 +230,21 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
               />
               {/* Type badge */}
               <rect x={L.x + 8} y={L.y + L.h - 14} width={L.w - 16} height={9} rx={2}
-                fill={active ? L.color : (dark ? '#1e2228' : '#f0ede6')}
+                fill={active ? L.color : 'var(--ink-100)'}
                 fillOpacity={active ? 0.2 : 1}
               />
               <text x={L.x + L.w / 2} y={L.y + 24} textAnchor="middle" dominantBaseline="central"
                 style={{ fontSize: node.id === 'n-tap' ? 10.5 : 12, fontWeight: 500,
-                  fill: active ? L.color : (dark ? '#e8e6e0' : '#1a1918'),
+                  fill: active ? L.color : 'var(--ink-900)',
                   fontFamily: 'system-ui,-apple-system,sans-serif', transition: 'fill .3s' }}>
                 {node.data.label}
               </text>
               <text x={L.x + L.w / 2} y={L.y + 42} textAnchor="middle" dominantBaseline="central"
-                style={{ fontSize: 9, fill: dark ? '#4a4845' : '#a0a098', fontFamily: 'monospace' }}>
+                style={{ fontSize: 9, fill: 'var(--ink-400)', fontFamily: 'monospace' }}>
                 {node.data.sublabel}
               </text>
               <text x={L.x + L.w / 2} y={L.y + L.h - 9} textAnchor="middle" dominantBaseline="central"
-                style={{ fontSize: 7.5, fill: active ? L.color : (dark ? '#303438' : '#c0bdb5'),
+                style={{ fontSize: 7.5, fill: active ? L.color : 'var(--ink-400)',
                   fontFamily: 'monospace', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
                 {node.data.layer}
               </text>
@@ -275,7 +258,7 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
         {steps.map((sid, i) => (
           <button key={sid} onClick={() => goTo(i)} title={sid.replace(/-/g, ' ')} style={{
             width: i === stepIdx ? 18 : 5, height: 5, borderRadius: 3, border: 'none', padding: 0, cursor: 'pointer',
-            background: i === stepIdx ? '#4a7fff' : visited.has(i) ? (dark ? '#2e3240' : '#d0cdc4') : (dark ? '#1e2228' : '#e8e5de'),
+            background: i === stepIdx ? 'var(--diagram-1)' : visited.has(i) ? 'var(--ink-300)' : 'var(--ink-200)',
             transition: 'all .2s',
           }} />
         ))}
@@ -306,7 +289,7 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
               if (!L || !node) return null
               return (
                 <span key={id} style={{ fontSize: 9, fontFamily: 'monospace', padding: '2px 6px', borderRadius: 3,
-                  background: dark ? L.fill : L.fillLight, color: L.color, border: `1px solid ${L.color}44` }}>
+                  background: L.fill, color: L.color, border: `1px solid color-mix(in srgb, ${L.color} 35%, var(--ink-200))` }}>
                   {node.data.label}
                 </span>
               )
@@ -315,11 +298,11 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
         </div>
 
         {/* Layer text */}
-        <div style={{ padding: '14px 16px', background: dark ? '#0a0b0d' : '#faf9f5', minHeight: 96 }}>
+        <div style={{ padding: '14px 16px', background: 'var(--ink-100)', minHeight: 96 }}>
           {richText ? (
             isCode ? (
               <pre style={{ margin: 0, fontSize: 11, lineHeight: 1.75, fontFamily: 'monospace',
-                color: dark ? '#b8b5ae' : '#4a4840', whiteSpace: 'pre-wrap', wordBreak: 'break-word' as const }}>
+                color: 'var(--ink-700)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' as const }}>
                 {richText}
               </pre>
             ) : (
@@ -336,16 +319,16 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
 
         {/* Controls */}
         <div style={{ padding: '8px 16px', borderTop: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 7,
-          background: dark ? '#0e0f11' : '#ffffff' }}>
+          background: 'var(--paper-pure)' }}>
           <button onClick={() => goTo(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0} style={{
             padding: '4px 12px', borderRadius: 5, fontSize: 11, fontFamily: 'monospace', cursor: stepIdx === 0 ? 'default' : 'pointer',
             border: `1px solid ${C.controlBorder}`, background: 'transparent',
             color: stepIdx === 0 ? C.textTer : C.textSec }}>← prev</button>
           <button onClick={() => setPlaying(p => !p)} style={{
             padding: '4px 16px', borderRadius: 5, fontSize: 11, fontFamily: 'monospace', cursor: 'pointer',
-            border: `1px solid ${playing ? '#4a7fff' : C.controlBorder}`,
-            background: playing ? (dark ? '#1a2a4a' : '#E6F1FB') : 'transparent',
-            color: playing ? '#4a7fff' : C.textSec }}>
+            border: `1px solid ${playing ? 'var(--diagram-1)' : C.controlBorder}`,
+            background: playing ? 'color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))' : 'transparent',
+            color: playing ? 'var(--diagram-1)' : C.textSec }}>
             {playing ? '⏸ pause' : '▶ play'}
           </button>
           <button onClick={() => goTo(Math.min(steps.length - 1, stepIdx + 1))} disabled={stepIdx === steps.length - 1} style={{
@@ -354,7 +337,7 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
             border: `1px solid ${C.controlBorder}`, background: 'transparent',
             color: stepIdx === steps.length - 1 ? C.textTer : C.textSec }}>next →</button>
           <div style={{ flex: 1, height: 2, background: C.border, borderRadius: 1, overflow: 'hidden' }}>
-            <div style={{ height: '100%', borderRadius: 1, background: '#4a7fff',
+            <div style={{ height: '100%', borderRadius: 1, background: 'var(--diagram-1)',
               width: `${((stepIdx + 1) / steps.length) * 100}%`, transition: 'width .4s ease' }}/>
           </div>
           <button onClick={() => { setStepIdx(0); setVisited(new Set([0])); setPlaying(false) }} style={{
@@ -366,11 +349,11 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
       {/* Legend */}
       <div style={{ display: 'flex', gap: 14, padding: '8px 2px 2px', flexWrap: 'wrap' }}>
         {[
-          { color: '#9f97dd', label: 'agent layer' },
-          { color: '#4a7fff', label: 'trust & identity' },
-          { color: '#d4902a', label: 'ISO 8583' },
-          { color: '#2db88a', label: 'VisaNet routing' },
-          { color: '#e06848', label: 'auth response' },
+          { color: 'var(--diagram-4)', label: 'agent layer' },
+          { color: 'var(--diagram-1)', label: 'trust & identity' },
+          { color: 'var(--diagram-3)', label: 'ISO 8583' },
+          { color: 'var(--diagram-2)', label: 'VisaNet routing' },
+          { color: 'var(--success)', label: 'auth response' },
         ].map(l => (
           <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 14, height: 2, background: l.color, borderRadius: 1 }}/>

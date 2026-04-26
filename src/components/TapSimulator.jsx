@@ -106,18 +106,18 @@ function Stepper({ completedIds, activeId }) {
   STEP_DEFS.forEach((s, i) => {
     const done   = completedIds.includes(s.id)
     const active = s.id === activeId
-    const color  = done ? '#1a7a50' : active ? '#c05020' : '#d8d3c8'
-    const tc     = done ? '#1a7a50' : active ? '#c05020' : '#b8b3a8'
+    const color  = done ? 'var(--success)' : active ? 'var(--signal-600)' : 'var(--ink-300)'
+    const tc     = done ? 'var(--success)' : active ? 'var(--signal-600)' : 'var(--ink-400)'
 
     items.push(
       <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
         <div style={{
           width: 26, height: 26, borderRadius: '50%',
           border: `2px solid ${color}`,
-          background: done ? '#1a7a50' : 'transparent',
+          background: done ? 'var(--success)' : 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9,
-          color: done ? '#fff' : tc,
+          color: done ? 'var(--paper-pure)' : tc,
           transition: 'all 0.3s ease',
         }}>
           {done ? '✓' : i + 1}
@@ -135,7 +135,7 @@ function Stepper({ completedIds, activeId }) {
       items.push(
         <div key={`line-${i}`} style={{
           flex: 1, height: 2, borderRadius: 1,
-          background: done ? '#1a7a50' : '#e0dbd0',
+          background: done ? 'var(--success)' : 'var(--ink-200)',
           marginBottom: 18, transition: 'background 0.3s ease',
         }} />
       )
@@ -145,8 +145,8 @@ function Stepper({ completedIds, activeId }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 0,
-      padding: '12px 24px', borderBottom: '1px solid #e0dbd0',
-      background: '#faf9f6',
+      padding: '12px 24px', borderBottom: '1px solid var(--ink-200)',
+      background: 'var(--paper)',
     }}>
       {items}
     </div>
@@ -169,9 +169,9 @@ function CopyBtn({ text, style: extraStyle }) {
         padding: '3px 9px', borderRadius: 4,
         fontFamily: 'DM Mono, Courier New, monospace',
         fontSize: 9, letterSpacing: '0.06em',
-        border: `1px solid ${state === 'done' ? '#1a7a50' : '#3d444d'}`,
-        background: state === 'done' ? '#1a7a5020' : 'transparent',
-        color: state === 'done' ? '#1a7a50' : '#8a8278',
+        border: `1px solid ${state === 'done' ? 'var(--success)' : 'var(--ink-300)'}`,
+        background: state === 'done' ? 'var(--success)20' : 'transparent',
+        color: state === 'done' ? 'var(--success)' : 'var(--ink-500)',
         cursor: 'pointer', transition: 'all 0.15s',
         ...extraStyle,
       }}>
@@ -192,10 +192,10 @@ function DarkCode({ children, copyText }) {
       )}
       <pre style={{
         margin: 0, padding: '11px 14px',
-        background: '#1a1814', borderRadius: 8,
+        background: 'var(--ink-900)', borderRadius: 8,
         fontFamily: 'DM Mono, Courier New, monospace',
         fontSize: 11, lineHeight: 1.75,
-        color: '#d8d3c8', overflowX: 'auto',
+        color: 'var(--ink-300)', overflowX: 'auto',
         whiteSpace: 'pre', border: 'none',
       }}>{children}</pre>
     </div>
@@ -228,19 +228,19 @@ function StepCard({ color, stepNum, title, badge, timing, children }) {
         background: `${color}07`,
       }}>
         <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color, opacity: 0.65, letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0 }}>{stepNum}</span>
-        <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11.5, color: '#4a4840', flex: 1 }}>{title}</span>
+        <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11.5, color: 'var(--ink-700)', flex: 1 }}>{title}</span>
         {badge && (
-          <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: '#fff', background: color, borderRadius: 3, padding: '2px 8px', letterSpacing: '0.07em', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: 'var(--paper-pure)', background: color, borderRadius: 3, padding: '2px 8px', letterSpacing: '0.07em', flexShrink: 0 }}>
             {badge}
           </span>
         )}
         {timing && (
-          <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: '#8a8278', background: '#f5f3ee', border: '1px solid #e0dbd0', borderRadius: 3, padding: '2px 8px', flexShrink: 0 }}>
+          <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: 'var(--ink-500)', background: 'var(--ink-100)', border: '1px solid var(--ink-200)', borderRadius: 3, padding: '2px 8px', flexShrink: 0 }}>
             {timing}
           </span>
         )}
       </div>
-      <div style={{ padding: '13px 16px', background: '#faf9f6' }}>
+      <div style={{ padding: '13px 16px', background: 'var(--paper)' }}>
         {children}
       </div>
     </div>
@@ -249,7 +249,7 @@ function StepCard({ color, stepNum, title, badge, timing, children }) {
 
 function Note({ children }) {
   return (
-    <div style={{ marginTop: 8, fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: '#8a8278', lineHeight: 1.65 }}>
+    <div style={{ marginTop: 8, fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)', lineHeight: 1.65 }}>
       {children}
     </div>
   )
@@ -257,9 +257,9 @@ function Note({ children }) {
 
 function KVRow({ k, v, vColor }) {
   return (
-    <tr style={{ borderBottom: '1px solid #ede9e2' }}>
-      <td style={{ padding: '5px 14px 5px 0', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: '#8a8278', whiteSpace: 'nowrap', verticalAlign: 'top', width: '1%' }}>{k}</td>
-      <td style={{ padding: '5px 0', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: vColor || '#1a1814', lineHeight: 1.6, wordBreak: 'break-all' }}>{v}</td>
+    <tr style={{ borderBottom: '1px solid var(--ink-200)' }}>
+      <td style={{ padding: '5px 14px 5px 0', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)', whiteSpace: 'nowrap', verticalAlign: 'top', width: '1%' }}>{k}</td>
+      <td style={{ padding: '5px 0', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: vColor || 'var(--ink-900)', lineHeight: 1.6, wordBreak: 'break-all' }}>{v}</td>
     </tr>
   )
 }
@@ -285,27 +285,27 @@ function TamperTest({ publicKey, sigP, sigVal }) {
     setChecking(false)
   }
 
-  const borderC = result === true ? '#1a7a50' : result === false ? '#c05020' : '#ddd0c0'
+  const borderC = result === true ? 'var(--success)' : result === false ? 'var(--signal-600)' : 'var(--ink-300)'
 
   return (
     <div style={{ marginTop: 14, borderRadius: 8, border: `1px solid ${borderC}`, overflow: 'hidden', transition: 'border-color 0.35s' }}>
-      <div style={{ padding: '9px 14px', background: '#fdf6f0', borderBottom: `1px solid ${borderC}`, display: 'flex', alignItems: 'center', gap: 10, transition: 'border-color 0.35s' }}>
-        <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: '#c05020', letterSpacing: '0.1em', textTransform: 'uppercase' }}>tamper test</span>
-        <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: '#8a8278' }}>Modify the request — can the original signature still verify?</span>
+      <div style={{ padding: '9px 14px', background: 'color-mix(in srgb, var(--warning) 7%, var(--paper-pure))', borderBottom: `1px solid ${borderC}`, display: 'flex', alignItems: 'center', gap: 10, transition: 'border-color 0.35s' }}>
+        <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: 'var(--signal-600)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>tamper test</span>
+        <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)' }}>Modify the request — can the original signature still verify?</span>
       </div>
-      <div style={{ padding: '12px 14px', background: '#faf9f6' }}>
-        <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: '#8a8278', marginBottom: 10, lineHeight: 1.65 }}>
+      <div style={{ padding: '12px 14px', background: 'var(--paper)' }}>
+        <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
           An attacker intercepts the request and changes the path. They don't have the private key, so they can't re-sign. The original signature is unchanged. Does Visa's CDN accept it?
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-          <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: '#8a8278', flexShrink: 0 }}>Modified "@path":</span>
+          <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)', flexShrink: 0 }}>Modified "@path":</span>
           <input
             value={tamperPath}
             onChange={e => { setTamperPath(e.target.value); setResult(null) }}
             style={{
               fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11,
-              padding: '5px 9px', border: '1px solid #e0dbd0', borderRadius: 5,
-              background: '#faf9f6', color: '#c05020', outline: 'none', flex: 1, minWidth: 150,
+              padding: '5px 9px', border: '1px solid var(--ink-200)', borderRadius: 5,
+              background: 'var(--paper)', color: 'var(--signal-600)', outline: 'none', flex: 1, minWidth: 150,
             }}
           />
           <button
@@ -313,8 +313,8 @@ function TamperTest({ publicKey, sigP, sigVal }) {
             disabled={checking}
             style={{
               padding: '5px 14px',
-              background: '#1a1814', color: '#faf9f6',
-              border: '1px solid #1a1814', borderRadius: 5,
+              background: 'var(--ink-900)', color: 'var(--paper)',
+              border: '1px solid var(--ink-900)', borderRadius: 5,
               fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10,
               cursor: checking ? 'not-allowed' : 'pointer', flexShrink: 0,
             }}>
@@ -325,13 +325,13 @@ function TamperTest({ publicKey, sigP, sigVal }) {
         {result !== null && (
           <div style={{
             padding: '12px 14px', borderRadius: 8,
-            background: result ? '#f0f8f4' : '#fff4f2',
-            border: `1px solid ${result ? '#b0d8c0' : '#f0c0b0'}`,
+            background: result ? 'color-mix(in srgb, var(--success) 8%, var(--paper-pure))' : 'color-mix(in srgb, var(--danger) 6%, var(--paper-pure))',
+            border: `1px solid ${result ? 'color-mix(in srgb, var(--success) 28%, var(--ink-200))' : 'color-mix(in srgb, var(--danger) 25%, var(--ink-200))'}`,
           }}>
-            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 13, fontWeight: 600, color: result ? '#1a7a50' : '#c05020', marginBottom: 6 }}>
+            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 13, fontWeight: 600, color: result ? 'var(--success)' : 'var(--signal-600)', marginBottom: 6 }}>
               {result ? '→ true  ✓ SIGNATURE VALID' : '→ false  ✗ SIGNATURE INVALID'}
             </div>
-            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: result ? '#1a7a50' : '#c05020', lineHeight: 1.7, opacity: 0.85 }}>
+            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: result ? 'var(--success)' : 'var(--signal-600)', lineHeight: 1.7, opacity: 0.85 }}>
               {result
                 ? 'Path matches the original — signature still verifies.'
                 : `"@path": ${tamperPath} was used to reconstruct the base string.\nThe base string no longer matches what was signed.\nCDN rejects. Request blocked. The attacker fails.`}
@@ -444,20 +444,20 @@ export default function TapSimulator() {
 
   const iStyle = {
     fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11,
-    padding: '5px 9px', border: '1px solid #e0dbd0',
-    borderRadius: 5, background: '#faf9f6', color: '#1a1814', outline: 'none',
+    padding: '5px 9px', border: '1px solid var(--ink-200)',
+    borderRadius: 5, background: 'var(--paper)', color: 'var(--ink-900)', outline: 'none',
   }
   const lStyle = {
     display: 'block', marginBottom: 4,
     fontFamily: 'DM Mono, Courier New, monospace',
-    fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8a8278',
+    fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ink-500)',
   }
 
   return (
     <div className="not-prose" style={{
       fontFamily: 'Outfit, system-ui, sans-serif',
-      color: '#1a1814', background: '#f5f3ee',
-      borderRadius: 12, border: '1px solid #e0dbd0',
+      color: 'var(--ink-900)', background: 'var(--ink-100)',
+      borderRadius: 12, border: '1px solid var(--ink-200)',
       overflow: 'hidden',
       width: '100vw', maxWidth: 1040,
       position: 'relative', left: '50%', transform: 'translateX(-50%)',
@@ -465,9 +465,9 @@ export default function TapSimulator() {
     }}>
 
       {/* ── Header ── */}
-      <div style={{ padding: '15px 20px 13px', borderBottom: '1px solid #e0dbd0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ padding: '15px 20px 13px', borderBottom: '1px solid var(--ink-200)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a8278', marginBottom: 4 }}>
+          <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ink-500)', marginBottom: 4 }}>
             Trusted Agent Protocol · Interactive Simulator
           </div>
           <div style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: 19, letterSpacing: '-0.02em', fontWeight: 400 }}>
@@ -478,15 +478,15 @@ export default function TapSimulator() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <span style={{
               width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-              background: running ? '#c05020' : done ? '#1a7a50' : '#d8d3c8',
+              background: running ? 'var(--signal-600)' : done ? 'var(--success)' : 'var(--ink-300)',
               transition: 'background 0.3s',
             }} />
-            <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: '#7040c0', background: '#f5f0ff', border: '1px solid #ddd0f8', borderRadius: 4, padding: '3px 9px', letterSpacing: '0.08em' }}>
+            <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: 'var(--diagram-4)', background: 'color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))', border: '1px solid color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))', borderRadius: 4, padding: '3px 9px', letterSpacing: '0.08em' }}>
               Real Ed25519 · WebCrypto API
             </span>
           </div>
           {runCount > 0 && (
-            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: '#b8b3a8' }}>
+            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9, color: 'var(--ink-400)' }}>
               run #{runCount} · unique keypair every time
             </div>
           )}
@@ -499,7 +499,7 @@ export default function TapSimulator() {
       )}
 
       {/* ── Config ── */}
-      <div style={{ padding: '13px 20px', borderBottom: '1px solid #e0dbd0', background: '#faf9f6', display: 'flex', flexWrap: 'wrap', gap: '10px 18px', alignItems: 'flex-end' }}>
+      <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--ink-200)', background: 'var(--paper)', display: 'flex', flexWrap: 'wrap', gap: '10px 18px', alignItems: 'flex-end' }}>
         <div><label style={lStyle}>Agent ID</label><input value={cfg.agentId} onChange={setField('agentId')} style={{ ...iStyle, width: 128 }} /></div>
         <div><label style={lStyle}>Merchant domain</label><input value={cfg.domain} onChange={setField('domain')} style={{ ...iStyle, width: 138 }} /></div>
         <div><label style={lStyle}>Path</label><input value={cfg.path} onChange={setField('path')} style={{ ...iStyle, width: 110 }} /></div>
@@ -527,9 +527,9 @@ export default function TapSimulator() {
             disabled={running}
             style={{
               padding: '7px 20px',
-              background: running ? '#f5f3ee' : '#1a1814',
-              color: running ? '#8a8278' : '#faf9f6',
-              border: `1px solid ${running ? '#e0dbd0' : '#1a1814'}`,
+              background: running ? 'var(--ink-100)' : 'var(--ink-900)',
+              color: running ? 'var(--ink-500)' : 'var(--paper)',
+              border: `1px solid ${running ? 'var(--ink-200)' : 'var(--ink-900)'}`,
               borderRadius: 6, fontFamily: 'DM Mono, Courier New, monospace',
               fontSize: 11, letterSpacing: '0.04em',
               cursor: running ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
@@ -544,10 +544,10 @@ export default function TapSimulator() {
 
         {steps.length === 0 && !running && !error && (
           <div style={{ textAlign: 'center', padding: '44px 0' }}>
-            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 12, color: '#b8b3a8', marginBottom: 8 }}>
+            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 12, color: 'var(--ink-400)', marginBottom: 8 }}>
               Click "generate &amp; sign" to run real Ed25519 cryptography in this browser tab.
             </div>
-            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10, color: '#d8d3c8' }}>
+            <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10, color: 'var(--ink-300)' }}>
               Every value — keypair, nonce, signature — is generated fresh. Nothing is hardcoded or mocked.
             </div>
           </div>
@@ -557,19 +557,19 @@ export default function TapSimulator() {
 
           // ── Step 1 ────────────────────────────────────────────────────────
           if (step.id === 'key') return (
-            <StepCard key="key" color="#7040c0" stepNum="01" title="Ed25519 key generation" badge="LIVE" timing={step.timing}>
-              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: '#8a8278', marginBottom: 10, lineHeight: 1.65 }}>
-                <span style={{ color: '#1a1814' }}>crypto.subtle.generateKey({'{'}name: "Ed25519"{'}'}, false, ["sign", "verify"])</span>
+            <StepCard key="key" color="var(--diagram-4)" stepNum="01" title="Ed25519 key generation" badge="LIVE" timing={step.timing}>
+              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
+                <span style={{ color: 'var(--ink-900)' }}>crypto.subtle.generateKey({'{'}name: "Ed25519"{'}'}, false, ["sign", "verify"])</span>
                 <br/>
                 Non-exportable private key stored in WebCrypto secure memory. The key ID is URL-safe base64 of the raw public key — matching Visa Key Store format.
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <tbody>
-                  <KVRow k="key_id"     v={step.keyId}                                          vColor="#7040c0" />
-                  <KVRow k="public_key" v={step.publicKeyB64}                                   vColor="#4a4840" />
-                  <KVRow k="pub_hex"    v={`${step.publicKeyHex}  (first 8 of 32 bytes)`}       vColor="#8a8278" />
+                  <KVRow k="key_id"     v={step.keyId}                                          vColor="var(--diagram-4)" />
+                  <KVRow k="public_key" v={step.publicKeyB64}                                   vColor="var(--ink-700)" />
+                  <KVRow k="pub_hex"    v={`${step.publicKeyHex}  (first 8 of 32 bytes)`}       vColor="var(--ink-500)" />
                   <KVRow k="algorithm"  v="Ed25519 · OKP · 256-bit · deterministic"                              />
-                  <KVRow k="private_key" v="non-exportable · stays in WebCrypto secure memory" vColor="#b8b3a8" />
+                  <KVRow k="private_key" v="non-exportable · stays in WebCrypto secure memory" vColor="var(--ink-400)" />
                 </tbody>
               </table>
             </StepCard>
@@ -577,12 +577,12 @@ export default function TapSimulator() {
 
           // ── Step 2 ────────────────────────────────────────────────────────
           if (step.id === 'sigbase') return (
-            <StepCard key="sigbase" color="#c05020" stepNum="02" title="Signature base string — RFC 9421 §2.5" badge="COMPUTED">
-              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: '#8a8278', marginBottom: 10, lineHeight: 1.65 }}>
+            <StepCard key="sigbase" color="var(--signal-600)" stepNum="02" title="Signature base string — RFC 9421 §2.5" badge="COMPUTED">
+              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
                 The canonical string the private key signs. Visa's CDN reconstructs this verbatim from the incoming request and runs the same verification. Any tampering — different method, path, authority, or content-type — produces a different string and fails.
               </div>
               <DarkCode copyText={step.sigBase}>{step.sigBase}</DarkCode>
-              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 20px', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10, color: '#8a8278', lineHeight: 1.65 }}>
+              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 20px', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10, color: 'var(--ink-500)', lineHeight: 1.65 }}>
                 <span>created: {new Date(step.created * 1000).toISOString()}</span>
                 <span>expires: {new Date(step.expires * 1000).toISOString()}</span>
                 <span>nonce: {step.nonce} (one-time use)</span>
@@ -593,9 +593,9 @@ export default function TapSimulator() {
 
           // ── Step 3 ────────────────────────────────────────────────────────
           if (step.id === 'sign') return (
-            <StepCard key="sign" color="#1a7a50" stepNum="03" title="Ed25519 signature" badge="LIVE" timing={step.timing}>
-              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: '#8a8278', marginBottom: 10, lineHeight: 1.65 }}>
-                <span style={{ color: '#1a1814' }}>crypto.subtle.sign({'{'}name: "Ed25519"{'}'}, privateKey, sigBase)</span>
+            <StepCard key="sign" color="var(--success)" stepNum="03" title="Ed25519 signature" badge="LIVE" timing={step.timing}>
+              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
+                <span style={{ color: 'var(--ink-900)' }}>crypto.subtle.sign({'{'}name: "Ed25519"{'}'}, privateKey, sigBase)</span>
                 <br/>
                 Deterministic — same key + same input → same output. Fresh keypair on each run → unique signature every time.
               </div>
@@ -608,9 +608,9 @@ export default function TapSimulator() {
 
           // ── Step 4 ────────────────────────────────────────────────────────
           if (step.id === 'request') return (
-            <StepCard key="request" color="#1a56a0" stepNum="04" title="Signed HTTP request">
-              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: '#8a8278', marginBottom: 10, lineHeight: 1.65 }}>
-                The complete request as the agent sends it. Cloudflare or Akamai at the merchant's edge intercepts this before it reaches the origin server. The <span style={{ color: '#1a1814' }}>Signature-Input</span> header tells the CDN which components are covered; <span style={{ color: '#1a1814' }}>Signature</span> is the proof.
+            <StepCard key="request" color="var(--diagram-1)" stepNum="04" title="Signed HTTP request">
+              <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
+                The complete request as the agent sends it. Cloudflare or Akamai at the merchant's edge intercepts this before it reaches the origin server. The <span style={{ color: 'var(--ink-900)' }}>Signature-Input</span> header tells the CDN which components are covered; <span style={{ color: 'var(--ink-900)' }}>Signature</span> is the proof.
               </div>
               <DarkCode copyText={step.httpReq}>{step.httpReq}</DarkCode>
             </StepCard>
@@ -620,19 +620,19 @@ export default function TapSimulator() {
           if (step.id === 'verify') {
             const { publicKey, sigBase, sigP } = cryptoRef.current
             return (
-              <StepCard key="verify" color="#1a7a50" stepNum="05" title="Browser verification — the full cryptographic loop" badge="VERIFIED" timing={step.timing}>
-                <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: '#8a8278', marginBottom: 10, lineHeight: 1.65 }}>
-                  <span style={{ color: '#1a1814' }}>crypto.subtle.verify({'{'}name: "Ed25519"{'}'}, publicKey, signature, sigBase)</span>
+              <StepCard key="verify" color="var(--success)" stepNum="05" title="Browser verification — the full cryptographic loop" badge="VERIFIED" timing={step.timing}>
+                <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
+                  <span style={{ color: 'var(--ink-900)' }}>crypto.subtle.verify({'{'}name: "Ed25519"{'}'}, publicKey, signature, sigBase)</span>
                   <br/>
                   The same check Visa's CDN runs — using the actual keypair and signature from steps 01–03. This is not a simulation of verification. It is verification.
                 </div>
 
                 {/* Big result */}
-                <div style={{ padding: '14px 16px', background: '#f0f8f4', border: '1px solid #b0d8c0', borderRadius: 8, marginBottom: 14 }}>
-                  <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 16, fontWeight: 700, color: '#1a7a50', marginBottom: 8, letterSpacing: '-0.01em' }}>
+                <div style={{ padding: '14px 16px', background: 'color-mix(in srgb, var(--success) 8%, var(--paper-pure))', border: '1px solid color-mix(in srgb, var(--success) 28%, var(--ink-200))', borderRadius: 8, marginBottom: 14 }}>
+                  <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 16, fontWeight: 700, color: 'var(--success)', marginBottom: 8, letterSpacing: '-0.01em' }}>
                     → true  ✓  SIGNATURE VALID
                   </div>
-                  <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: '#1a7a50', lineHeight: 1.85, opacity: 0.85 }}>
+                  <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--success)', lineHeight: 1.85, opacity: 0.85 }}>
                     Ed25519.verify(publicKey, reconstructed_sigBase, signature) → true<br/>
                     Nonce: one-time use, not yet in CDN nonce store → unused ✓<br/>
                     Timestamps: valid, not expired ✓<br/>
@@ -656,7 +656,7 @@ export default function TapSimulator() {
         })}
 
         {error && (
-          <div style={{ padding: '12px 16px', background: '#fff4f2', border: '1px solid #f0c0b0', borderRadius: 8, fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: '#c05020', lineHeight: 1.65 }}>
+          <div style={{ padding: '12px 16px', background: 'color-mix(in srgb, var(--danger) 6%, var(--paper-pure))', border: '1px solid color-mix(in srgb, var(--danger) 25%, var(--ink-200))', borderRadius: 8, fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--signal-600)', lineHeight: 1.65 }}>
             Error: {error}
           </div>
         )}
@@ -664,9 +664,9 @@ export default function TapSimulator() {
       </div>
 
       {/* ── Footer ── */}
-      <div style={{ padding: '9px 20px', borderTop: '1px solid #e0dbd0', background: '#f5f3ee', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9.5, color: '#b8b3a8' }}>
+      <div style={{ padding: '9px 20px', borderTop: '1px solid var(--ink-200)', background: 'var(--ink-100)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontFamily: 'DM Mono, Courier New, monospace', fontSize: 9.5, color: 'var(--ink-400)' }}>
         <span>WebCrypto API · no server calls · private key never leaves this tab{runCount > 0 ? ` · run #${runCount}` : ''}</span>
-        {done && <span style={{ color: '#1a7a50', flexShrink: 0 }}>✓ generate → sign → verify · complete</span>}
+        {done && <span style={{ color: 'var(--success)', flexShrink: 0 }}>✓ generate → sign → verify · complete</span>}
       </div>
 
     </div>

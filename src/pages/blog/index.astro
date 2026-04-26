@@ -71,17 +71,17 @@ const pageSchema = [
 				font-size: 0.75rem;
 				text-transform: uppercase;
 				letter-spacing: 0.08em;
-				color: rgb(var(--gray));
+				color: var(--ink-500);
 			}
 			.breadcrumbs a {
-				color: rgb(var(--gray));
+				color: var(--ink-500);
 				text-decoration: none;
 			}
 			.breadcrumbs a:hover {
-				color: rgb(var(--black));
+				color: var(--ink-900);
 			}
 			.page-header p {
-				color: rgb(var(--gray));
+				color: var(--ink-500);
 				font-size: clamp(1rem, 1vw + 0.9rem, 1.15rem);
 				margin: 0;
 				line-height: 1.5;
@@ -100,16 +100,16 @@ const pageSchema = [
 				padding: 2rem;
 				border-radius: 16px;
 				border: 1px solid var(--border-color);
-				background: white;
+				background: var(--paper-pure);
 				color: inherit;
 				text-decoration: none;
 				transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-				box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+				box-shadow: var(--shadow-card);
 			}
 			.post-card:hover {
 				transform: translateY(-2px);
 				box-shadow: var(--box-shadow-hover);
-				border-color: #d4d4d4;
+				border-color: var(--ink-300);
 			}
 			.post-card img {
 				width: 100%;
@@ -127,7 +127,7 @@ const pageSchema = [
 				font-size: 0.85rem;
 			}
 			.post-date {
-				color: rgb(var(--gray));
+				color: var(--ink-500);
 			}
 			.post-tag {
 				color: var(--accent);
@@ -146,19 +146,19 @@ const pageSchema = [
 				padding: 0.18rem 0.5rem;
 				font-family: 'Courier New', monospace;
 				font-size: 0.72rem;
-				color: rgb(var(--gray-dark));
-				background: rgb(var(--gray-light) / 0.35);
+				color: var(--ink-700);
+				background: color-mix(in srgb, var(--ink-100) 35%, transparent);
 			}
 			.post-card h2 {
 				font-size: 1.6rem;
 				margin: 0 0 0.5rem 0;
 				line-height: 1.25;
-				color: rgb(var(--black));
+				color: var(--ink-900);
 				transition: color 0.2s;
 			}
 			.post-card p {
 				margin: 0;
-				color: rgb(var(--gray-dark));
+				color: var(--ink-700);
 				font-size: 1.05rem;
 				line-height: 1.5;
 			}

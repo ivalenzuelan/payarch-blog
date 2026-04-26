@@ -1,12 +1,12 @@
 import { useState } from "react"
 
 const T = {
-  cream: "#faf9f6", cream2: "#f5f3ee", cream3: "#ede9e2",
-  ink: "#1a1814", ink2: "#4a4440", ink3: "#5e5750", ink4: "#8a8278", ink5: "#b8b3a8",
-  border: "#e0dbd0",
-  orange: "#c05020", orangeLight: "#fff4ee", orangeBorder: "#e8855a",
-  agent: "#6030b0", agentLight: "#f5f0ff", agentBorder: "#c8a8f0",
-  pass: "#186040",
+  cream: "var(--paper)", cream2: "var(--ink-100)", cream3: "var(--ink-200)",
+  ink: "var(--ink-900)", ink2: "var(--ink-700)", ink3: "var(--ink-700)", ink4: "var(--ink-500)", ink5: "var(--ink-400)",
+  border: "var(--ink-200)",
+  orange: "var(--signal-600)", orangeLight: "color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))", orangeBorder: "color-mix(in srgb, var(--diagram-3) 45%, var(--ink-200))",
+  agent: "var(--diagram-4)", agentLight: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", agentBorder: "color-mix(in srgb, var(--diagram-4) 28%, var(--ink-200))",
+  pass: "var(--success)",
 }
 
 // All 128 field names indexed by bit position (1-indexed)
@@ -221,15 +221,15 @@ function BitGrid({ start, bits, toggleBit, hovered, setHovered, dimmed }) {
               gap: 1,
               transition: "all .1s",
               background: isHov
-                ? isAgent ? "#e0c8ff" : isSet ? "#e07040" : T.cream3
+                ? isAgent ? "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" : isSet ? "var(--signal-700)" : T.cream3
                 : isSet
                   ? isAgent ? T.agent : T.orange
                   : T.cream3,
               border: `1px solid ${
                 isHov
-                  ? isAgent ? T.agent : isSet ? "#a04010" : "#b8b0a8"
+                  ? isAgent ? T.agent : isSet ? "var(--diagram-3)" : "var(--ink-400)"
                   : isSet
-                    ? isAgent ? "#4a1890" : "#a04010"
+                    ? isAgent ? "var(--diagram-4)" : "var(--diagram-3)"
                     : T.border
               }`,
               boxShadow: isHov ? `0 1px 4px ${isAgent ? T.agent : T.orange}30` : "none",
@@ -238,7 +238,7 @@ function BitGrid({ start, bits, toggleBit, hovered, setHovered, dimmed }) {
             <div style={{
               fontSize: 6,
               fontFamily: "'Courier New',monospace",
-              color: isSet ? (isAgent ? "#f0e8ff" : "#ffe8da") : T.ink5,
+              color: isSet ? (isAgent ? "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))" : "color-mix(in srgb, var(--diagram-3) 18%, var(--paper-pure))") : T.ink5,
               fontWeight: isSet ? 600 : 400,
               lineHeight: 1,
               userSelect: "none",
@@ -320,7 +320,7 @@ export default function Iso8583Bitmap() {
                 background: preset === key ? T.cream : "transparent",
                 color: preset === key ? T.ink : T.ink4,
                 fontWeight: preset === key ? 600 : 400,
-                boxShadow: preset === key ? "0 1px 2px rgba(0,0,0,0.07)" : "none",
+                boxShadow: preset === key ? "0 1px 2px color-mix(in srgb, var(--ink-900) 7%, transparent)" : "none",
                 transition: "all .15s",
                 whiteSpace: "nowrap",
               }}>
@@ -367,8 +367,8 @@ export default function Iso8583Bitmap() {
       {/* Legend */}
       <div style={{ padding: "8px 24px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
         {[
-          { bg: T.orange, border: "#a04010", label: "Present" },
-          { bg: T.agent, border: "#4a1890", label: "Present · agent-specific" },
+          { bg: T.orange, border: "var(--diagram-3)", label: "Present" },
+          { bg: T.agent, border: "var(--diagram-4)", label: "Present · agent-specific" },
           { bg: T.cream3, border: T.border, label: "Absent" },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontFamily: "'Courier New',monospace", color: T.ink3 }}>

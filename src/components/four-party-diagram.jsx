@@ -5,9 +5,9 @@ const TRADITIONAL = [
     id: "consumer",
     label: "Consumer",
     sub: "Present at checkout",
-    color: "#1a1814",
-    bg: "#f5f3ee",
-    border: "#e0dbd0",
+    color: "var(--ink-900)",
+    bg: "var(--ink-100)",
+    border: "var(--ink-200)",
     role: "actor",
     detail: "Authenticates in real time. Enters card credentials. Approves each transaction. Present at every step of the checkout flow.",
     changed: false,
@@ -16,9 +16,9 @@ const TRADITIONAL = [
     id: "issuer",
     label: "Issuer Bank",
     sub: "Scores human behavior",
-    color: "#1a4a90",
-    bg: "#f0f4ff",
-    border: "#c0d0f0",
+    color: "var(--diagram-1)",
+    bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))",
     role: "infrastructure",
     detail: "Risk model trained on human behavioral signals: typing cadence, geolocation patterns, device fingerprint. Approves or declines in ~80ms.",
     changed: false,
@@ -27,9 +27,9 @@ const TRADITIONAL = [
     id: "network",
     label: "Card Network",
     sub: "Routes ISO 8583",
-    color: "#186040",
-    bg: "#f0f8f4",
-    border: "#b0d8c0",
+    color: "var(--success)",
+    bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))",
     role: "infrastructure",
     detail: "Routes ISO 8583 MTI 0100 from acquirer to issuer. De-tokenizes PAN. Applies network fraud scoring. Returns authorization response.",
     changed: false,
@@ -38,9 +38,9 @@ const TRADITIONAL = [
     id: "acquirer",
     label: "Acquirer",
     sub: "Packages payment",
-    color: "#7a4a10",
-    bg: "#fdf8f0",
-    border: "#e8d0a0",
+    color: "var(--diagram-3)",
+    bg: "color-mix(in srgb, var(--warning) 6%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--warning) 32%, var(--ink-200))",
     role: "infrastructure",
     detail: "Packages merchant payment into ISO 8583. F022=01 (manual key entry). No agent fields. Sends to network.",
     changed: false,
@@ -49,9 +49,9 @@ const TRADITIONAL = [
     id: "merchant",
     label: "Merchant",
     sub: "Checkout form + CAPTCHA",
-    color: "#1a1814",
-    bg: "#f5f3ee",
-    border: "#e0dbd0",
+    color: "var(--ink-900)",
+    bg: "var(--ink-100)",
+    border: "var(--ink-200)",
     role: "actor",
     detail: "Presents checkout form. Requires human interaction. Bot protection blocks non-human traffic. Redirects for 3DS if needed.",
     changed: false,
@@ -63,9 +63,9 @@ const AI_NATIVE = [
     id: "consumer",
     label: "Consumer",
     sub: "Policy author — present once",
-    color: "#8a8278",
-    bg: "#f5f3ee",
-    border: "#e0dbd0",
+    color: "var(--ink-500)",
+    bg: "var(--ink-100)",
+    border: "var(--ink-200)",
     role: "actor",
     detail: "Enrolls card once. Configures spending policy: category limits, per-transaction cap, daily velocity. Creates FIDO2 Passkey. Receives push notification after purchase. Not present at checkout.",
     changed: true,
@@ -75,9 +75,9 @@ const AI_NATIVE = [
     id: "agent",
     label: "AI Agent",
     sub: "New — registered, credentialed",
-    color: "#7040c0",
-    bg: "#f8f4ff",
-    border: "#ddd0f8",
+    color: "var(--diagram-4)",
+    bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))",
     role: "new",
     detail: "New party in the model. Interprets consumer intent. Registered with network key directory. Holds agent-specific token. Signs every request with Ed25519 key pair. Cannot exceed consumer spending policy.",
     changed: true,
@@ -87,9 +87,9 @@ const AI_NATIVE = [
     id: "issuer",
     label: "Issuer Bank",
     sub: "Loads agent spending policy",
-    color: "#1a4a90",
-    bg: "#f0f4ff",
-    border: "#c0d0f0",
+    color: "var(--diagram-1)",
+    bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))",
     role: "infrastructure",
     detail: "F022=81 triggers agent policy instead of human behavioral model. Checks: balance, per-transaction limit, MCC category, velocity, token status. Deterministic rules — not probabilistic scoring.",
     changed: true,
@@ -99,9 +99,9 @@ const AI_NATIVE = [
     id: "network",
     label: "Card Network",
     sub: "Identity layer + token service",
-    color: "#186040",
-    bg: "#f0f8f4",
-    border: "#b0d8c0",
+    color: "var(--success)",
+    bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))",
     role: "infrastructure",
     detail: "New: TAP (Visa) or Agent Pay (Mastercard) as identity layer pre-payment. Token service now issues agent-specific tokens. F126 integrity check validates instruction against consumer authorization. F022=81 triggers agent risk rules.",
     changed: true,
@@ -111,9 +111,9 @@ const AI_NATIVE = [
     id: "acquirer",
     label: "Acquirer",
     sub: "New ISO 8583 fields",
-    color: "#7a4a10",
-    bg: "#fdf8f0",
-    border: "#e8d0a0",
+    color: "var(--diagram-3)",
+    bg: "color-mix(in srgb, var(--warning) 6%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--warning) 32%, var(--ink-200))",
     role: "infrastructure",
     detail: "F002: agent-specific token (not real PAN). F022=81 (agent-initiated). F048: agent identifier. F126: TAP/Agent Pay instruction reference hash. Otherwise unchanged.",
     changed: true,
@@ -123,9 +123,9 @@ const AI_NATIVE = [
     id: "merchant",
     label: "Merchant",
     sub: "TAP SDK or CDN verification",
-    color: "#1a1814",
-    bg: "#f5f3ee",
-    border: "#e0dbd0",
+    color: "var(--ink-900)",
+    bg: "var(--ink-100)",
+    border: "var(--ink-200)",
     role: "actor",
     detail: "Visa: TAP SDK validates JWT locally in <5ms. Merchant sees consumer context. Mastercard: CDN layer (Cloudflare) verifies agent identity — no merchant code change needed. Both: consumer_recognized=true skips onboarding.",
     changed: true,
@@ -138,24 +138,24 @@ export default function FourPartyDiagram() {
   const [selected, setSelected] = useState(null)
 
   return (
-    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", color: "#1a1814", background: "#faf9f6", borderRadius: 12, border: "1px solid #e0dbd0", overflow: "hidden", maxWidth: 820 }}>
+    <div style={{ fontFamily: "'Georgia','Times New Roman',serif", color: "var(--ink-900)", background: "var(--paper)", borderRadius: 12, border: "1px solid var(--ink-200)", overflow: "hidden", maxWidth: 820 }}>
 
       {/* Header */}
-      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
+      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           The 4-party model · traditional vs AI-native
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
           <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: 0 }}>
             What changes when an AI agent pays
           </h2>
-          <div style={{ display: "flex", gap: 2, background: "#e8e3da", borderRadius: 5, padding: 2 }}>
+          <div style={{ display: "flex", gap: 2, background: "var(--ink-200)", borderRadius: 5, padding: 2 }}>
             {[["compare", "side by side"], ["traditional", "traditional"], ["ai", "AI-native"]].map(([v, label]) => (
               <button key={v} onClick={() => { setMode(v); setSelected(null) }} style={{
                 padding: "4px 12px", borderRadius: 3, fontSize: 10, fontFamily: "'Courier New',monospace",
                 cursor: "pointer", border: "none", letterSpacing: "0.04em",
-                background: mode === v ? "#faf9f6" : "transparent",
-                color: mode === v ? "#1a1814" : "#9a9288",
+                background: mode === v ? "var(--paper)" : "transparent",
+                color: mode === v ? "var(--ink-900)" : "var(--ink-500)",
                 fontWeight: mode === v ? 600 : 400, transition: "all .15s"
               }}>{label}</button>
             ))}
@@ -169,7 +169,7 @@ export default function FourPartyDiagram() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {/* Traditional */}
             <div>
-              <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 10, textAlign: "center" }}>traditional</div>
+              <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 10, textAlign: "center" }}>traditional</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {TRADITIONAL.map((n, i) => (
                   <div key={n.id}>
@@ -180,11 +180,11 @@ export default function FourPartyDiagram() {
                       borderLeft: `3px solid ${n.color}`,
                     }}>
                       <div style={{ fontSize: 11, fontWeight: 600, color: n.color, fontFamily: "'Courier New',monospace" }}>{n.label}</div>
-                      <div style={{ fontSize: 10, color: "#9a9288", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{n.sub}</div>
+                      <div style={{ fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{n.sub}</div>
                     </div>
                     {i < TRADITIONAL.length - 1 && (
                       <div style={{ display: "flex", justifyContent: "center", margin: "2px 0" }}>
-                        <div style={{ width: 1, height: 10, background: "#d8d3c8" }} />
+                        <div style={{ width: 1, height: 10, background: "var(--ink-300)" }} />
                       </div>
                     )}
                   </div>
@@ -194,13 +194,13 @@ export default function FourPartyDiagram() {
 
             {/* AI-native */}
             <div>
-              <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "#7040c0", fontFamily: "'Courier New',monospace", marginBottom: 10, textAlign: "center" }}>AI-native</div>
+              <div style={{ fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--diagram-4)", fontFamily: "'Courier New',monospace", marginBottom: 10, textAlign: "center" }}>AI-native</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {AI_NATIVE.map((n, i) => (
                   <div key={n.id}>
                     <div onClick={() => setSelected(selected === n.id ? null : n.id)} style={{
-                      background: n.id === "agent" ? "#f8f4ff" : n.bg,
-                      border: `1px solid ${n.id === "agent" ? "#c0a0f0" : n.border}`,
+                      background: n.id === "agent" ? "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))" : n.bg,
+                      border: `1px solid ${n.id === "agent" ? "color-mix(in srgb, var(--diagram-4) 32%, var(--ink-200))" : n.border}`,
                       borderRadius: 6, padding: "8px 12px", cursor: "pointer",
                       transition: "background .1s",
                       borderLeft: `3px solid ${n.color}`,
@@ -209,19 +209,19 @@ export default function FourPartyDiagram() {
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div>
                           <div style={{ fontSize: 11, fontWeight: 600, color: n.color, fontFamily: "'Courier New',monospace" }}>{n.label}</div>
-                          <div style={{ fontSize: 10, color: "#9a9288", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{n.sub}</div>
+                          <div style={{ fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{n.sub}</div>
                         </div>
                         {n.id === "agent" && (
-                          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "#f0e8ff", color: "#7040c0", border: "1px solid #c0a0f0", fontFamily: "'Courier New',monospace", letterSpacing: "0.05em" }}>NEW</span>
+                          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", color: "var(--diagram-4)", border: "1px solid color-mix(in srgb, var(--diagram-4) 32%, var(--ink-200))", fontFamily: "'Courier New',monospace", letterSpacing: "0.05em" }}>NEW</span>
                         )}
                         {n.changed && n.id !== "agent" && (
-                          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "#fff8f0", color: "#c05020", border: "1px solid #f0c088", fontFamily: "'Courier New',monospace", letterSpacing: "0.05em" }}>MOD</span>
+                          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "color-mix(in srgb, var(--diagram-3) 6%, var(--paper-pure))", color: "var(--signal-600)", border: "1px solid color-mix(in srgb, var(--diagram-3) 35%, var(--ink-200))", fontFamily: "'Courier New',monospace", letterSpacing: "0.05em" }}>MOD</span>
                         )}
                       </div>
                     </div>
                     {i < AI_NATIVE.length - 1 && (
                       <div style={{ display: "flex", justifyContent: "center", margin: "2px 0" }}>
-                        <div style={{ width: 1, height: 10, background: "#d8d3c8" }} />
+                        <div style={{ width: 1, height: 10, background: "var(--ink-300)" }} />
                       </div>
                     )}
                   </div>
@@ -242,23 +242,23 @@ export default function FourPartyDiagram() {
                 }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: n.color, fontFamily: "'Courier New',monospace" }}>{n.label}</div>
-                    <div style={{ fontSize: 10, color: "#9a9288", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{n.sub}</div>
+                    <div style={{ fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginTop: 2 }}>{n.sub}</div>
                   </div>
                   {mode === "ai" && n.id === "agent" && (
-                    <span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 2, background: "#f0e8ff", color: "#7040c0", border: "1px solid #c0a0f0", fontFamily: "'Courier New',monospace" }}>NEW PARTY</span>
+                    <span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 2, background: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", color: "var(--diagram-4)", border: "1px solid color-mix(in srgb, var(--diagram-4) 32%, var(--ink-200))", fontFamily: "'Courier New',monospace" }}>NEW PARTY</span>
                   )}
                   {mode === "ai" && n.changed && n.id !== "agent" && (
-                    <span style={{ fontSize: 9, color: "#c05020", fontFamily: "'Courier New',monospace" }}>{n.change}</span>
+                    <span style={{ fontSize: 9, color: "var(--signal-600)", fontFamily: "'Courier New',monospace" }}>{n.change}</span>
                   )}
                 </div>
                 {selected === n.id && (
                   <div style={{ margin: "4px 0 6px", background: n.bg, border: `1px solid ${n.color}40`, borderLeft: `3px solid ${n.color}`, borderRadius: "0 8px 8px 0", padding: "10px 14px" }}>
-                    <div style={{ fontSize: 12, color: "#4a4440", lineHeight: 1.65, fontFamily: "Georgia, serif" }}>{n.detail}</div>
+                    <div style={{ fontSize: 12, color: "var(--ink-700)", lineHeight: 1.65, fontFamily: "Georgia, serif" }}>{n.detail}</div>
                   </div>
                 )}
                 {i < arr.length - 1 && (
                   <div style={{ display: "flex", justifyContent: "center", height: 16, alignItems: "center" }}>
-                    <div style={{ width: 1, height: "100%", background: "#d8d3c8" }} />
+                    <div style={{ width: 1, height: "100%", background: "var(--ink-300)" }} />
                   </div>
                 )}
               </div>
@@ -268,16 +268,16 @@ export default function FourPartyDiagram() {
       </div>
 
       {/* Legend */}
-      <div style={{ padding: "10px 20px 14px", borderTop: "1px solid #e0dbd0", background: "#f5f3ee", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "#9a9288" }}>
-          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "#f0e8ff", color: "#7040c0", border: "1px solid #c0a0f0" }}>NEW</span>
+      <div style={{ padding: "10px 20px 14px", borderTop: "1px solid var(--ink-200)", background: "var(--ink-100)", display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-500)" }}>
+          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", color: "var(--diagram-4)", border: "1px solid color-mix(in srgb, var(--diagram-4) 32%, var(--ink-200))" }}>NEW</span>
           AI Agent — new party
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "#9a9288" }}>
-          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "#fff8f0", color: "#c05020", border: "1px solid #f0c088" }}>MOD</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "'Courier New',monospace", color: "var(--ink-500)" }}>
+          <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 2, background: "color-mix(in srgb, var(--diagram-3) 6%, var(--paper-pure))", color: "var(--signal-600)", border: "1px solid color-mix(in srgb, var(--diagram-3) 35%, var(--ink-200))" }}>MOD</span>
           Role or behavior modified
         </div>
-        <div style={{ marginLeft: "auto", fontSize: 10, color: "#b8b3a8", fontFamily: "'Courier New',monospace" }}>click any node to expand</div>
+        <div style={{ marginLeft: "auto", fontSize: 10, color: "var(--ink-400)", fontFamily: "'Courier New',monospace" }}>click any node to expand</div>
       </div>
 
     </div>

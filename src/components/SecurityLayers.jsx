@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react"
 
 const T = {
-  cream:"#faf9f6", cream2:"#f5f3ee", cream3:"#ede9e2",
-  ink:"#1a1814", ink2:"#4a4440", ink3:"#5e5750", ink4:"#8a8278", ink5:"#b8b3a8",
-  pass:"#186040", passLight:"#f0f8f4", passBorder:"#a8d8b8",
-  fail:"#c02010", failLight:"#fff4f2", failBorder:"#f0b0a0",
-  visa:"#185FA5", blueLight:"#eef3ff", blueBorder:"#b8d0f0",
-  mc:"#8B3012", mcLight:"#fff3ee", mcBorder:"#f0b898",
-  border:"#e0dbd0",
+  cream:"var(--paper)", cream2:"var(--ink-100)", cream3:"var(--ink-200)",
+  ink:"var(--ink-900)", ink2:"var(--ink-700)", ink3:"var(--ink-700)", ink4:"var(--ink-500)", ink5:"var(--ink-400)",
+  pass:"var(--success)", passLight:"color-mix(in srgb, var(--success) 8%, var(--paper-pure))", passBorder:"color-mix(in srgb, var(--success) 25%, var(--ink-200))",
+  fail:"var(--danger)", failLight:"color-mix(in srgb, var(--danger) 6%, var(--paper-pure))", failBorder:"color-mix(in srgb, var(--danger) 25%, var(--ink-200))",
+  visa:"var(--diagram-1)", blueLight:"color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", blueBorder:"color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))",
+  mc:"var(--diagram-3)", mcLight:"color-mix(in srgb, var(--diagram-3) 8%, var(--paper-pure))", mcBorder:"color-mix(in srgb, var(--diagram-3) 35%, var(--ink-200))",
+  border:"var(--ink-200)",
 }
 
 const LAYERS = [
@@ -15,7 +15,7 @@ const LAYERS = [
     id:"merchant", num:"01",
     actor:"Merchant + Gateway",
     question:"Is this a human, not a bot?",
-    color:"#1a1814",
+    color:"var(--ink-900)",
     svgIcon: <path d="M8 2h16v18H8z M8 2L4 6v14h4 M16 14v6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>,
     humanTools:[
       { name:"CAPTCHA",             check:"Visual puzzle proves human" },
@@ -37,7 +37,7 @@ const LAYERS = [
     id:"acquirer", num:"02",
     actor:"Acquirer + Processor",
     question:"Does this transaction look legitimate?",
-    color:"#7a4a10",
+    color:"var(--diagram-3)",
     svgIcon: <path d="M4 4h16v4H4z M4 8v12h16V8 M8 12h8 M8 16h5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>,
     humanTools:[
       { name:"AVS matching",        check:"Address verified against issuer records" },
@@ -59,7 +59,7 @@ const LAYERS = [
     id:"network", num:"03",
     actor:"Card Network",
     question:"Is this part of a distributed attack?",
-    color:"#186040",
+    color:"var(--success)",
     svgIcon: <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z M2 12h20 M12 2c-2.76 4-4 8-4 10s1.24 6 4 10 M12 2c2.76 4 4 8 4 10s-1.24 6-4 10" fill="none" stroke="currentColor" strokeWidth="1.5"/>,
     humanTools:[
       { name:"ML risk scoring",     check:"Behavioral baseline: human patterns match" },
@@ -81,7 +81,7 @@ const LAYERS = [
     id:"issuer", num:"04",
     actor:"Issuer Bank",
     question:"Is the cardholder authorizing this?",
-    color:"#185FA5",
+    color:"var(--diagram-1)",
     svgIcon: <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>,
     humanTools:[
       { name:"Behavioral history",  check:"Transaction matches cardholder patterns" },
@@ -263,19 +263,19 @@ export default function SecurityLayers() {
                           <span style={{ fontSize:9, letterSpacing:"0.08em", textTransform:"uppercase", color:T.visa, fontFamily:"'Courier New',monospace" }}>Visa</span>
                         </div>
                         <div style={{ fontSize:10, fontWeight:600, color:T.visa, fontFamily:"'Courier New',monospace", marginBottom:4 }}>{layer.visaFix.tool}</div>
-                        <div style={{ fontSize:10, color:"#1a4a90", lineHeight:1.6 }}>{layer.visaFix.detail}</div>
+                        <div style={{ fontSize:10, color:"var(--diagram-1)", lineHeight:1.6 }}>{layer.visaFix.detail}</div>
                       </div>
                       {/* Mastercard */}
                       <div style={{ background:T.mcLight, border:`1px solid ${T.mcBorder}`, borderRadius:8, padding:"11px 13px" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:7 }}>
                           <div style={{ position:"relative", width:22, height:14 }}>
-                            <div style={{ position:"absolute", left:0, top:0, width:14, height:14, background:"#e8372a", borderRadius:"50%", opacity:0.9 }}/>
-                            <div style={{ position:"absolute", left:8, top:0, width:14, height:14, background:"#f5a800", borderRadius:"50%", opacity:0.9 }}/>
+                            <div style={{ position:"absolute", left:0, top:0, width:14, height:14, background:"var(--danger)", borderRadius:"50%", opacity:0.9 }}/>
+                            <div style={{ position:"absolute", left:8, top:0, width:14, height:14, background:"var(--warning)", borderRadius:"50%", opacity:0.9 }}/>
                           </div>
                           <span style={{ fontSize:9, letterSpacing:"0.08em", textTransform:"uppercase", color:T.mc, fontFamily:"'Courier New',monospace" }}>Mastercard</span>
                         </div>
                         <div style={{ fontSize:10, fontWeight:600, color:T.mc, fontFamily:"'Courier New',monospace", marginBottom:4 }}>{layer.mcFix.tool}</div>
-                        <div style={{ fontSize:10, color:"#6b2a10", lineHeight:1.6 }}>{layer.mcFix.detail}</div>
+                        <div style={{ fontSize:10, color:"var(--diagram-3)", lineHeight:1.6 }}>{layer.mcFix.detail}</div>
                       </div>
                     </div>
                   </div>

@@ -1,22 +1,52 @@
 @import "tailwindcss";
+@import "./tokens.css";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+@theme inline {
+	--color-paper: var(--paper);
+	--color-paper-pure: var(--paper-pure);
+	--color-ink-100: var(--ink-100);
+	--color-ink-200: var(--ink-200);
+	--color-ink-300: var(--ink-300);
+	--color-ink-400: var(--ink-400);
+	--color-ink-500: var(--ink-500);
+	--color-ink-700: var(--ink-700);
+	--color-ink-800: var(--ink-800);
+	--color-ink-900: var(--ink-900);
+	--color-signal-100: var(--signal-100);
+	--color-signal-200: var(--signal-200);
+	--color-signal-500: var(--signal-500);
+	--color-signal-600: var(--signal-600);
+	--color-signal-700: var(--signal-700);
+	--color-diagram-1: var(--diagram-1);
+	--color-diagram-2: var(--diagram-2);
+	--color-diagram-3: var(--diagram-3);
+	--color-diagram-4: var(--diagram-4);
+	--color-diagram-5: var(--diagram-5);
+	--color-code-bg: var(--code-bg);
+	--color-code-fg: var(--code-fg);
+	--color-success: var(--success);
+	--color-warning: var(--warning);
+	--color-danger: var(--danger);
+	--shadow-card: var(--shadow-card);
+}
+
 :root {
-	--accent: #7040c0;
-	--accent-dark: #4a2685;
-	--accent-light: #f8f4ff;
+	--accent: var(--signal-600);
+	--accent-dark: var(--signal-700);
+	--accent-light: var(--signal-100);
 	
-	--black: 23, 23, 23;
-	--gray: 115, 115, 115;
-	--gray-light: 245, 245, 245;
-	--gray-dark: 64, 64, 64;
+	--black: 11, 13, 16;
+	--gray: 92, 99, 110;
+	--gray-light: 238, 240, 242;
+	--gray-dark: 42, 47, 55;
 	
-	--bg-body: #ffffff;
-	--bg-subtle: #fafafa;
-	--border-color: #e5e5e5;
+	--bg-body: var(--paper);
+	--bg-subtle: var(--ink-100);
+	--border-color: var(--ink-200);
 	
-	--box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.05);
-	--box-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08);
+	--box-shadow: var(--shadow-card);
+	--box-shadow-hover: 0 6px 20px color-mix(in srgb, var(--ink-900) 10%, transparent);
 }
 
 html {
@@ -29,7 +59,7 @@ body {
 	padding: 0;
 	text-align: left;
 	background-color: var(--bg-body);
-	color: rgb(var(--black));
+	color: var(--ink-900);
 	font-size: 18px;
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
@@ -45,7 +75,7 @@ main {
 
 h1, h2, h3, h4, h5, h6 {
 	margin: 0 0 0.5rem 0;
-	color: rgb(var(--black));
+	color: var(--ink-900);
 	font-weight: 600;
 	line-height: 1.2;
 	letter-spacing: -0.02em;
@@ -58,7 +88,7 @@ h4 { font-size: 1.4em; }
 
 strong, b {
 	font-weight: 600;
-	color: rgb(var(--black));
+	color: var(--ink-900);
 }
 
 a {
@@ -73,7 +103,7 @@ a:hover {
 
 p {
 	margin-bottom: 1.5em;
-	color: rgb(var(--gray-dark));
+	color: var(--ink-700);
 }
 
 .prose p {
@@ -99,7 +129,7 @@ code {
 	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	font-size: 0.85em;
-	color: #ef4444;
+	color: var(--danger);
 }
 
 /* Fenced blocks: <pre><code> must not use the inline “pill” look */
@@ -130,12 +160,12 @@ pre:not(.astro-code) > code {
 	display: block;
 	font-family: "Courier New", ui-monospace, monospace;
 	font-size: 0.9em;
-	color: rgb(var(--black));
+	color: var(--ink-900);
 }
 
 /* MDX/Shiki — never inherit inline-code “pill” styles on the block <code> */
 pre.astro-code {
-	border-color: #3d444d;
+	border-color: var(--ink-300);
 }
 
 pre.astro-code code {
@@ -163,7 +193,7 @@ blockquote {
 	padding: 0.5em 0 0.5em 1.5em;
 	margin: 1.5em 0;
 	font-style: italic;
-	color: rgb(var(--gray));
+	color: var(--ink-500);
 	background: linear-gradient(90deg, var(--accent-light) 0%, transparent 100%);
 }
 

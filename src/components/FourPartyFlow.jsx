@@ -1,33 +1,33 @@
 import { useState, useEffect, useRef } from "react"
 
 const T = {
-  cream:"#faf9f6", cream2:"#f5f3ee", cream3:"#ede9e2",
-  ink:"#1a1814", ink2:"#4a4440", ink3:"#5e5750", ink4:"#8a8278", ink5:"#b8b3a8",
-  pass:"#186040", passLight:"#f0f8f4", passBorder:"#a8d8b8",
-  fail:"#c02010", failLight:"#fff4f2", failBorder:"#f0b0a0",
-  agent:"#6030b0", agentLight:"#f5f0ff", agentBorder:"#c8a8f0",
-  visa:"#185FA5", mc:"#993C1D",
-  border:"#e0dbd0",
+  cream:"var(--paper)", cream2:"var(--ink-100)", cream3:"var(--ink-200)",
+  ink:"var(--ink-900)", ink2:"var(--ink-700)", ink3:"var(--ink-700)", ink4:"var(--ink-500)", ink5:"var(--ink-400)",
+  pass:"var(--success)", passLight:"color-mix(in srgb, var(--success) 8%, var(--paper-pure))", passBorder:"color-mix(in srgb, var(--success) 25%, var(--ink-200))",
+  fail:"var(--danger)", failLight:"color-mix(in srgb, var(--danger) 6%, var(--paper-pure))", failBorder:"color-mix(in srgb, var(--danger) 25%, var(--ink-200))",
+  agent:"var(--diagram-4)", agentLight:"color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", agentBorder:"color-mix(in srgb, var(--diagram-4) 28%, var(--ink-200))",
+  visa:"var(--diagram-1)", mc:"var(--diagram-3)",
+  border:"var(--ink-200)",
 }
 
 // ── GEOMETRY ──────────────────────────────────────────────────────
 // Human model: 4-party classic — consumer top-left, merchant top-right
 // Agent model: 5-party — consumer top-left (passive), agent top-center, merchant top-right
 const ACTORS_HUMAN = {
-  consumer: { x: 40,   y: 96,  w: 130, h: 54, label:"Consumer",  sub:"initiates",          color:"#1a1814" },
-  merchant: { x: 594,  y: 96,  w: 130, h: 54, label:"Merchant",  sub:"checkout",           color:"#1a1814" },
-  acquirer: { x: 594,  y: 304, w: 130, h: 54, label:"Acquirer",  sub:"Stripe · Adyen",     color:"#7a4a10" },
-  network:  { x: 314,  y: 304, w: 130, h: 54, label:"Network",   sub:"Visa · Mastercard",  color:"#186040" },
-  issuer:   { x: 40,   y: 304, w: 130, h: 54, label:"Issuer",    sub:"Chase · Amex",       color:"#185FA5" },
+  consumer: { x: 40,   y: 96,  w: 130, h: 54, label:"Consumer",  sub:"initiates",          color:"var(--ink-900)" },
+  merchant: { x: 594,  y: 96,  w: 130, h: 54, label:"Merchant",  sub:"checkout",           color:"var(--ink-900)" },
+  acquirer: { x: 594,  y: 304, w: 130, h: 54, label:"Acquirer",  sub:"Stripe · Adyen",     color:"var(--diagram-3)" },
+  network:  { x: 314,  y: 304, w: 130, h: 54, label:"Network",   sub:"Visa · Mastercard",  color:"var(--success)" },
+  issuer:   { x: 40,   y: 304, w: 130, h: 54, label:"Issuer",    sub:"Chase · Amex",       color:"var(--diagram-1)" },
 }
 
 const ACTORS_AGENT = {
-  consumer: { x: 40,   y: 60,  w: 118, h: 50, label:"Consumer",  sub:"policy author",      color:"#8a8278"  },
-  agent:    { x: 313,  y: 60,  w: 138, h: 50, label:"AI Agent",  sub:"executor",           color:"#6030b0"  },
-  merchant: { x: 606,  y: 60,  w: 118, h: 50, label:"Merchant",  sub:"checkout",           color:"#1a1814"  },
-  acquirer: { x: 606,  y: 304, w: 118, h: 50, label:"Acquirer",  sub:"Stripe · Adyen",     color:"#7a4a10"  },
-  network:  { x: 313,  y: 304, w: 138, h: 50, label:"Network",   sub:"Visa · Mastercard",  color:"#186040"  },
-  issuer:   { x: 40,   y: 304, w: 118, h: 50, label:"Issuer",    sub:"Chase · Amex",       color:"#185FA5"  },
+  consumer: { x: 40,   y: 60,  w: 118, h: 50, label:"Consumer",  sub:"policy author",      color:"var(--ink-500)"  },
+  agent:    { x: 313,  y: 60,  w: 138, h: 50, label:"AI Agent",  sub:"executor",           color:"var(--diagram-4)"  },
+  merchant: { x: 606,  y: 60,  w: 118, h: 50, label:"Merchant",  sub:"checkout",           color:"var(--ink-900)"  },
+  acquirer: { x: 606,  y: 304, w: 118, h: 50, label:"Acquirer",  sub:"Stripe · Adyen",     color:"var(--diagram-3)"  },
+  network:  { x: 313,  y: 304, w: 138, h: 50, label:"Network",   sub:"Visa · Mastercard",  color:"var(--success)"  },
+  issuer:   { x: 40,   y: 304, w: 118, h: 50, label:"Issuer",    sub:"Chase · Amex",       color:"var(--diagram-1)"  },
 }
 
 const cx = (actors, id) => actors[id].x + actors[id].w / 2
@@ -223,9 +223,9 @@ export default function FourPartyFlow() {
 
       {/* Key insight callout for agent modes */}
       {isAgentMode(mode) && (
-        <div style={{ margin:"12px 20px 0", padding:"9px 14px", background:"#f5f0ff", border:`1px solid ${T.agentBorder}`, borderRadius:8, display:"flex", gap:10, alignItems:"flex-start" }}>
+        <div style={{ margin:"12px 20px 0", padding:"9px 14px", background:"color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))", border:`1px solid ${T.agentBorder}`, borderRadius:8, display:"flex", gap:10, alignItems:"flex-start" }}>
           <span style={{ fontSize:10, color:T.agent, fontFamily:"'Courier New',monospace", flexShrink:0, marginTop:1 }}>★</span>
-          <span style={{ fontSize:11, color:"#3a1880", lineHeight:1.6 }}>
+          <span style={{ fontSize:11, color:"var(--diagram-4)", lineHeight:1.6 }}>
             The AI Agent is a <strong>new, distinct party</strong> — not the consumer. The consumer sets policy once at enrollment and receives the final notification. During the 1,100ms of the transaction, the consumer is absent. The agent operates as an independent principal with its own cryptographic identity.
           </span>
         </div>
@@ -238,7 +238,7 @@ export default function FourPartyFlow() {
             {["pass","fail","dim","agent-line","passive"].map(type => (
               <marker key={type} id={`arr-${type}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
                 <path d="M1 1.5L6.5 4L1 6.5" fill="none"
-                  stroke={type==="pass"?T.pass:type==="fail"?T.fail:type==="agent-line"?T.agent:type==="passive"?"#c8c0d8":T.ink5}
+                  stroke={type==="pass"?T.pass:type==="fail"?T.fail:type==="agent-line"?T.agent:type==="passive"?"color-mix(in srgb, var(--diagram-4) 22%, var(--ink-200))":T.ink5}
                   strokeWidth="1.5" strokeLinecap="round"/>
               </marker>
             ))}
@@ -250,8 +250,8 @@ export default function FourPartyFlow() {
           {/* Layer bands */}
           {isAgentMode(mode) ? (
             <>
-              <rect x={10} y={30} width={744} height={102} rx={6} fill="#f8f5ff" opacity={0.7}/>
-              <text x={24} y={46} style={{ fontSize:9, fontFamily:"'Courier New',monospace", fill:"#8060c0", letterSpacing:"0.08em", textTransform:"uppercase" }}>consumer · agent layer (5th party)</text>
+              <rect x={10} y={30} width={744} height={102} rx={6} fill="color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))" opacity={0.7}/>
+              <text x={24} y={46} style={{ fontSize:9, fontFamily:"'Courier New',monospace", fill:"var(--diagram-4)", letterSpacing:"0.08em", textTransform:"uppercase" }}>consumer · agent layer (5th party)</text>
               <rect x={10} y={268} width={744} height={108} rx={6} fill={T.cream3} opacity={0.8}/>
               <text x={24} y={284} style={{ fontSize:9, fontFamily:"'Courier New',monospace", fill:T.ink4, letterSpacing:"0.08em", textTransform:"uppercase" }}>payment rails (unchanged)</text>
             </>
@@ -269,9 +269,9 @@ export default function FourPartyFlow() {
             const isPast   = i < step
             const isActive = i === step
             const color    = s.path === "c-agent-enroll" || s.path === "agent-c-notify"
-              ? (s.status === "pass" ? "#9060d8" : T.fail)
+              ? (s.status === "pass" ? "var(--diagram-4)" : T.fail)
               : s.status === "fail" ? T.fail : T.pass
-            const dimColor = s.path === "c-agent-enroll" || s.path === "agent-c-notify" ? "#c0a8e8" : T.ink5
+            const dimColor = s.path === "c-agent-enroll" || s.path === "agent-c-notify" ? "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" : T.ink5
             const opacity  = isPast ? 0.6 : isActive ? 1 : 0.18
             const sw       = isActive ? 2 : isPast ? 1.5 : 0.8
             const useColor = (isPast || isActive) ? color : dimColor
@@ -335,7 +335,7 @@ export default function FourPartyFlow() {
                 {/* Passive indicator for consumer in agent mode */}
                 {passive && (
                   <text x={actor.x + actor.w / 2} y={actor.y + actor.h / 2 + 14} textAnchor="middle" dominantBaseline="central"
-                    style={{ fontSize:8, fill:"#c0b0d8", fontFamily:"'Courier New',monospace", letterSpacing:"0.06em" }}>passive</text>
+                    style={{ fontSize:8, fill:"color-mix(in srgb, var(--diagram-4) 18%, var(--ink-300))", fontFamily:"'Courier New',monospace", letterSpacing:"0.06em" }}>passive</text>
                 )}
                 {/* Status icon */}
                 {!passive && (isActive || isVisited) && (
@@ -346,7 +346,7 @@ export default function FourPartyFlow() {
                 )}
                 <text x={actor.x + actor.w / 2} y={actor.y + 19} textAnchor="middle" dominantBaseline="central"
                   style={{ fontSize:11, fontWeight:600, fontFamily:"'Courier New',monospace",
-                    fill: passive ? "#b8a8d0"
+                    fill: passive ? "color-mix(in srgb, var(--diagram-4) 18%, var(--ink-300))"
                       : isFailed ? T.fail
                       : id === "agent" && (isActive || isVisited) ? T.agent
                       : isActive ? actor.color
@@ -356,7 +356,7 @@ export default function FourPartyFlow() {
                   {actor.label}
                 </text>
                 <text x={actor.x + actor.w / 2} y={actor.y + 34} textAnchor="middle" dominantBaseline="central"
-                  style={{ fontSize:9, fontFamily:"'Courier New',monospace", fill: passive ? "#c8b8e0" : isActive ? T.ink4 : T.ink5 }}>
+                  style={{ fontSize:9, fontFamily:"'Courier New',monospace", fill: passive ? "color-mix(in srgb, var(--diagram-4) 18%, var(--ink-300))" : isActive ? T.ink4 : T.ink5 }}>
                   {actor.sub}
                 </text>
               </g>
@@ -396,7 +396,7 @@ export default function FourPartyFlow() {
       </div>
 
       {mode === "agent" && step >= AGENT_STEPS.length - 1 && (
-        <div style={{ margin:"-4px 20px 12px", padding:"9px 14px", background:"#eef3ff", border:`1px solid ${T.visa}40`, borderRadius:8 }}>
+        <div style={{ margin:"-4px 20px 12px", padding:"9px 14px", background:"color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border:`1px solid ${T.visa}40`, borderRadius:8 }}>
           <div style={{ fontSize:10, color:T.visa, fontFamily:"'Courier New',monospace" }}>
             every layer failed — switch to "5-party: fixed" to see what TAP and Agent Pay replace
           </div>

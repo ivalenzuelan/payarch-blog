@@ -5,10 +5,10 @@ const LAYERS = [
     id: 5,
     name: "Settlement & Reconciliation",
     sub: "ISO 8583 net settlement · L3 line items · VDCAP",
-    color: "#0f766e",
-    dimColor: "#99c4c0",
-    bg: "rgba(15,118,110,0.06)",
-    border: "rgba(15,118,110,0.22)",
+    color: "var(--diagram-2)",
+    dimColor: "color-mix(in srgb, var(--diagram-2) 45%, var(--paper-pure))",
+    bg: "color-mix(in srgb, var(--diagram-2) 6%, transparent)",
+    border: "color-mix(in srgb, var(--diagram-2) 22%, transparent)",
     tag: "L5",
     description: "Transactions batch, net, and settle T+1 — unchanged from traditional card payments. The agent stack adds structural value through automatic L3 data: line-item breakdowns, PO references, GL codes, and cost center tags generated as a byproduct of invoice processing.",
     protocols: [
@@ -23,10 +23,10 @@ const LAYERS = [
     id: 4,
     name: "Payment Rail",
     sub: "ISO 8583 auth · DE22 · DE48 · DE105 TLID",
-    color: "#065f46",
-    dimColor: "#6da88a",
-    bg: "rgba(6,95,70,0.06)",
-    border: "rgba(6,95,70,0.22)",
+    color: "var(--success)",
+    dimColor: "color-mix(in srgb, var(--success) 45%, var(--paper-pure))",
+    bg: "color-mix(in srgb, var(--success) 6%, transparent)",
+    border: "color-mix(in srgb, var(--success) 22%, transparent)",
     tag: "L4",
     description: "The authorization message — ISO 8583 — has not changed. Agent identity, TAP credentials, and transaction modality (Human Present vs. Human Not Present) ride in existing private-use Data Elements alongside the standard authorization fields. 40M+ merchants receive agent payments today with zero infrastructure changes.",
     protocols: [
@@ -42,10 +42,10 @@ const LAYERS = [
     id: 3,
     name: "Policy Enforcement",
     sub: "Spend limits · vendor lists · approval thresholds · anomaly detection",
-    color: "#92400e",
-    dimColor: "#c49a6a",
-    bg: "rgba(146,64,14,0.06)",
-    border: "rgba(146,64,14,0.22)",
+    color: "var(--warning)",
+    dimColor: "color-mix(in srgb, var(--warning) 55%, var(--paper-pure))",
+    bg: "color-mix(in srgb, var(--warning) 6%, transparent)",
+    border: "color-mix(in srgb, var(--warning) 22%, transparent)",
     tag: "L3",
     description: "Delegation defines what an agent can do. Policy enforcement determines whether it should act right now. For B2B, this is an entire discipline — pre-approved vendor lists, multi-tier approval thresholds, GL code assignments, cost center budget checks. For B2C, it lives inside the agent platform itself. Policy cannot live in the credential — it's too company-specific.",
     protocols: [
@@ -61,10 +61,10 @@ const LAYERS = [
     id: 2,
     name: "Delegation & Authorization",
     sub: "Intent Mandates · Cart Mandates · SD-JWT chains · OAuth grant tokens",
-    color: "#1e40af",
-    dimColor: "#6080c8",
-    bg: "rgba(30,64,175,0.06)",
-    border: "rgba(30,64,175,0.22)",
+    color: "var(--diagram-1)",
+    dimColor: "color-mix(in srgb, var(--diagram-1) 55%, var(--paper-pure))",
+    bg: "color-mix(in srgb, var(--diagram-1) 6%, transparent)",
+    border: "color-mix(in srgb, var(--diagram-1) 22%, transparent)",
     tag: "L2",
     description: "Identity tells you who the agent is. Delegation tells you what it is allowed to do. The central principle that emerged across both research and production: the AI reasoning layer should never hold the payment credential. The agent that decides to buy and the system that executes the payment must be architecturally separate.",
     protocols: [
@@ -80,10 +80,10 @@ const LAYERS = [
     id: 1,
     name: "Agent Identity",
     sub: "Ed25519 keypairs · RFC 9421 HTTP signatures · KYA registry · DIDs",
-    color: "#5b21b6",
-    dimColor: "#9070c8",
-    bg: "rgba(91,33,182,0.06)",
-    border: "rgba(91,33,182,0.22)",
+    color: "var(--diagram-4)",
+    dimColor: "color-mix(in srgb, var(--diagram-4) 55%, var(--paper-pure))",
+    bg: "color-mix(in srgb, var(--diagram-4) 6%, transparent)",
+    border: "color-mix(in srgb, var(--diagram-4) 22%, transparent)",
     tag: "L1",
     description: "Before any payment, the system must answer: who is this agent, and who authorized it? Two approaches dominate. Cryptographic key-based identity (Visa TAP): Ed25519 keypairs, RFC 9421 HTTP Message Signatures on every request, 7-stage CDN verification. Registry-based identity (Mastercard): Know Your Agent verification, MDES agentic token issuance.",
     protocols: [
@@ -105,10 +105,10 @@ export default function FiveLayerStack() {
   return (
     <div style={{
       fontFamily: "'Georgia','Times New Roman',serif",
-      color: "#1a1814",
-      background: "#faf9f6",
+      color: "var(--ink-900)",
+      background: "var(--paper)",
       borderRadius: 14,
-      border: "1px solid #e0dbd0",
+      border: "1px solid var(--ink-200)",
       overflow: "hidden",
       width: "100vw",
       maxWidth: 1040,
@@ -119,14 +119,14 @@ export default function FiveLayerStack() {
     }}>
 
       {/* Header */}
-      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
+      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           Architecture · Five-Layer Stack
         </div>
         <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 3px", fontFamily: "'Georgia',serif" }}>
           The agentic payment stack — layer by layer
         </h2>
-        <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+        <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
           Click any layer to expand protocols, vendors, and key data
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function FiveLayerStack() {
               }}
             />
           ))}
-          <div style={{ fontSize: 9, color: "#b8b3a8", fontFamily: "'Courier New',monospace", marginLeft: 4, whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: 9, color: "var(--ink-400)", fontFamily: "'Courier New',monospace", marginLeft: 4, whiteSpace: "nowrap" }}>
             L1 → L5
           </div>
         </div>
@@ -167,8 +167,8 @@ export default function FiveLayerStack() {
                 key={layer.id}
                 style={{
                   borderRadius: 10,
-                  border: `1px solid ${isOpen ? layer.border : "#e0dbd0"}`,
-                  background: isOpen ? layer.bg : "#f5f3ee",
+                  border: `1px solid ${isOpen ? layer.border : "var(--ink-200)"}`,
+                  background: isOpen ? layer.bg : "var(--ink-100)",
                   opacity: isDimmed ? 0.55 : 1,
                   transition: "all .2s",
                   overflow: "hidden",
@@ -191,7 +191,7 @@ export default function FiveLayerStack() {
                     width: 34,
                     height: 34,
                     borderRadius: 8,
-                    background: isOpen ? layer.color : "#e8e3da",
+                    background: isOpen ? layer.color : "var(--ink-200)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -202,7 +202,7 @@ export default function FiveLayerStack() {
                       fontSize: 11,
                       fontWeight: 700,
                       fontFamily: "'Courier New',monospace",
-                      color: isOpen ? "#fff" : "#9a9288",
+                      color: isOpen ? "var(--paper-pure)" : "var(--ink-500)",
                       letterSpacing: "0.02em",
                     }}>
                       {layer.tag}
@@ -214,7 +214,7 @@ export default function FiveLayerStack() {
                     <div style={{
                       fontSize: 13.5,
                       fontWeight: 600,
-                      color: isOpen ? layer.color : "#2a2520",
+                      color: isOpen ? layer.color : "var(--ink-800)",
                       fontFamily: "'Courier New',monospace",
                       letterSpacing: "-0.01em",
                       transition: "color .2s",
@@ -223,7 +223,7 @@ export default function FiveLayerStack() {
                     </div>
                     <div style={{
                       fontSize: 10,
-                      color: "#9a9288",
+                      color: "var(--ink-500)",
                       fontFamily: "'Courier New',monospace",
                       marginTop: 2,
                       overflow: "hidden",
@@ -239,9 +239,9 @@ export default function FiveLayerStack() {
                     <div style={{
                       fontSize: 9.5,
                       fontFamily: "'Courier New',monospace",
-                      color: isOpen ? layer.color : "#b8b3a8",
+                      color: isOpen ? layer.color : "var(--ink-400)",
                       background: isOpen ? layer.bg : "transparent",
-                      border: `1px solid ${isOpen ? layer.border : "#e0dbd0"}`,
+                      border: `1px solid ${isOpen ? layer.border : "var(--ink-200)"}`,
                       borderRadius: 4,
                       padding: "2px 7px",
                       transition: "all .2s",
@@ -250,7 +250,7 @@ export default function FiveLayerStack() {
                     </div>
                     <div style={{
                       fontSize: 14,
-                      color: isOpen ? layer.color : "#c8c3b8",
+                      color: isOpen ? layer.color : "var(--ink-300)",
                       fontFamily: "'Courier New',monospace",
                       transition: "all .2s",
                       transform: isOpen ? "rotate(90deg)" : "none",
@@ -268,7 +268,7 @@ export default function FiveLayerStack() {
                     <p style={{
                       fontSize: 13,
                       lineHeight: 1.75,
-                      color: "#3a3530",
+                      color: "var(--ink-800)",
                       fontFamily: "'Georgia',serif",
                       margin: "0 0 16px",
                     }}>
@@ -294,8 +294,8 @@ export default function FiveLayerStack() {
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {layer.protocols.map((p, i) => (
                             <div key={i} style={{
-                              background: "#faf9f6",
-                              border: "1px solid #e8e3da",
+                              background: "var(--paper)",
+                              border: "1px solid var(--ink-200)",
                               borderLeft: `3px solid ${layer.color}`,
                               borderRadius: "0 6px 6px 0",
                               padding: "7px 10px",
@@ -303,7 +303,7 @@ export default function FiveLayerStack() {
                               <div style={{ fontSize: 11, fontWeight: 600, color: layer.color, fontFamily: "'Courier New',monospace", marginBottom: 2 }}>
                                 {p.name}
                               </div>
-                              <div style={{ fontSize: 11, color: "#5a5550", fontFamily: "'Georgia',serif", lineHeight: 1.55 }}>
+                              <div style={{ fontSize: 11, color: "var(--ink-700)", fontFamily: "'Georgia',serif", lineHeight: 1.55 }}>
                                 {p.coverage}
                               </div>
                             </div>
@@ -331,9 +331,9 @@ export default function FiveLayerStack() {
                               <div key={i} style={{
                                 fontSize: 10,
                                 fontFamily: "'Courier New',monospace",
-                                color: "#5a5550",
-                                background: "#f0ede8",
-                                border: "1px solid #ddd8d0",
+                                color: "var(--ink-700)",
+                                background: "var(--ink-100)",
+                                border: "1px solid var(--ink-200)",
                                 borderRadius: 4,
                                 padding: "2px 7px",
                               }}>
@@ -357,12 +357,12 @@ export default function FiveLayerStack() {
                               ISO 8583 fields
                             </div>
                             <div style={{
-                              background: "#1a1814",
+                              background: "var(--ink-900)",
                               borderRadius: 6,
                               padding: "8px 10px",
                               fontFamily: "'Courier New',monospace",
                               fontSize: 10,
-                              color: "#c8d8a8",
+                              color: "var(--success)",
                               lineHeight: 1.7,
                             }}>
                               {layer.field.split(" · ").map((f, i) => (
@@ -376,7 +376,7 @@ export default function FiveLayerStack() {
 
                     {/* Key insight */}
                     <div style={{
-                      background: "#faf9f6",
+                      background: "var(--paper)",
                       border: `1px solid ${layer.border}`,
                       borderRadius: 8,
                       padding: "10px 12px",
@@ -385,7 +385,7 @@ export default function FiveLayerStack() {
                       alignItems: "flex-start",
                     }}>
                       <div style={{ fontSize: 14, color: layer.color, flexShrink: 0, marginTop: 1 }}>◈</div>
-                      <div style={{ fontSize: 11.5, color: "#4a4440", fontFamily: "'Georgia',serif", lineHeight: 1.65, fontStyle: "italic" }}>
+                      <div style={{ fontSize: 11.5, color: "var(--ink-700)", fontFamily: "'Georgia',serif", lineHeight: 1.65, fontStyle: "italic" }}>
                         {layer.fact}
                       </div>
                     </div>
@@ -402,7 +402,7 @@ export default function FiveLayerStack() {
             textAlign: "center",
             marginTop: 14,
             fontSize: 10.5,
-            color: "#b8b3a8",
+            color: "var(--ink-400)",
             fontFamily: "'Courier New',monospace",
             fontStyle: "italic",
           }}>

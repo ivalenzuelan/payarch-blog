@@ -5,55 +5,55 @@ const PROTOCOLS = [
     id: "tap",
     name: "Visa TAP",
     sub: "Trusted Agent Protocol",
-    color: "#1a56a0",
-    bg: "#f0f4ff",
-    border: "#bfdbfe",
-    dot: "#2563eb",
+    color: "var(--diagram-1)",
+    bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--diagram-1) 25%, var(--ink-200))",
+    dot: "var(--diagram-1)",
   },
   {
     id: "mc",
     name: "Mastercard VI",
     sub: "Agent Pay + Verifiable Intent",
-    color: "#b91c1c",
-    bg: "#fff0f0",
-    border: "#fecaca",
-    dot: "#dc2626",
+    color: "var(--danger)",
+    bg: "color-mix(in srgb, var(--danger) 7%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--danger) 25%, var(--ink-200))",
+    dot: "var(--danger)",
   },
   {
     id: "ap2",
     name: "Google AP2",
     sub: "Agent Payments Protocol",
-    color: "#166534",
-    bg: "#f0faf0",
-    border: "#bbf7d0",
-    dot: "#16a34a",
+    color: "var(--success)",
+    bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--success) 25%, var(--ink-200))",
+    dot: "var(--success)",
   },
   {
     id: "stripe",
     name: "Stripe ACP",
     sub: "Agentic Commerce Protocol + OpenAI",
-    color: "#5b21b6",
-    bg: "#f8f4ff",
-    border: "#ddd0f8",
-    dot: "#7c3aed",
+    color: "var(--diagram-4)",
+    bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))",
+    dot: "var(--diagram-4)",
   },
   {
     id: "x402",
     name: "x402",
     sub: "HTTP-native micropayments",
-    color: "#92400e",
-    bg: "#fffbf0",
-    border: "#fcd34d",
-    dot: "#d97706",
+    color: "var(--warning)",
+    bg: "color-mix(in srgb, var(--warning) 8%, var(--paper-pure))",
+    border: "color-mix(in srgb, var(--warning) 35%, var(--ink-200))",
+    dot: "var(--diagram-3)",
   },
 ]
 
 const LAYERS = [
-  { id: 1, name: "Agent Identity", tag: "L1", color: "#5b21b6" },
-  { id: 2, name: "Delegation & Auth", tag: "L2", color: "#1e40af" },
-  { id: 3, name: "Policy Enforcement", tag: "L3", color: "#92400e" },
-  { id: 4, name: "Payment Rail", tag: "L4", color: "#065f46" },
-  { id: 5, name: "Settlement", tag: "L5", color: "#0f766e" },
+  { id: 1, name: "Agent Identity", tag: "L1", color: "var(--diagram-4)" },
+  { id: 2, name: "Delegation & Auth", tag: "L2", color: "var(--diagram-1)" },
+  { id: 3, name: "Policy Enforcement", tag: "L3", color: "var(--warning)" },
+  { id: 4, name: "Payment Rail", tag: "L4", color: "var(--success)" },
+  { id: 5, name: "Settlement", tag: "L5", color: "var(--diagram-2)" },
 ]
 
 // coverage: "primary" | "partial" | "none"
@@ -120,10 +120,10 @@ export default function ProtocolCompetition() {
   return (
     <div style={{
       fontFamily: "'Georgia','Times New Roman',serif",
-      color: "#1a1814",
-      background: "#faf9f6",
+      color: "var(--ink-900)",
+      background: "var(--paper)",
       borderRadius: 14,
-      border: "1px solid #e0dbd0",
+      border: "1px solid var(--ink-200)",
       overflow: "hidden",
       width: "100vw",
       maxWidth: 1040,
@@ -134,14 +134,14 @@ export default function ProtocolCompetition() {
     }}>
 
       {/* Header */}
-      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid #e0dbd0", background: "#f5f3ee" }}>
-        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9a9288", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
+      <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "'Courier New',monospace", marginBottom: 5 }}>
           Protocol Analysis · Competition Matrix
         </div>
         <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 3px", fontFamily: "'Georgia',serif" }}>
           Five protocols competing at different layers
         </h2>
-        <div style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>
+        <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
           Click any cell to see what each protocol does at that layer
         </div>
       </div>
@@ -190,11 +190,11 @@ export default function ProtocolCompetition() {
                         justifyContent: "center",
                         flexShrink: 0,
                       }}>
-                        <span style={{ fontSize: 9.5, fontWeight: 700, color: "#fff", fontFamily: "'Courier New',monospace" }}>
+                        <span style={{ fontSize: 9.5, fontWeight: 700, color: "var(--paper-pure)", fontFamily: "'Courier New',monospace" }}>
                           {layer.tag}
                         </span>
                       </div>
-                      <div style={{ fontSize: 11, color: "#3a3530", fontFamily: "'Courier New',monospace", lineHeight: 1.3 }}>
+                      <div style={{ fontSize: 11, color: "var(--ink-800)", fontFamily: "'Courier New',monospace", lineHeight: 1.3 }}>
                         {layer.name}
                       </div>
                     </div>
@@ -223,8 +223,8 @@ export default function ProtocolCompetition() {
                         <div style={{
                           borderRadius: 8,
                           padding: "12px 8px",
-                          border: `1px solid ${isActive ? protocol.border : isHover && coverage !== "none" ? "#d8d3c8" : "#ece8e2"}`,
-                          background: isActive ? protocol.bg : isHover && coverage !== "none" ? "#f5f3ee" : "#f5f3ee",
+                          border: `1px solid ${isActive ? protocol.border : isHover && coverage !== "none" ? "var(--ink-300)" : "var(--ink-200)"}`,
+                          background: isActive ? protocol.bg : isHover && coverage !== "none" ? "var(--ink-100)" : "var(--ink-100)",
                           cursor: coverage !== "none" ? "pointer" : "default",
                           transition: "all .15s",
                           display: "flex",
@@ -251,7 +251,7 @@ export default function ProtocolCompetition() {
                               <div style={{
                                 fontSize: 8.5,
                                 fontFamily: "'Courier New',monospace",
-                                color: isActive ? protocol.color : "#b8b3a8",
+                                color: isActive ? protocol.color : "var(--ink-400)",
                                 fontWeight: isActive ? 600 : 400,
                                 letterSpacing: "0.04em",
                                 textTransform: "uppercase",
@@ -261,7 +261,7 @@ export default function ProtocolCompetition() {
                               </div>
                             </>
                           ) : (
-                            <div style={{ fontSize: 16, color: "#ddd8d0" }}>—</div>
+                            <div style={{ fontSize: 16, color: "var(--ink-200)" }}>—</div>
                           )}
                         </div>
                       </td>
@@ -276,16 +276,16 @@ export default function ProtocolCompetition() {
         {/* Legend */}
         <div style={{ display: "flex", gap: 20, marginTop: 10, marginBottom: activeCell ? 16 : 0, paddingLeft: 4 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#6b6560" }} />
-            <span style={{ fontSize: 10, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>Core — primary scope</span>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--ink-500)" }} />
+            <span style={{ fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>Core — primary scope</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 10, height: 10, borderRadius: "50%", border: "2px solid #6b6560", background: "transparent", boxSizing: "border-box" }} />
-            <span style={{ fontSize: 10, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>Partial — adjacent coverage</span>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", border: "2px solid var(--ink-500)", background: "transparent", boxSizing: "border-box" }} />
+            <span style={{ fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>Partial — adjacent coverage</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 14, color: "#ddd8d0" }}>—</span>
-            <span style={{ fontSize: 10, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>Not addressed</span>
+            <span style={{ fontSize: 14, color: "var(--ink-200)" }}>—</span>
+            <span style={{ fontSize: 10, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>Not addressed</span>
           </div>
         </div>
 
@@ -312,14 +312,14 @@ export default function ProtocolCompetition() {
               }}>
                 {activeProtocol.name}
               </div>
-              <span style={{ fontSize: 11, color: "#9a9288", fontFamily: "'Courier New',monospace" }}>at</span>
+              <span style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>at</span>
               <div style={{
                 fontSize: 10,
                 fontWeight: 700,
                 color: activeLayer.color,
                 fontFamily: "'Courier New',monospace",
-                background: "rgba(0,0,0,0.04)",
-                border: "1px solid #e0dbd0",
+                background: "color-mix(in srgb, var(--ink-900) 4%, transparent)",
+                border: "1px solid var(--ink-200)",
                 borderRadius: 5,
                 padding: "2px 8px",
               }}>
@@ -328,8 +328,8 @@ export default function ProtocolCompetition() {
               <div style={{
                 fontSize: 9,
                 fontFamily: "'Courier New',monospace",
-                color: "#fff",
-                background: activeData.coverage === "primary" ? activeProtocol.dot : "#9a9288",
+                color: "var(--paper-pure)",
+                background: activeData.coverage === "primary" ? activeProtocol.dot : "var(--ink-500)",
                 borderRadius: 4,
                 padding: "2px 6px",
                 letterSpacing: "0.05em",
@@ -341,7 +341,7 @@ export default function ProtocolCompetition() {
             <p style={{
               fontSize: 12.5,
               lineHeight: 1.72,
-              color: "#3a3530",
+              color: "var(--ink-800)",
               fontFamily: "'Georgia',serif",
               margin: 0,
             }}>
@@ -354,15 +354,15 @@ export default function ProtocolCompetition() {
         <div style={{
           marginTop: activeCell ? 14 : 4,
           padding: "10px 14px",
-          background: "#f0ede8",
+          background: "var(--ink-100)",
           borderRadius: 8,
-          border: "1px solid #ddd8d0",
+          border: "1px solid var(--ink-200)",
           display: "flex",
           gap: 8,
           alignItems: "flex-start",
         }}>
-          <div style={{ fontSize: 13, color: "#9a9288", flexShrink: 0, marginTop: 1 }}>◈</div>
-          <div style={{ fontSize: 11.5, color: "#5a5550", fontFamily: "'Georgia',serif", lineHeight: 1.65, fontStyle: "italic" }}>
+          <div style={{ fontSize: 13, color: "var(--ink-500)", flexShrink: 0, marginTop: 1 }}>◈</div>
+          <div style={{ fontSize: 11.5, color: "var(--ink-700)", fontFamily: "'Georgia',serif", lineHeight: 1.65, fontStyle: "italic" }}>
             None of these protocols is likely to win alone. Layers 1 and 4 will stay owned by the card networks. Layers 2 and 3 are contested between AP2-style open protocols and proprietary implementations. x402 carves out the micro-API-economy niche where card rails have never worked.
           </div>
         </div>

@@ -83,13 +83,13 @@ export default function TapPipelineDiagram() {
           gap: 12px;
           align-items: center;
           margin: 32px 0;
-          color: #1a1814;
+          color: var(--ink-900);
         }
 
         .tap-node,
         .tap-edge {
-          border: 1px solid #d8d3c8;
-          background: #faf9f6;
+          border: 1px solid var(--ink-300);
+          background: var(--paper);
           border-radius: 8px;
         }
 
@@ -110,7 +110,7 @@ export default function TapPipelineDiagram() {
           font-size: 10px;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #8a8278;
+          color: var(--ink-500);
         }
 
         .tap-node strong,
@@ -120,27 +120,27 @@ export default function TapPipelineDiagram() {
         .tap-reject strong {
           font-size: 13px;
           line-height: 1.25;
-          color: #1a1814;
+          color: var(--ink-900);
         }
 
         .tap-origin em {
           font-style: normal;
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
           font-size: 10px;
-          color: #4a4840;
+          color: var(--ink-700);
           overflow-wrap: anywhere;
         }
 
         .tap-arrow {
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-          color: #8a8278;
+          color: var(--ink-500);
           text-align: center;
         }
 
         .tap-edge {
           padding: 16px;
-          background: #f5f3ee;
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+          background: var(--ink-100);
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--paper-pure) 50%, transparent);
         }
 
         .tap-edge-header {
@@ -148,7 +148,7 @@ export default function TapPipelineDiagram() {
           align-items: baseline;
           justify-content: space-between;
           gap: 16px;
-          border-bottom: 1px solid #e0dbd0;
+          border-bottom: 1px solid var(--ink-200);
           padding-bottom: 10px;
           margin-bottom: 12px;
         }
@@ -164,8 +164,8 @@ export default function TapPipelineDiagram() {
           grid-template-columns: 34px 1fr;
           gap: 10px;
           align-items: start;
-          border: 1px solid #e0dbd0;
-          background: #fffdfa;
+          border: 1px solid var(--ink-200);
+          background: var(--paper-pure);
           border-radius: 6px;
           padding: 10px;
         }
@@ -175,7 +175,7 @@ export default function TapPipelineDiagram() {
           margin: 2px 0 0;
           font-size: 12px;
           line-height: 1.35;
-          color: #4a4840;
+          color: var(--ink-700);
         }
 
         .tap-num {
@@ -184,9 +184,9 @@ export default function TapPipelineDiagram() {
           justify-content: center;
           width: 28px;
           height: 24px;
-          border: 1px solid #e0dbd0;
+          border: 1px solid var(--ink-200);
           border-radius: 4px;
-          background: #f5f3ee;
+          background: var(--ink-100);
           letter-spacing: 0;
         }
 
@@ -204,8 +204,8 @@ export default function TapPipelineDiagram() {
         }
 
         .tap-reject {
-          border: 1px solid #e8c2b5;
-          background: #fff6f2;
+          border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--ink-200));
+          background: color-mix(in srgb, var(--danger) 6%, var(--paper-pure));
           border-radius: 6px;
           display: flex;
           flex-direction: column;
@@ -215,18 +215,18 @@ export default function TapPipelineDiagram() {
         }
 
         .tap-reject strong {
-          color: #c05020;
+          color: var(--diagram-3);
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
         }
 
         .tap-pass {
-          border-color: #c6d8c8;
-          background: #f7fbf7;
+          border-color: color-mix(in srgb, var(--success) 25%, var(--ink-200));
+          background: color-mix(in srgb, var(--success) 6%, var(--paper-pure));
         }
 
         .tap-budget {
           margin-top: 12px;
-          border-top: 1px solid #e0dbd0;
+          border-top: 1px solid var(--ink-200);
           padding-top: 10px;
           text-align: right;
         }

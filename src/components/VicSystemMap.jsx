@@ -3,8 +3,8 @@ const systems = [
     id: 'api',
     name: 'VIC API',
     role: 'Credential lifecycle',
-    color: '#1a4a90',
-    bg: '#f1f5fb',
+    color: 'var(--diagram-1)',
+    bg: 'var(--signal-100)',
     items: ['enroll card', 'register instruction', 'retrieve VCN', 'close signal'],
     output: 'instruction_ref + agent-bound token',
   },
@@ -12,8 +12,8 @@ const systems = [
     id: 'tap',
     name: 'TAP',
     role: 'HTTP identity',
-    color: '#0f766e',
-    bg: '#eef8f6',
+    color: 'var(--diagram-2)',
+    bg: 'color-mix(in srgb, var(--diagram-2) 10%, var(--paper-pure))',
     items: ['Ed25519 key', 'RFC 9421 signature', 'nonce check', 'edge verdict'],
     output: 'verified agent request',
   },
@@ -21,8 +21,8 @@ const systems = [
     id: 'vdcap',
     name: 'VDCAP',
     role: 'Data economics',
-    color: '#9a4a18',
-    bg: '#fff4ed',
+    color: 'var(--diagram-3)',
+    bg: 'color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))',
     items: ['device ID', 'IP address', 'email hash', 'AVS data'],
     output: '0.05-0.10% fee incentive',
   },
@@ -70,11 +70,11 @@ export default function VicSystemMap() {
           left: 50%;
           transform: translateX(-50%);
           margin: 32px 0;
-          border: 1px solid #e0dbd0;
+          border: 1px solid var(--ink-200);
           border-radius: 10px;
-          background: #faf9f6;
+          background: var(--paper);
           overflow: hidden;
-          color: #1a1814;
+          color: var(--ink-900);
         }
 
         .vic-map-head {
@@ -82,8 +82,8 @@ export default function VicSystemMap() {
           flex-direction: column;
           gap: 5px;
           padding: 18px 22px;
-          border-bottom: 1px solid #e0dbd0;
-          background: #f5f3ee;
+          border-bottom: 1px solid var(--ink-200);
+          background: var(--ink-100);
         }
 
         .vic-map-head span,
@@ -94,7 +94,7 @@ export default function VicSystemMap() {
           font-size: 10px;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #8a8278;
+          color: var(--ink-500);
         }
 
         .vic-map-head strong {
@@ -107,7 +107,7 @@ export default function VicSystemMap() {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 1px;
-          background: #e0dbd0;
+          background: var(--ink-200);
         }
 
         .vic-card {
@@ -141,7 +141,7 @@ export default function VicSystemMap() {
         .vic-card li {
           font-size: 13px;
           line-height: 1.3;
-          color: #4a4840;
+          color: var(--ink-700);
         }
 
         .vic-card li::before {
@@ -156,31 +156,31 @@ export default function VicSystemMap() {
         }
 
         .vic-output {
-          border: 1px solid rgba(26,24,20,0.12);
+          border: 1px solid color-mix(in srgb, var(--ink-900) 12%, transparent);
           border-radius: 5px;
           padding: 8px 9px;
-          background: rgba(255,255,255,0.55);
-          color: #4a4840;
+          background: color-mix(in srgb, var(--paper-pure) 55%, transparent);
+          color: var(--ink-700);
           line-height: 1.35;
         }
 
         .vic-converge {
           padding: 20px 22px 22px;
-          background: #faf9f6;
+          background: var(--paper);
         }
 
         .vic-line {
           height: 16px;
-          border-left: 1px solid #d8d3c8;
-          border-right: 1px solid #d8d3c8;
-          border-bottom: 1px solid #d8d3c8;
+          border-left: 1px solid var(--ink-300);
+          border-right: 1px solid var(--ink-300);
+          border-bottom: 1px solid var(--ink-300);
           margin: -1px 16% 14px;
         }
 
         .vic-auth {
-          border: 1px solid #d8d3c8;
+          border: 1px solid var(--ink-300);
           border-radius: 8px;
-          background: #fffdfa;
+          background: var(--paper-pure);
           padding: 16px;
         }
 
@@ -192,7 +192,7 @@ export default function VicSystemMap() {
 
         .vic-auth p {
           margin: 0;
-          color: #4a4840;
+          color: var(--ink-700);
           font-size: 13px;
           line-height: 1.45;
         }
