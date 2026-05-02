@@ -503,6 +503,13 @@ section {
   line-height: 1.7;
   font-weight: 300;
 }
+.manifesto-body-single {
+  font-size: 15px;
+  color: var(--ink3);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 560px;
+}
 
 /* ── ABOUT ───────────────────────────── */
 .about-section { border-top: 1px solid var(--border) }
@@ -829,38 +836,10 @@ footer#landing-footer {
 <!-- MANIFESTO -->
 <section class="manifesto-section">
   <div class="section-label">Why this exists</div>
-  <div class="manifesto-grid">
-
-    <div class="manifesto-item">
-      <div class="manifesto-num">01</div>
-	      <div class="manifesto-title">The documentation gap is real</div>
-	      <div class="manifesto-body">
-	        Public announcements explain the protocols, but the architecture
-	        between agents, merchants, PSPs, networks, and issuers is still
-	        scattered. This is a source-checked map of that stack.
-	      </div>
-	    </div>
-
-    <div class="manifesto-item">
-      <div class="manifesto-num">02</div>
-      <div class="manifesto-title">Diagrams as primary source</div>
-      <div class="manifesto-body">
-        Every post ships a new interactive diagram built with payarch.
-        The architecture is the explanation — text annotates what
-        the diagram already shows.
-      </div>
-    </div>
-
-    <div class="manifesto-item">
-      <div class="manifesto-num">03</div>
-      <div class="manifesto-title">Written by someone building it</div>
-      <div class="manifesto-body">
-        Not summarized from press releases. The protocol analysis comes
-        from reading the specs, the GitHub repos, and the
-        primary documentation — then explaining it clearly.
-      </div>
-    </div>
-
+  <div class="manifesto-body-single">
+    Curiosity, mostly. And a genuine belief that there is a documentation gap between
+    what the protocols announce and what the architecture actually looks like
+    end to end.
   </div>
 </section>
 
