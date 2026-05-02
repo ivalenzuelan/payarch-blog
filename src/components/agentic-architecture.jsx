@@ -8,7 +8,7 @@ const ACTOR_LAYOUT = {
   agent: { id: "agent", band: "Agent Layer", layer: 1, col: 0, nodeId: "n-agent-runtime" },
   wallet: { id: "wallet", band: "Agent Layer", layer: 1, col: 2, nodeId: "n-agent-wallet" },
   keystore: { id: "keystore", band: "Trust & Payment Network", layer: 2, col: 0, nodeId: "n-tap", label: "Agent Key Registry", sub: "TAP · public keys · agent registry" },
-  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · Visa Token Service" },
+  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · VisaNet · Token Service" },
   issuer: { id: "issuer", band: "Payment Rails", layer: 3, col: 2, nodeId: "n-issuer" },
   acquirer: { id: "acquirer", band: "Payment Rails", layer: 4, col: 1, nodeId: "n-acquirer" },
   merchant: { id: "merchant", band: "Payment Rails", layer: 5, col: 0, nodeId: "n-merchant" },
@@ -17,10 +17,10 @@ const ACTOR_LAYOUT = {
 const CONNECTION_SPECS = [
   { from: "consumer", to: "agent",    label: "delegates intent",       type: "delegate",  phase: "enrollment" },
   { from: "consumer", to: "wallet",   label: "passkey enrollment",     type: "delegate",  phase: "enrollment" },
-  { from: "agent",    to: "vic",      label: "purchase instruction",   type: "api",       phase: "checkout" },
-  { from: "agent",    to: "merchant", edgeId: "e-agent-to-merchant",   type: "identity",  phase: "checkout" },
-  { from: "merchant", to: "keystore", label: "fetch agent public key", type: "identity",  phase: "checkout" },
-  { from: "merchant", to: "vic",      label: "retrieve credential",    type: "api",       phase: "checkout" },
+  { from: "agent",    to: "vic",      label: "1 · purchase instruction", type: "api",      phase: "checkout" },
+  { from: "agent",    to: "merchant", label: "2 · checkout request",    type: "identity", phase: "checkout" },
+  { from: "merchant", to: "keystore", label: "3 · public key (cached)", type: "identity", phase: "checkout", dash: "5 4" },
+  { from: "merchant", to: "vic",      label: "4 · retrieve credential", type: "api",      phase: "checkout" },
   { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment",  phase: "rails", labelDy: -18 },
   { from: "acquirer", to: "vic",      edgeId: "e-acquirer-to-visa",    type: "payment",   phase: "rails" },
   { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment",   phase: "rails", labelDy: -14 },
@@ -53,16 +53,16 @@ const NODE_ICON_TINT = {
 const LAYER_BANDS = [
   { y: 20, h: 130, label: "Consumer", color: "color-mix(in srgb, var(--diagram-3) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-3) 18%, transparent)" },
   { y: 166, h: 130, label: "Agent Layer", color: "color-mix(in srgb, var(--diagram-4) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-4) 18%, transparent)" },
-  { y: 312, h: 130, label: "Trust & Payment Network", color: "color-mix(in srgb, var(--diagram-1) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-1) 18%, transparent)" },
-  { y: 458, h: 460, label: "Payment Rails & Merchant", color: "color-mix(in srgb, var(--success) 5%, transparent)", border: "color-mix(in srgb, var(--success) 15%, transparent)" },
+  { y: 312, h: 130, label: "Trust & Network Services", color: "color-mix(in srgb, var(--diagram-1) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-1) 18%, transparent)" },
+  { y: 458, h: 375, label: "Payment Rails & Merchant", color: "color-mix(in srgb, var(--success) 5%, transparent)", border: "color-mix(in srgb, var(--success) 15%, transparent)" },
 ]
 
 const EDGE_STYLE = {
-  delegate: { stroke: "var(--ink-400)", glow: "var(--ink-300)", dash: "5 4", label: "var(--ink-500)", animDur: "4s", dotR: 2.5 },
+  delegate: { stroke: "var(--ink-400)", glow: "var(--ink-300)", dash: "5 4", label: "var(--ink-500)", animDur: "2.5s", dotR: 2.5 },
   api: { stroke: "var(--diagram-4)", glow: "var(--diagram-4)", dash: "none", label: "var(--diagram-4)", animDur: "1.8s", dotR: 2.5 },
   identity: { stroke: "var(--diagram-1)", glow: "var(--diagram-1)", dash: "none", label: "var(--diagram-1)", animDur: "2.2s", dotR: 2.5 },
   payment: { stroke: "var(--diagram-1)", glow: "var(--diagram-1)", dash: "none", label: "var(--diagram-1)", animDur: "1.9s", dotR: 2.5 },
-  response: { stroke: "var(--success)", glow: "var(--success)", dash: "4 3", label: "var(--success)", animDur: "2.7s", dotR: 2 },
+  response: { stroke: "var(--success)", glow: "var(--success)", dash: "4 3", label: "var(--success)", animDur: "2.7s", dotR: 2.5 },
 }
 
 const PHASES = [
@@ -73,11 +73,11 @@ const PHASES = [
 ]
 
 const COL_X = { 0: 58, 1: 278, 2: 498 }
-const LAYER_Y = { 0: 50, 1: 196, 2: 342, 3: 493, 4: 653, 5: 813 }
+const LAYER_Y = { 0: 50, 1: 196, 2: 342, 3: 493, 4: 613, 5: 733 }
 const NODE_W = 202
 const NODE_H = 70
 const SVG_W = 760
-const SVG_H = 940
+const SVG_H = 860
 
 const ICON = {
   consumer: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
@@ -305,18 +305,18 @@ function buildActors(diagram) {
 }
 
 function buildConnections(diagram) {
-  return CONNECTION_SPECS.map((connection) => ({
-    ...connection,
-    label: connection.edgeId
-      ? getEdgeById(diagram, connection.edgeId)?.label ?? connection.label
-      : connection.label,
-  }))
+  return CONNECTION_SPECS.map((connection) => {
+    const diagramLabel = connection.edgeId
+      ? getEdgeById(diagram, connection.edgeId)?.label ?? null
+      : null
+    return { ...connection, label: connection.label ?? diagramLabel }
+  })
 }
 
 export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
   const [selected, setSelected] = useState(null)
   const [hovered, setHovered] = useState(null)
-  const [activePhase, setActivePhase] = useState("all")
+  const [activePhase, setActivePhase] = useState("enrollment")
   const [isMobile, setIsMobile] = useState(false)
 
   const actors = buildActors(diagram)
@@ -507,7 +507,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                       fill="none"
                       stroke={edgeStyle.stroke}
                       strokeWidth={isRelated ? 1.8 : 1.1}
-                      strokeDasharray={edgeStyle.dash}
+                      strokeDasharray={connection.dash ?? edgeStyle.dash}
                       strokeOpacity={isRelated ? 1 : 0.6}
                       markerEnd={`url(#arr-${connection.type})`}
                       style={{ transition: "stroke-width 0.2s, stroke-opacity 0.2s" }}
