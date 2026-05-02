@@ -71,6 +71,8 @@ The issuer's question changes from "is the cardholder here right now?" to "does 
 
 ## The four primitives
 
+Where the [VIC architecture post](/blog/visa-intelligent-commerce-architecture) maps Visa's three building blocks — VIC API, TAP, and DCAP — this post maps the four trust primitives any agent payment system has to rebuild, regardless of network or protocol. They are composable requirements, not a Visa-specific stack.
+
 **Cryptographic agent identity.** A verifier accepts the request because an accountable agent signed it, not because it resembled a human session.
 
 **Agent-bound credential.** A payment credential should be scoped to the agent and context that received it. A stolen token without the agent's key or authorization context should not be sufficient.

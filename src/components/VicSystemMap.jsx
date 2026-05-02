@@ -19,7 +19,7 @@ const systems = [
   },
   {
     id: 'vdcap',
-    name: 'VDCAP',
+    name: 'DCAP',
     role: 'Auth enrichment',
     color: 'var(--diagram-3)',
     bg: 'color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))',

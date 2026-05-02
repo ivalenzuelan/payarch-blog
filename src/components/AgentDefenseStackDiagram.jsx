@@ -91,12 +91,12 @@ export default function AgentDefenseStackDiagram() {
       <div className="agent-defense-root">
         <div>
           <span className="root-label">Old root signal</span>
-          <strong>human present at transaction time</strong>
+          <strong>human present and reactive at transaction time</strong>
         </div>
         <div className="root-break">removed by delegation</div>
         <div>
           <span className="root-label">New root signal</span>
-          <strong>human authorized policy before transaction time</strong>
+          <strong>human who delegated, with policy and evidence, before transaction time</strong>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export default function AgentDefenseStackDiagram() {
       </div>
 
       <div className="agent-defense-detail" style={{ "--accent": active.color, "--tone": active.tone }}>
-        <span>{active.id} architectural invariant</span>
+        <span>{active.id} trust invariant</span>
         <strong>{active.primitive}</strong>
         <p>{active.detail}</p>
       </div>
