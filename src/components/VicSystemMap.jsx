@@ -5,8 +5,8 @@ const systems = [
     role: 'Credential lifecycle',
     color: 'var(--diagram-1)',
     bg: 'var(--signal-100)',
-    items: ['enroll card', 'register instruction', 'retrieve VCN', 'close signal'],
-    output: 'instruction_ref + agent-bound token',
+    items: ['enroll card', 'create scoped instruction', 'retrieve tokenized credential', 'record outcome'],
+    output: 'scoped credential + payment context',
   },
   {
     id: 'tap',
@@ -58,7 +58,7 @@ export default function VicSystemMap() {
         <div className="vic-auth">
           <span>Convergence point</span>
           <strong>ISO 8583 authorization</strong>
-          <p>F002 carries the token, F022 marks agent mode, F048 carries identity and enriched data, private instruction reference binds the authorization to the original instruction.</p>
+          <p>The public sources support tokenized credentials and richer authorization context, but they do not publish exact ISO 8583 fields, private data elements, or response-code rules for agentic transactions.</p>
         </div>
       </div>
 

@@ -9,10 +9,10 @@ const phases = [
   {
     group: 'Purchase',
     steps: [
-      ['03', 'Instruction registered', 'VIC API', 'Passkey assertion creates instruction_ref for merchant, amount, and item.'],
+      ['03', 'Instruction registered', 'VIC API', 'Passkey assertion creates a scoped payment instruction for merchant, amount, and item.'],
       ['04', 'Agent reaches checkout', 'TAP', 'Signed HTTP request is verified at the edge before merchant origin.'],
       ['05', 'Credential retrieved', 'VIC API', 'Merchant receives VCN plus enriched data enrichment data.'],
-      ['06', 'Authorization sent', 'ISO 8583', 'F002, F022, F048, and private instruction reference carry the new agent context.'],
+      ['06', 'Authorization sent', 'ISO 8583', 'Tokenized credential and agent context travel as network-specific authorization metadata.'],
       ['07', 'Issuer approves', 'card network + issuer', 'Agent policy checks replace the human 3DS path.'],
       ['08', 'Commerce signal closes loop', 'VIC API', 'Order outcome feeds dispute evidence and fraud intelligence.'],
     ],

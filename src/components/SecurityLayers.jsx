@@ -30,7 +30,7 @@ const LAYERS = [
       "Identical pattern to credential stuffing attack",
     ],
     failNote:"Blocked before generating an authorization request.",
-    visaFix:{ tool:"TAP JWT", detail:"Ed25519-signed credential from Visa (short-lived) validated locally in local verification. Merchant sees consumer_recognized + instruction_ref." },
+    visaFix:{ tool:"TAP signed request", detail:"Ed25519-signed HTTP request verified against a registered public key. Public material supports request integrity, freshness, nonces, and action tags; exact verdict format is implementation-specific." },
     mcFix:  { tool:"CDN verification", detail:"Cloudflare verifies agent at edge via Web Bot Auth — before the request reaches merchant infrastructure. No merchant code change." },
   },
   {
@@ -43,7 +43,7 @@ const LAYERS = [
       { name:"AVS matching",        check:"Address verified against issuer records" },
       { name:"CVV validation",      check:"Card code matches issuer data" },
       { name:"IP reputation",       check:"Residential IP · not on blacklist" },
-      { name:"F022 = 01",           check:"Manual key entry — ecommerce standard" },
+      { name:"CNP entry context",   check:"Ordinary ecommerce context" },
     ],
     fails:[
       "No AVS match — agent submits credentials programmatically",
@@ -52,8 +52,8 @@ const LAYERS = [
       "Machine-speed pattern reads as coordinated attack",
     ],
     failNote:"The legacy card-not-present signal is the root cause. It gives downstream systems no clean way to distinguish delegated agent checkout from ordinary browser checkout.",
-    visaFix:{ tool:"agent-context flag + F048 + private instruction reference", detail:"Three new ISO 8583 fields: agent-context flag (agent-initiated) · F048: agent identifier · private instruction reference: TAP instruction hash. Propagate agent context through entire chain." },
-    mcFix:  { tool:"Agentic Token + F022 equivalent", detail:"Agent identity embedded in the token metadata itself — not in message fields. New POS Entry Mode value signals agent rules downstream." },
+    visaFix:{ tool:"authorization metadata", detail:"Tokenized credential, agent identity evidence, and consumer authorization context can travel as network-specific metadata. Exact Visa field numbers and values are not public." },
+    mcFix:  { tool:"Agentic Token metadata", detail:"Agent identity can be bound to token or authorization metadata. Public sources do not disclose a full field-level map." },
   },
   {
     id:"network", num:"03",
@@ -74,7 +74,7 @@ const LAYERS = [
       "No way to validate consumer pre-authorized this specific intent",
     ],
     failNote:"The most powerful models in the entire chain were built to catch this exact pattern.",
-    visaFix:{ tool:"VIC instruction registry", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount or merchant tampering can trigger a decline. agent-context flag triggers agent risk model." },
+    visaFix:{ tool:"VIC instruction context", detail:"The network can compare payment context with a pre-authorized instruction or policy. Public material does not define exact private fields or response-code behavior." },
     mcFix:  { tool:"Agentic Token binding", detail:"Network validates token was issued for this specific agent + consumer + context. Token carries agent proof through the entire authorization chain." },
   },
   {
@@ -96,7 +96,7 @@ const LAYERS = [
       "No fallback path exists — the sale is irreversibly lost",
     ],
     failNote:"Step-up is unrecoverable. There is no path back once 3DS is triggered for an agent.",
-    visaFix:{ tool:"Agent spending policy + Passkey", detail:"FIDO2 Passkey assertion at instruction time, not transaction time. agent-context flag → issuer loads agent policy. Deterministic checks: balance ✓ · limit ✓ · category ✓ · velocity ✓. No 3DS." },
+    visaFix:{ tool:"Agent spending policy + Passkey", detail:"FIDO2 Passkey assertion can happen before checkout. Issuer policy can evaluate balance, limit, category, velocity, and token status without requiring a live checkout challenge." },
     mcFix:  { tool:"Mastercard Payment Passkey", detail:"Pre-authorized spending policy replaces step-up entirely. Consumer proves intent once with biometric Passkey. Issuer runs policy checks, not real-time challenges." },
   },
 ]

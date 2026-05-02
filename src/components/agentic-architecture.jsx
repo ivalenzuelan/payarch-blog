@@ -17,8 +17,8 @@ const ACTOR_LAYOUT = {
 const CONNECTION_SPECS = [
   { from: "consumer", to: "agent", label: "delegates intent", type: "delegate" },
   { from: "consumer", to: "wallet", label: "pre-authorizes + Passkey", type: "delegate" },
-  { from: "agent", to: "vic", label: "get VCN credentials", type: "api" },
-  { from: "wallet", to: "vic", label: "VCN bound to agent_id", type: "payment" },
+  { from: "agent", to: "vic", label: "request credential", type: "api" },
+  { from: "wallet", to: "vic", label: "credential scope", type: "payment" },
   { from: "agent", to: "merchant", edgeId: "e-agent-to-merchant", type: "identity" },
   { from: "merchant", to: "keystore", label: "verify Ed25519 signature", type: "identity" },
   { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment" },
@@ -369,13 +369,13 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
               ))}
             </div>
             <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)" }}>
-              {ACTOR_ORDER.length} actors · {connections.length} connections · {diagram.metadata?.totalLatency ?? "~1,100ms"} end to end
+              {ACTOR_ORDER.length} actors · {connections.length} connections · {diagram.metadata?.totalLatency ?? "timing varies"} end to end
             </div>
           </div>
         )}
         {isMobile && (
           <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)" }}>
-            {ACTOR_ORDER.length} actors · {connections.length} connections · {diagram.metadata?.totalLatency ?? "~1,100ms"} · tap any node
+            {ACTOR_ORDER.length} actors · {connections.length} connections · {diagram.metadata?.totalLatency ?? "timing varies"} · tap any node
           </div>
         )}
       </div>
@@ -679,7 +679,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                 </div>
                 <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--ink-200)" }}>
                   {[
-                    [diagram.metadata?.totalLatency ?? "~1,100ms", "end to end"],
+                    [diagram.metadata?.totalLatency ?? "timing varies", "end to end"],
                     [diagram.settlementCycle ?? "T+1", "settlement"],
                     ["agent-context flag", "agent flag"],
                     [getNode(diagram, "n-tap")?.data?.properties?.algorithm?.split(" ")[0] ?? "Ed25519", "local signing"],

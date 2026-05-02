@@ -84,7 +84,7 @@ const phases = [
       {
         num: "09",
         actor: "Network",
-        action: "Matches private instruction reference to instruction",
+        action: "Matches authorization context to instruction",
         detail: "Amount and merchant tampering fails before issuer routing.",
         primitives: ["P3"],
       },
@@ -100,10 +100,10 @@ const phases = [
 ];
 
 const fields = [
-  ["F002", "agent-bound token", "credential"],
-  ["entry", "agent context", "routing signal"],
-  ["F048", "agent identity", "context"],
-  ["private instruction reference", "instruction hash", "integrity"],
+  ["token", "agent-bound credential", "credential"],
+  ["context", "agent initiation", "routing signal"],
+  ["identity", "agent evidence", "context"],
+  ["scope", "instruction binding", "integrity"],
 ];
 
 const primitiveTone = {

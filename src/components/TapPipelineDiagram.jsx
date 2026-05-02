@@ -1,5 +1,5 @@
 const checks = [
-  ['03', 'Timestamp', 'created within +/-300s'],
+  ['03', 'Timestamp', 'fresh within verifier policy'],
   ['04', 'Nonce', 'not seen before'],
   ['05', 'Domain', '@authority matches Host'],
   ['06', 'Signature', 'Ed25519.verify(sig, base)'],
@@ -34,7 +34,7 @@ export default function TapPipelineDiagram() {
             <span className="tap-num">02</span>
             <div>
               <strong>Fetch public key</strong>
-              <p>Read `agent registry/public-key registry`; cache for 5 minutes.</p>
+              <p>Read the registered public key for the signing key id.</p>
             </div>
           </div>
 
@@ -59,8 +59,8 @@ export default function TapPipelineDiagram() {
           <div className="tap-step tap-pass">
             <span className="tap-num">07</span>
             <div>
-              <strong>Inject verification headers</strong>
-              <p>`X-Tap-Verified: true` and agent metadata continue to origin.</p>
+              <strong>Pass trust metadata</strong>
+              <p>Forward an implementation-specific agent trust result to origin.</p>
             </div>
           </div>
         </div>
@@ -72,8 +72,8 @@ export default function TapPipelineDiagram() {
 
       <div className="tap-node tap-origin">
         <span>Merchant origin</span>
-        <strong>X-Tap-Verified: true</strong>
-        <em>X-Tap-Agent-Id: agent-001</em>
+        <strong>verified agent context</strong>
+        <em>exact header names are implementation-specific</em>
       </div>
 
       <style>{`

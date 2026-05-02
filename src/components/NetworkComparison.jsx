@@ -9,20 +9,20 @@ const ROWS = [
   },
   {
     category: "Token type",
-    visa: { val: "Virtual Card Number (VCN)", note: "Agent-specific network token bound to agent_id · looks like card number · placed in F002" },
+    visa: { val: "Tokenized credential", note: "Public VIC material emphasizes tokenized payment credentials and consumer controls; exact payload and field mapping are not public." },
     mc:   { val: "Mastercard Agentic Token", note: "Agent binding embedded in token metadata · extends existing Mastercard token infrastructure" },
     diff: true,
   },
   {
     category: "Identity protocol",
-    visa: { val: "Trusted Agent Protocol (TAP)", note: "HTTP Message Signatures (RFC 9421) · Ed25519 · JWT issued to agent · short-lived TTL · developer.visa.com" },
-    mc:   { val: "Agent Pay Acceptance Framework", note: "Web Bot Auth (RFC 9421) at CDN layer · Cloudflare verification · Dynamic Token Verification Code" },
+    visa: { val: "Trusted Agent Protocol (TAP)", note: "HTTP Message Signatures (RFC 9421) · Ed25519 examples · registered-agent request verification." },
+    mc:   { val: "Agent Pay Acceptance Framework", note: "Public announcements point to agent identity, tokenization, and partner acceptance infrastructure." },
     diff: true,
   },
   {
     category: "Merchant integration",
-    visa: { val: "TAP SDK — explicit", note: "Merchant validates JWT locally local verification · receives consumer context (consumer_recognized) · sees full instruction_ref" },
-    mc:   { val: "CDN layer — no-code", note: "Cloudflare verifies agent before request reaches merchant · existing checkout form unchanged · Dynamic Token Verification Code in standard card fields" },
+    visa: { val: "TAP verifier", note: "Merchant or edge layer can use signed-request verification before checkout. Exact headers, verdicts, and token formats are implementation-specific." },
+    mc:   { val: "Acceptance framework", note: "Agent recognition and tokenized checkout support are announced publicly; exact merchant implementation details remain controlled by partners." },
     diff: true,
   },
   {
@@ -33,8 +33,8 @@ const ROWS = [
   },
   {
     category: "ISO 8583 field",
-    visa: { val: "agent-context flag, F048, private instruction reference", note: "agent-context flag = agent-initiated POS entry mode · F048 = agent identifier · private instruction reference = TAP instruction reference hash" },
-    mc:   { val: "Equivalent modifications", note: "Agent-initiated POS entry mode · agent identifier · instruction reference · exact values in Agent Pay technical spec (non-public)" },
+    visa: { val: "not publicly mapped", note: "Safe claim: token and agent evidence can become authorization metadata. Unsafe claim: exact data elements, field values, or response codes." },
+    mc:   { val: "not publicly mapped", note: "Safe claim: token metadata and authorization context can support agent-aware processing. Exact field values are not public." },
     diff: true,
   },
   {
@@ -46,13 +46,13 @@ const ROWS = [
   {
     category: "AI platform partners",
     visa: { val: "agent platforms and AI assistants", note: "Public examples show Visa AI tooling, tokenization demos, and partner-controlled access paths." },
-    mc:   { val: "Microsoft, OpenAI, Google, PayPal", note: "Microsoft Azure OpenAI + Copilot Studio · OpenAI Instant Checkout (September 2025) · Google Gemini checkout · PayPal partnership October 2025" },
+    mc:   { val: "announced partner ecosystem", note: "Mastercard has announced agent-commerce partnerships; exact production access remains partner-controlled." },
     diff: true,
   },
   {
     category: "Acquirer partners",
-    visa: { val: "Stripe, Adyen, Worldpay, Nuvei", note: "Stripe PaymentIntents → VIC · Adyen TokenConnect · Worldpay platform integration" },
-    mc:   { val: "Braintree, Checkout.com, Fiserv", note: "Fiserv: first major processor to adopt Agent Pay Acceptance Framework · Braintree + Checkout.com announced April 2025" },
+    visa: { val: "partner-controlled access", note: "Use published Visa partner/API material only; avoid naming unverified processor integrations as production facts." },
+    mc:   { val: "partner-controlled access", note: "Public announcements name ecosystem partners, but implementation status varies by partner and market." },
     diff: true,
   },
   {
@@ -69,8 +69,8 @@ const ROWS = [
   },
   {
     category: "Settlement",
-    visa: { val: "T+1 · standard Visa clearing", note: "Unchanged from traditional model · same ISO 8583 clearing file · dispute window 120 days + VIC commerce signals as evidence" },
-    mc:   { val: "T+1 · standard Mastercard clearing", note: "Unchanged from traditional model · existing chargeback rules apply · enhanced dispute evidence from Agentic Token metadata" },
+    visa: { val: "existing card lifecycle", note: "Authorization, clearing, settlement, refunds, and disputes remain on existing card-rail operations unless a program says otherwise." },
+    mc:   { val: "existing card lifecycle", note: "Authorization, clearing, settlement, refunds, and disputes remain on existing card-rail operations unless a program says otherwise." },
     diff: false,
   },
 ]

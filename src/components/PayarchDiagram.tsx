@@ -31,12 +31,12 @@ const EDGE_LABELS: Record<string, string> = {
   'e-agent-to-tap':         'DID + intent',
   'e-wallet-to-tap':        'token ref',
   'e-tap-validates':        'VIC registry',
-  'e-tap-to-merchant':      'TAP JWT · short-lived',
+  'e-tap-to-merchant':      'trust result',
   'e-agent-to-merchant':    'checkout + TAP',
   'e-merchant-to-acquirer': 'PaymentIntent',
-  'e-acquirer-to-visa':     'MTI 0100 · agent-context flag',
+  'e-acquirer-to-visa':     'authorization metadata',
   'e-visa-to-issuer':       '0100 → issuer',
-  'e-issuer-to-visa':       'MTI 0110 · F039=00',
+  'e-issuer-to-visa':       'authorization response',
 }
 
 interface Props {
@@ -275,7 +275,7 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
                 {stepIdx + 1} / {steps.length}
               </span>
               <span style={{ fontFamily: 'monospace', fontSize: 10, color: C.textTer }}>
-                {diagram.metadata?.totalLatency ?? '~1100ms'}
+                {diagram.metadata?.totalLatency ?? 'timing varies'}
               </span>
             </div>
             <div style={{ fontSize: 15, fontWeight: 500, color: C.text, lineHeight: 1.3, textTransform: 'capitalize' as const }}>

@@ -19,7 +19,7 @@ const REBUILD = [
       { tool:"Device fingerprint", broken:"Headless Chrome — perfect bot signature" },
       { tool:"Velocity / IP check",broken:"AWS IP · machine speed — flags as attack" },
     ],
-    visa:{ tool:"TAP JWT", standard:"RFC 9421", detail:"Ed25519-signed JWT from agent registry · validated locally in local verification · consumer_recognized flag · instruction_ref links to pre-authorized intent" },
+    visa:{ tool:"TAP signed request", standard:"RFC 9421", detail:"Ed25519-signed request verified against a registered public key. Public TAP material supports request integrity, freshness, nonces, and action tags; exact verdict formats are implementation-specific." },
     mc:  { tool:"CDN agent verification", standard:"Web Bot Auth", detail:"Cloudflare verifies cryptographic agent identity at edge · unregistered agents never reach merchant · no code change required" },
   },
   {
@@ -27,11 +27,11 @@ const REBUILD = [
     question:"Does the transaction signal match?",
     before:[
       { tool:"AVS / CVV match",   broken:"Agent submits programmatically — no address to verify" },
-      { tool:"F022 = 01",         broken:"POS Entry Mode 'manual key entry' in legacy ecommerce — triggers human rules downstream" },
+      { tool:"CNP entry signal",  broken:"Ordinary ecommerce context gives downstream systems no clean agent signal" },
       { tool:"IP reputation",     broken:"Data center IP triggers every heuristic" },
     ],
-    visa:{ tool:"agent-context flag + F048 + private instruction reference", standard:"ISO 8583 · VIC", detail:"agent-context flag = agent-initiated (new value) · F048 = agent identifier · private instruction reference = TAP instruction hash. All three propagate agent context through the entire downstream chain." },
-    mc:  { tool:"Agentic Token + F022 equiv.", standard:"ISO 8583 · MC", detail:"Agent identity embedded in Agentic Token metadata — not in message fields. New POS Entry Mode value tells issuer: load agent policy, not human rules." },
+    visa:{ tool:"authorization metadata", standard:"ISO 8583 · VIC", detail:"Tokenized credential, agent identity evidence, and consumer authorization context can travel as network-specific authorization metadata. Exact field numbers and values are not public specifications." },
+    mc:  { tool:"Agentic Token metadata", standard:"ISO 8583 · MC", detail:"Agent identity can be bound to token or authorization metadata. Public announcements do not disclose a full open field-value mapping." },
   },
   {
     id:"network", num:"03", actor:"Card Network", color:"var(--success)",
@@ -41,7 +41,7 @@ const REBUILD = [
       { tool:"Distributed detection",broken:"Agent shopping = bot testing cards across merchants" },
       { tool:"No pre-auth registry", broken:"No way to verify consumer already approved this intent" },
     ],
-    visa:{ tool:"VIC instruction registry", standard:"Visa Intelligent Commerce", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount or merchant tampering can trigger a decline. agent-context flag triggers agent-aware ML model." },
+    visa:{ tool:"VIC instruction context", standard:"Visa Intelligent Commerce", detail:"The network can compare payment context against a pre-authorized instruction or policy. Public material does not define exact private fields or decline-code behavior." },
     mc:  { tool:"Agentic Token binding", standard:"Mastercard Token Service", detail:"Network validates token was issued for this exact agent + consumer + context. Token carries cryptographic proof through entire authorization chain." },
   },
   {
@@ -52,8 +52,8 @@ const REBUILD = [
       { tool:"3DS step-up auth",        broken:"SMS challenge sent — agent cannot respond in real time" },
       { tool:"Human-in-loop fallback",  broken:"Transaction fails permanently. No recovery path." },
     ],
-    visa:{ tool:"Agent policy + FIDO2 Passkey", standard:"FIDO2 · VIC Auth API", detail:"Passkey assertion at instruction time, not transaction time. agent-context flag → issuer loads: balance ✓ · limit ✓ · category ✓ · velocity ✓. No step-up authentication." },
-    mc:  { tool:"Payment Passkey + spending policy", standard:"FIDO2 · MC Agent Pay", detail:"Consumer proves intent once with biometric Passkey. Pre-authorized spending policy loaded at F022 signal. Deterministic rules replace probabilistic scoring and 3DS entirely." },
+    visa:{ tool:"Agent policy + FIDO2 Passkey", standard:"FIDO2 · VIC", detail:"Passkey-backed authorization can happen before checkout. Issuers can use token status, amount, category, velocity, and policy context without relying on a live human step-up at checkout." },
+    mc:  { tool:"Payment Passkey + spending policy", standard:"FIDO2 · MC Agent Pay", detail:"Consumer intent can be proven before the agent spends. The issuer can evaluate policy context rather than asking for a real-time challenge." },
   },
 ]
 

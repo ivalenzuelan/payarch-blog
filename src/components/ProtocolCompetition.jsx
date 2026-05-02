@@ -59,15 +59,15 @@ const LAYERS = [
 // coverage: "primary" | "partial" | "none"
 const MATRIX = {
   tap: {
-    1: { coverage: "primary", note: "Core purpose. Ed25519 keypairs, RFC 9421 HTTP Message Signatures, 7-stage CDN verification pipeline. Every request cryptographically bound to a registered agent identity." },
-    2: { coverage: "partial", note: "Consumer Recognition JWT carries delegation scope ID and agent DID — verifies the agent was authorized by a specific consumer. Does not define the full mandate chain." },
+    1: { coverage: "primary", note: "Core purpose. Registered public keys and RFC 9421 HTTP Message Signatures bind each covered request to an agent identity." },
+    2: { coverage: "partial", note: "TAP can contribute agent identity and request-integrity evidence, but public material does not define a complete cross-network mandate chain." },
     3: { coverage: "none", note: "TAP does not enforce business policy. Its job is identity verification; business policy belongs in the wallet, agent platform, or AP system above it." },
-    4: { coverage: "primary", note: "TAP evidence can be represented in private authorization metadata. Agent context can be signaled to downstream risk systems, and token references can link the credential to the agent session for audit." },
-    5: { coverage: "partial", note: "data enrichment incentivizes L3 data enrichment (possible interchange reduction) — adjacent to TAP but a separate Visa program. TAP itself does not define settlement." },
+    4: { coverage: "partial", note: "TAP evidence can inform authorization context, but exact card-network fields and values are not public specifications." },
+    5: { coverage: "partial", note: "Data enrichment and settlement incentives are adjacent card-program topics. TAP itself does not define settlement." },
   },
   mc: {
     1: { coverage: "primary", note: "Know Your Agent (KYA) verification with tiered levels. Agent platform registers as MDES Token Requestor. Agentic tokens carry DSRP cryptogram + Agentic Commerce Identifiers in clearing." },
-    2: { coverage: "primary", note: "Verifiable Intent — 3-layer SD-JWT credential chain: L1 (identity) → L2 (user→agent, constrained) → L3 (agent→network, specific transaction). Each layer is a strict subset of the layer above." },
+    2: { coverage: "primary", note: "Verifiable Intent is Mastercard's delegation model. Public descriptions emphasize constrained user-to-agent and agent-to-network authority." },
     3: { coverage: "partial", note: "Intent Credential encodes constraints (merchant category, price ceiling, 7-day window). Enforcement is at credential verification — not a real-time policy engine." },
     4: { coverage: "primary", note: "Agentic tokens extend MDES tokenization. Lifecycle identifiers can tie related messages back to the original authorization event." },
     5: { coverage: "partial", note: "Agent metadata can support separate behavioral baselines for agent and human transactions. Not a settlement mechanism itself." },

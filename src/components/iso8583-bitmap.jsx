@@ -142,8 +142,8 @@ const FIELD_NAMES = [
   "MAC (Secondary)",                 // 128
 ]
 
-// Fields that are new or modified for agent transactions
-const AGENT_FIELDS = new Set([22, 25, 41, 48, 126])
+// Illustrative areas that may carry agent context; not a public Visa field map.
+const AGENT_FIELDS = new Set([2, 41, 64])
 
 // Preset bitmaps
 const PRESETS = {
@@ -151,13 +151,13 @@ const PRESETS = {
     label: "Human checkout",
     sub: "MTI 0100",
     bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 18, 22, 25, 37, 38, 39, 41, 42, 43, 49, 64]),
-    note: "card-not-present entry signal (manual entry). No F048 agent ID, no private instruction reference TAP hash. Standard ecommerce authorization request.",
+    note: "Standard ecommerce authorization request with ordinary card-not-present context.",
   },
   agent: {
     label: "Agent checkout",
-    sub: "MTI 0100 · agent-context flag",
-    bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 18, 22, 25, 37, 38, 39, 41, 42, 43, 48, 49, 64, 126]),
-    note: "agent-context flag (agent-initiated). Adds F048 (agent ID: AGNT:agent-001) and private instruction reference (TAP instruction hash). Secondary bitmap required for private instruction reference.",
+    sub: "MTI 0100 · illustrative context",
+    bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 18, 22, 25, 37, 38, 39, 41, 42, 43, 49, 64]),
+    note: "Illustrates that tokenized credentials and agent context may alter authorization metadata. Exact fields and values are network-specific and not public.",
   },
   settlement: {
     label: "Batch settlement",
@@ -169,7 +169,7 @@ const PRESETS = {
     label: "Reversal",
     sub: "MTI 0400",
     bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 22, 37, 38, 39, 41, 42, 49, 90]),
-    note: "F039=00 reversal. Adds F090 (original data elements) to reference the transaction being reversed.",
+    note: "Illustrative reversal message. Original-data references and response details are implementation-specific.",
   },
 }
 

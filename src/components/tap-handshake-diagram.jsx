@@ -1,102 +1,98 @@
 import { useState, useEffect, useRef } from "react"
 
 const ACTORS = [
-  { id: "agent", label: "AI Agent", sub: "agent platform · Claude", color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" },
-  { id: "visa", label: "Visa TAP", sub: "agent registry · Cloudflare", color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))" },
-  { id: "merchant", label: "Merchant", sub: "head.com · TAP SDK", color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" },
+  { id: "agent", label: "AI Agent", sub: "registered key", color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" },
+  { id: "visa", label: "TAP verifier", sub: "key registry · edge/backend", color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))" },
+  { id: "merchant", label: "Merchant", sub: "checkout integration", color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" },
 ]
 
 const STEPS = [
   {
     from: "agent", to: "visa",
-    arrow: "agent → visa",
-    label: "POST /v1/validate",
+    arrow: "agent -> verifier",
+    label: "Signed HTTP request",
     sub: "HTTP Message Signature · Ed25519",
     color: "var(--diagram-4)",
-    time: "t + 0ms",
+    time: "step 1",
     title: "Agent constructs signed HTTP request",
     rows: [
-      { key: "Signature-Input", val: 'tap-sig=("@method" "@target-uri" "x-tap-agent-id" "x-tap-intent"); keyid="agent-001"; tag="tap-purchase"; created=1742518234; nonce="a3f8c2e1d9b7"', hi: true },
+      { key: "Signature-Input", val: 'sig1=("@method" "@target-uri" "content-digest"); keyid="agent-key-001"; tag="agent-checkout"; created=...; nonce="..."', hi: true },
       { key: "Signature", val: "tap-sig=:MEQCIBx7zKp9mN3...base64==:", hi: true },
-      { key: "X-Tap-Agent-Id", val: "agent-001", hi: false },
-      { key: "X-Tap-Intent", val: "purchase", hi: true },
-      { key: "X-Tap-Consumer-Token", val: "eyJhbGciOiJFUzI1NiJ9...", hi: false },
+      { key: "Content-Digest", val: "sha-256=:base64-digest:", hi: false },
+      { key: "Request tag", val: "agent-checkout", hi: true },
+      { key: "Key id", val: "registered agent key", hi: false },
     ],
-    note: "The signature covers method, URI, agent-id, intent, and body hash. The nonce is cryptographically random and unique to this request — stored permanently after use to prevent replay.",
+    note: "The signature covers selected request components and binds them to a key identifier, timestamp, nonce, and action tag. The exact covered components are integration choices.",
   },
   {
     from: "visa", to: "visa",
-    arrow: "visa internal",
+    arrow: "verifier internal",
     label: "Validate signature + policy",
-    sub: "Key directory · nonce store · behavioral",
+    sub: "key directory · freshness · replay",
     color: "var(--diagram-1)",
-    time: "t + 12ms",
-    title: "Visa TAP runs three independent checks",
+    time: "step 2",
+    title: "Verifier checks request integrity",
     rows: [
-      { key: "1. Key fetch", val: "GET agent public-key registry entry → ed25519:MCowBQYDK2Vd... (cached 5 min)", hi: false },
-      { key: "2. Ed25519 verify", val: "Reconstruct canonical form → verify signature → ✓ valid", hi: true },
-      { key: "3. Nonce check", val: "a3f8c2e1d9b7 not in store → ✓ unused · stored permanently", hi: true },
-      { key: "4. Timestamp", val: "created=1742518234 · delta 8s < 60s limit → ✓", hi: false },
-      { key: "5. Wallet policy", val: "token vts-AGNT-001 · active · $249.00 ≤ $500 → ✓", hi: false },
-      { key: "6. Cloudflare WBA", val: "Request patterns ✓ · TLS fingerprint ✓ · velocity ✓", hi: false },
+      { key: "1. Key lookup", val: "Find registered public key for keyid", hi: false },
+      { key: "2. Ed25519 verify", val: "Reconstruct signature base -> verify signature", hi: true },
+      { key: "3. Freshness", val: "Check timestamp window and clock tolerance", hi: false },
+      { key: "4. Replay", val: "Reject nonce values already seen by the verifier", hi: true },
+      { key: "5. Action tag", val: "Confirm the tag matches an allowed agent action", hi: true },
+      { key: "6. Edge policy", val: "Optional behavioral and merchant policy checks", hi: false },
     ],
-    note: "Two independent trust signals: cryptographic (Ed25519) and behavioral (Cloudflare edge). Both must pass.",
+    note: "Public TAP material supports the cryptographic verification pattern. Cache lifetimes, headers, verdict objects, and latency budgets are not published production guarantees.",
   },
   {
     from: "visa", to: "agent",
-    arrow: "visa → agent",
-    label: "200 OK · TAP JWT",
-    sub: "Signed credential · short-lived",
+    arrow: "verifier -> agent",
+    label: "Trust result",
+    sub: "scoped proof or verdict",
     color: "var(--diagram-1)",
-    time: "t + 48ms",
-    title: "Visa issues signed JWT — a short-lived credential",
+    time: "step 3",
+    title: "Verifier returns an implementation-specific result",
     rows: [
-      { key: "iss", val: "agent registry", hi: false },
-      { key: "sub", val: "agent-001", hi: false },
-      { key: "aud", val: "head.com", hi: false },
-      { key: "exp", val: "1742518324 — short-lived TTL only", hi: true },
-      { key: "nonce", val: "a3f8c2e1d9b7 — replay-protected", hi: true },
-      { key: "consumer_recognized", val: "true — returning customer", hi: true },
-      { key: "instruction_ref", val: "pi-abc123 — will appear in ISO 8583 private instruction reference", hi: true },
-      { key: "risk_score", val: "12 / 100 — low risk", hi: false },
+      { key: "Agent", val: "registered agent key passed verification", hi: true },
+      { key: "Action", val: "checkout tag accepted by verifier policy", hi: true },
+      { key: "Scope", val: "merchant and payment context can be bound by implementation", hi: false },
+      { key: "Freshness", val: "timestamp and nonce checks passed", hi: true },
+      { key: "Format", val: "not publicly specified as a single required object", hi: false },
     ],
-    note: "JWT signed with Visa's private key. Merchant verifies using Visa's public key — no call to Visa needed at checkout. The instruction_ref links this credential to the ISO 8583 message downstream.",
+    note: "This diagram intentionally avoids a concrete Visa-issued token type, header, or lifetime. Public sources show the signed-request trust model, not a complete production credential contract.",
   },
   {
     from: "agent", to: "merchant",
-    arrow: "agent → merchant",
+    arrow: "agent -> merchant",
     label: "POST /checkout",
-    sub: "Authorization: TAP-1.0 {jwt}",
+    sub: "cart + trust evidence",
     color: "var(--diagram-4)",
-    time: "t + 52ms",
-    title: "Agent presents credential at merchant checkout",
+    time: "step 4",
+    title: "Agent presents checkout context",
     rows: [
-      { key: "Authorization", val: "TAP-1.0 eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9...", hi: true },
-      { key: "Body", val: '{ "items": [{"sku":"HEAD-DELTA-PRO","qty":1}], "amount":249.00, "instruction_ref":"pi-abc123" }', hi: false },
+      { key: "Trust evidence", val: "verified signed request or verifier result", hi: true },
+      { key: "Body", val: '{ "items": [...], "amount": "249.00", "currency": "USD" }', hi: false },
     ],
-    note: 'tag="tap-purchase" in the original Signature-Input tells the MerchantSDK this agent intends to buy, not just browse. The SDK can gate purchase flows differently from catalog browsing.',
+    note: 'The action tag tells the verifier and merchant whether the agent is browsing, checking out, or performing another scoped action.',
   },
   {
     from: "merchant", to: "merchant",
     arrow: "merchant internal",
-    label: "Verify JWT locally",
-    sub: "Local verification",
+    label: "Apply checkout policy",
+    sub: "merchant or edge verification",
     color: "var(--success)",
-    time: "t + 56ms",
-    title: "MerchantSDK validates — seven checks, all local",
+    time: "step 5",
+    title: "Merchant accepts or rejects the agent flow",
     rows: [
-      { key: "Signature", val: "Ed25519 verify with cached Visa public key → ✓ valid", hi: true },
-      { key: "exp", val: "1742518324 > now · 36s remaining → ✓", hi: false },
-      { key: "nonce", val: "a3f8c2e1d9b7 not in local store → ✓ · stored", hi: true },
-      { key: "aud", val: '"head.com" === this merchant → ✓', hi: false },
-      { key: "amount", val: "249.00 === cart total → ✓", hi: false },
-      { key: "consumer_recognized", val: "true → skip new-customer onboarding", hi: true },
+      { key: "Verifier result", val: "agent request passed trust checks", hi: true },
+      { key: "Merchant match", val: "proof is scoped to this merchant or checkout context", hi: false },
+      { key: "Amount match", val: "payment context matches the cart", hi: false },
+      { key: "Replay controls", val: "fresh request and nonce policy passed", hi: true },
+      { key: "Customer logic", val: "merchant decides whether returning-customer shortcuts apply", hi: false },
     ],
-    note: "All checks pass locally in this illustrative flow. Order created. The payment authorization leg begins.",
+    note: "The payment authorization leg begins only after the merchant accepts the order. Exact SDK names and local/edge split are implementation-specific.",
   },
   {
     from: "merchant", to: "agent",
-    arrow: "merchant → agent",
+    arrow: "merchant -> agent",
     label: "200 OK · Order confirmed",
     sub: "No CAPTCHA · No redirect · No form",
     color: "var(--success)",
@@ -124,9 +120,7 @@ const CRYPTO_DETAILS = {
         mono: true,
         lines: [
           '"@method": POST',
-          '"@target-uri": agent-registry validation endpoint',
-          '"x-tap-agent-id": agent-001',
-          '"x-tap-intent": purchase',
+          '"@target-uri": merchant or verifier endpoint',
           '"content-digest": sha-256=:YjMzMDQ5YjQ4YzA=:',
         ]
       },
@@ -134,9 +128,8 @@ const CRYPTO_DETAILS = {
         label: "2. Append signature params",
         mono: true,
         lines: [
-          '"@signature-params": ("@method" "@target-uri" "x-tap-agent-id"',
-          '  "x-tap-intent" "content-digest");keyid="agent-001";',
-          '  tag="tap-purchase";created=1742518234;nonce="a3f8c2e1d9b7"',
+          '"@signature-params": ("@method" "@target-uri" "content-digest");',
+          '  keyid="agent-key-001";tag="agent-checkout";created=...;nonce="..."',
         ]
       },
       {
@@ -154,7 +147,7 @@ const CRYPTO_DETAILS = {
         ]
       },
     ],
-    note: "The private key never leaves the agent's secure enclave. Visa only stores the corresponding public key, retrieved from public-key registry/{agent_id}."
+    note: "The private key stays with the agent or its platform. The verifier needs the corresponding registered public key."
   },
   1: {
     title: "Signature verification internals (Ed25519)",
@@ -163,16 +156,16 @@ const CRYPTO_DETAILS = {
         label: "1. Fetch public key",
         mono: true,
         lines: [
-          "GET agent public-key registry entry",
-          "→ { alg: Ed25519, pub: MCowBQYDK2VdA3IA... }",
-          "   (cached 5 min, invalidated on key rotation)",
+          "lookup keyid in the agent public-key registry",
+          "-> { alg: Ed25519, pub: MCowBQYDK2VdA3IA... }",
+          "cache and rotation behavior are implementation-specific",
         ]
       },
       {
         label: "2. Reconstruct canonical string",
         mono: false,
         lines: [
-          "Visa rebuilds the same canonical string from the incoming request's headers in exactly the same order listed in Signature-Input. Any discrepancy → reject.",
+          "The verifier rebuilds the same canonical string from the incoming request components in exactly the order listed in Signature-Input. Any discrepancy means the signature no longer verifies.",
         ]
       },
       {
@@ -190,51 +183,47 @@ const CRYPTO_DETAILS = {
         label: "4. Nonce deduplication",
         mono: true,
         lines: [
-          "SETNX tap:nonce:a3f8c2e1d9b7 1 EX 300",
-          "→ 1  (key did not exist → unused → store it)",
-          "Any replay attempt: → 0 → reject immediately",
+          "nonce_store.check_and_record(nonce)",
+          "-> unused: accept this freshness check",
+          "-> already seen: reject as replay",
         ]
       },
     ],
     note: "Ed25519 verification is cheap compared with network I/O, but exact production latency depends on the verifier and nonce-store implementation."
   },
   2: {
-    title: "JWT structure (RFC 7519 + TAP extensions)",
+    title: "Scoped proof shape (illustrative)",
     sections: [
       {
-        label: "Header",
+        label: "Envelope",
         mono: true,
         lines: [
-          '{ "alg": "ES256", "typ": "JWT" }',
-          "// Signed with Visa's ECDSA P-256 private key",
-          "// Merchant verifies using Visa's cached public key",
+          '{ "type": "agent-trust-result",',
+          '  "alg": "Ed25519",',
+          '  "format": "implementation-specific" }',
         ]
       },
       {
-        label: "Payload",
+        label: "Claims / fields",
         mono: true,
         lines: [
-          '{ "iss": "agent registry",',
-          '  "sub": "agent-001",',
-          '  "aud": "head.com",',
-          '  "iat": 1742518234,',
-          '  "exp": 1742518324,          // short validity window',
-          '  "nonce": "a3f8c2e1d9b7",   // replay protection',
-          '  "consumer_recognized": true,',
-          '  "instruction_ref": "pi-abc123",',
-          '  "risk_score": 12',
+          '{ "agent_key": "registered key id",',
+          '  "merchant": "checkout merchant",',
+          '  "action": "agent-checkout",',
+          '  "freshness": "timestamp + nonce checked",',
+          '  "payment_scope": "merchant/amount policy, if provided"',
           '}',
         ]
       },
       {
-        label: "Why short-lived TTL?",
+        label: "What is intentionally omitted",
         mono: false,
         lines: [
-          "Long enough for the agent to reach the merchant and complete checkout. Short enough that a stolen JWT is useless — the nonce is bound to the token and already consumed at Visa. The aud claim is merchant-bound, so it cannot be replayed at a different merchant.",
+          "No production header name, exact lifetime, token schema, cache interval, or Visa private field is claimed here. Public material supports the signed-request verification model, not those private implementation details.",
         ]
       },
     ],
-    note: "The merchant never calls Visa during checkout. It verifies the JWT signature using Visa's public key (fetched once on startup, rotated quarterly). Verification: local verification, zero network calls."
+    note: "A real deployment can verify at an edge layer, merchant backend, or both. The public sources do not require one fixed topology."
   },
 }
 
