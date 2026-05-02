@@ -5,6 +5,10 @@ pubDate: 'Apr 09 2026'
 tags: ['architecture', 'agentic-payments', 'visa', 'mastercard', 'iso8583', 'payment-rails', 'payarch']
 ---
 
+import FiveLayerStack from '../../components/FiveLayerStack.jsx';
+import ProtocolCompetition from '../../components/ProtocolCompetition.jsx';
+import OpenProblems from '../../components/OpenProblems.jsx';
+
 There is a strange gap at the center of the agentic payments conversation. The public debate focuses on protocols, but the production problem is a stack problem.
 
 An agentic payment needs at least five layers:
@@ -16,6 +20,8 @@ An agentic payment needs at least five layers:
 5. Reconciliation and dispute evidence.
 
 Visa, Mastercard, Google, Stripe, and x402 all touch the stack, but they do not own the same layer. Treating them as direct substitutes makes the architecture harder to see.
+
+<FiveLayerStack client:load />
 
 ---
 
@@ -97,6 +103,8 @@ This matters because agentic commerce will create disputes that look different f
 
 The likely outcome is not one winner. The likely outcome is layered interoperability: identity at the edge, mandates in the agent ecosystem, tokenization in card networks, and x402 for services where card rails are the wrong shape.
 
+<ProtocolCompetition client:load />
+
 ---
 
 ## Open problems
@@ -108,6 +116,8 @@ The likely outcome is not one winner. The likely outcome is layered interoperabi
 **Cross-network identity.** A Visa-recognized agent, a Mastercard-recognized agent, and an AP2-recognized agent are not automatically the same principal.
 
 **Field-level standardization.** Public documents explain the high-level architecture. They do not yet give builders one universal map for authorization, clearing, disputes, refunds, and issuer servicing.
+
+<OpenProblems client:load />
 
 ---
 

@@ -5,9 +5,16 @@ pubDate: 'Apr 4 2026'
 tags: ['visa', 'mastercard', 'four-party-model', 'agentic-commerce', 'agent-pay', 'vic', 'tokenization', 'iso8583']
 ---
 
+import FourPartyFlow from '../../components/FourPartyFlow.jsx';
+import SecurityLayers from '../../components/SecurityLayers.jsx';
+import RebuildMap from '../../components/RebuildMap.jsx';
+import NetworkComparison from '../../components/NetworkComparison.jsx';
+
 Mastercard announced Agent Pay on April 29, 2025. Visa announced Intelligent Commerce in April 2025. Both were answering the same problem: the four-party model was built around a human-present checkout, while agentic commerce delegates shopping and payment execution to software.
 
 The model does not need to be replaced. The consumer, merchant, acquirer, network, and issuer still matter. What changes is the trust evidence each participant receives.
+
+<FourPartyFlow client:load />
 
 ---
 
@@ -20,6 +27,8 @@ The acquirer and processor used to receive ordinary card-not-present signals. An
 The network used to infer risk from cardholder and merchant patterns. Agentic checkout needs explicit evidence of prior intent, not only behavioral inference.
 
 The issuer used to fall back to live 3DS step-up when risk was ambiguous. That is awkward for delegated commerce. If every useful agent purchase wakes the cardholder in real time, the agent has not actually been delegated authority.
+
+<SecurityLayers client:load />
 
 ---
 
@@ -35,6 +44,8 @@ The design difference is real, but the primitives rhyme:
 - Tokenized or agent-bound payment credential.
 - Consumer authorization through passkeys, mandates, or issuer controls.
 - Evidence that can survive authorization, dispute, and servicing.
+
+<RebuildMap client:load />
 
 ---
 
@@ -83,6 +94,8 @@ This distinction matters. A Visa reviewer will forgive an illustrative packet di
 Neither Visa nor Mastercard is abandoning the four-party model. The point of both approaches is to make agent transactions compatible with existing acceptance, issuer controls, tokenization, fraud operations, disputes, and settlement.
 
 The rails remain valuable precisely because they already handle consumer protection, merchant acquiring, issuer risk, refunds, chargebacks, and regulated settlement. Agentic commerce adds proof surfaces around them.
+
+<NetworkComparison client:load />
 
 ---
 

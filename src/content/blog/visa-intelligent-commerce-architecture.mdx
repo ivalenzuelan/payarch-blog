@@ -5,6 +5,11 @@ pubDate: 'Apr 17 2026'
 tags: ['visa', 'vic', 'tap', 'agentic-commerce', 'tokenization', 'iso8583', 'architecture', 'trusted-agent-protocol']
 ---
 
+import Iso8583PacketDiagram from '../../components/Iso8583PacketDiagram.jsx';
+import TapPipelineDiagram from '../../components/TapPipelineDiagram.jsx';
+import VicSystemMap from '../../components/VicSystemMap.jsx';
+import VicTransactionFlow from '../../components/VicTransactionFlow.jsx';
+
 Visa Intelligent Commerce is best understood as a set of trust primitives around existing card payments, not as a new rail. The public Visa material describes AI agents that can search, select, and purchase with user-defined preferences, tokenized credentials, passkeys, and merchant-visible trust signals.
 
 The safest architecture map is therefore three-layered:
@@ -14,6 +19,8 @@ The safest architecture map is therefore three-layered:
 3. **The card network** still carries authorization, clearing, disputes, and settlement through existing participants.
 
 The first two layers are public enough to discuss concretely. The third should be discussed carefully, because Visa has not published a complete field-level VisaNet mapping for agentic transactions.
+
+<VicSystemMap client:load />
 
 ---
 
@@ -60,6 +67,8 @@ The public material supports these statements:
 
 The public material does **not** support hard-coded production claims such as a specific `tap.visa.com/.well-known/agents` path, a required 90-second JWT lifetime, or a fixed millisecond verification budget. Those are implementation-shaped examples, not facts to present as Visa specifications.
 
+<TapPipelineDiagram client:load />
+
 ---
 
 ## System 3: existing payment rails
@@ -75,6 +84,10 @@ The evidence can include:
 - Post-purchase evidence useful for dispute handling.
 
 Public Visa sources do not publish the exact ISO 8583 fields and values used for all of this. It is reasonable to talk about additional data fields, private-use fields, tokenization fields, and authorization metadata. It is risky to state exact field numbers, exact response codes, or exact issuer behavior unless Visa has published them.
+
+<VicTransactionFlow client:load />
+
+<Iso8583PacketDiagram client:load />
 
 ---
 

@@ -5,6 +5,10 @@ pubDate: 2026-04-26
 tags: ["four-party-model", "agentic-commerce", "iso8583", "tap", "agent-pay", "ap2", "x402", "tokenization"]
 ---
 
+import AgentDefenseStackDiagram from '../../components/AgentDefenseStackDiagram.jsx';
+import AgentPrimitiveMapDiagram from '../../components/AgentPrimitiveMapDiagram.jsx';
+import AgentComposedFlowDiagram from '../../components/AgentComposedFlowDiagram.jsx';
+
 The four-party card model is usually drawn as a settlement loop: consumer, merchant, acquirer, issuer, with a network in the middle. For agentic payments, it is more useful to see it as a layered trust system.
 
 Each participant asks a security question:
@@ -15,6 +19,8 @@ Each participant asks a security question:
 - Issuer: should the cardholder's account approve this payment?
 
 Those questions were built around a human being present in real time. Agent payments break that assumption at the root.
+
+<AgentDefenseStackDiagram client:load />
 
 ---
 
@@ -75,6 +81,8 @@ The issuer's question changes from "is the cardholder here right now?" to "does 
 
 Those primitives are compositional. Identity without a scoped credential is not enough. A scoped credential without intent evidence is not enough. Intent evidence without issuer policy still collapses into step-up when risk rises.
 
+<AgentPrimitiveMapDiagram client:load />
+
 ---
 
 ## What the rails do not have to change
@@ -84,6 +92,8 @@ The easiest mistake is to assume agent payments require new payment rails. They 
 Card authorizations can still travel through merchant, acquirer, network, and issuer infrastructure. Clearing, settlement, refunds, disputes, and merchant acquiring remain the durable parts of the system. The new work is around proof: what the agent signed, what the consumer authorized, which credential was released, and what evidence remains after the order.
 
 Stablecoin and HTTP-native protocols solve a different problem: internet-native payment and programmable settlement. That can be powerful for API calls and agent-to-agent commerce, but it does not automatically recreate issuer policy, consumer dispute handling, network tokenization, or chargeback evidence.
+
+<AgentComposedFlowDiagram client:load />
 
 ---
 

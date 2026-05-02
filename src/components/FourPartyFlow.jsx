@@ -110,7 +110,7 @@ const FIXED_STEPS = [
     info:"✓ Agent signs HTTP request locally with Ed25519 private key (RFC 9421)\n✓ Signature-Input + Signature headers carry: agent identity + consumer token + hashed VCN\n✓ No Visa server call — agent signs locally, merchant verifies against cached public key\n✓ Cloudflare/edge security at CDN edge verifies before request reaches merchant infra\n✓ consumer_recognized: true → no CAPTCHA, no bot block" },
   { path:"m-acq",      from:"merchant",to:"acquirer",label:"PaymentIntent",    status:"pass",
     layer:"Acquirer + Processor",
-    info:"✓ F002: VCN token · F022: agent-context (illustrative) (agent-initiated) · F048: AGNT:skyfire-001 · private instruction reference: instruction hash\n→ Agent context propagates through entire ISO 8583 chain" },
+    info:"✓ F002: VCN token · F022: agent-context (illustrative) (agent-initiated) · F048: AGNT:agent-001 · private instruction reference: instruction hash\n→ Agent context propagates through entire ISO 8583 chain" },
   { path:"acq-n",      from:"acquirer",to:"network", label:"MTI 0100 · agent-context flag", status:"pass",
     layer:"Card Network",
     info:"✓ private instruction reference validated vs VIC registry · amount + merchant match\n→ Agentic Token binding verified · agent-aware risk model applied" },

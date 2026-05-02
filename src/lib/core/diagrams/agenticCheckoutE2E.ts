@@ -46,7 +46,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             layerText: {
               business: 'The consumer tells their AI assistant "buy me the HEAD Delta Pro padel racket." The agent — built on agent platform or a platform like Claude — interprets the intent, resolves the product via a browse tool call, and checks the pre-authorized AgentWallet policy before proceeding. This is the last moment the human is involved until they receive the confirmation notification.',
               technical: 'AgentRuntime receives NL intent string. Invokes browse_tool() to resolve SKU, current price, and merchant URL. Checks AgentWallet policy object: { category: "sporting_goods" ✓, limit: $500 ✓, token_status: "active" ✓, passkey_bound: true }. Reads consumer_did from session context. Initiates TAP handshake by constructing signed DID credential for Visa endpoint.',
-              iso8583: '// No ISO 8583 at this stage — intent is internal\n// Structured as a payment instruction object:\n{\n  "intent": "purchase",\n  "sku": "HEAD-DELTA-PRO",\n  "amount": 249.00,\n  "currency": "USD",\n  "merchant": "head.com",\n  "wallet_ref": "VCN-session-001",\n  "consumer_did": "did:web:skyfire.xyz:user-123",\n  "agent_id": "skyfire-agent-001"\n}',
+              iso8583: '// No ISO 8583 at this stage — intent is internal\n// Structured as a payment instruction object:\n{\n  "intent": "purchase",\n  "sku": "HEAD-DELTA-PRO",\n  "amount": 249.00,\n  "currency": "USD",\n  "merchant": "head.com",\n  "wallet_ref": "VCN-session-001",\n  "consumer_did": "did:web:skyfire.xyz:user-123",\n  "agent_id": "agent-001"\n}',
             },
           },
           'tap-validation': {
@@ -54,8 +54,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             active: false,
             layerText: {
               business: 'The agent is waiting while Visa validates its cryptographic identity. No payment has been attempted yet — this step is purely about proving the agent is who it claims to be.',
-              technical: 'Agent awaiting TAP JWT response from https://agent registry/v1/validate. Signed HTTP request is in flight with Signature-Input header containing Ed25519 signature over canonical request form.',
-              iso8583: '// No ISO 8583 — TAP validation is HTTP layer\n// Agent request in flight:\nPOST https://agent registry/v1/validate\nSignature: tap-sig=:MEQCIBx7...:',
+              technical: 'Agent awaiting TAP JWT response from agent-registry validation endpoint. Signed HTTP request is in flight with Signature-Input header containing Ed25519 signature over canonical request form.',
+              iso8583: '// No ISO 8583 — TAP validation is HTTP layer\n// Agent request in flight:\nPOST agent-registry validation endpoint\nSignature: tap-sig=:MEQCIBx7...:',
             },
           },
           'tap-credential-issued': {
@@ -63,7 +63,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             active: false,
             layerText: {
               business: 'The agent now holds a 90-second TAP credential — a Visa-signed certificate that tells the merchant "this is a real, authorized agent, not a bot." The agent is about to use it at checkout.',
-              technical: 'JWT stored in agent session context. TTL=short-lived. Agent will present this in the Authorization: TAP-1.0 header on the upcoming checkout POST request.',
+              technical: 'JWT stored in agent session context. short-lived TTL. Agent will present this in the Authorization: TAP-1.0 header on the upcoming checkout POST request.',
               iso8583: '// TAP JWT in agent session memory:\n{ "tap_credential": "eyJhbGci...", "ttl": 90, "instruction_ref": "pi-abc123" }',
             },
           },
@@ -142,8 +142,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             outgoingEdge: 'e-wallet-to-tap',
             layerText: {
               business: 'Before any shopping, the consumer enrolled their Visa card with the agent platform. Visa issued a Virtual Card Number bound exclusively to this agent. The real 16-digit card number never leaves Visa\'s Token Service — the agent never sees it, the merchant never sees it, the acquirer never sees it.',
-              technical: 'Consumer called VIC enroll_card() API. Visa Token Service performed step-up verification (3DS or biometric) with issuer. Issued agent-specific pass-through token: { token: "4111xxxxAGNT", binding: { agent_id: "skyfire-001" }, controls: { limit_per_txn: 50000, categories: ["5941"], require_passkey: true } }. Consumer created FIDO2 Passkey on device. All future payment instructions require Passkey assertion.',
-              iso8583: '// Token provisioning (one-time setup — not at checkout)\nPOST https://api.visa.com/vic/v1/tokens/enroll\n{\n  "agent_id": "skyfire-001",\n  "card_ref": "consumer-card-hash",\n  "controls": {\n    "limit_per_txn": 50000,  // cents: $500\n    "categories": ["5941"],\n    "velocity_daily": 100000, // cents: $1000\n    "require_passkey": true\n  }\n}\n// → { token_ref: "vts-AGNT-001", passkey_challenge: "...", status: "active" }',
+              technical: 'Consumer called VIC enroll_card() API. Visa Token Service performed step-up verification (3DS or biometric) with issuer. Issued agent-specific pass-through token: { token: "4111xxxxAGNT", binding: { agent_id: "agent-001" }, controls: { limit_per_txn: 50000, categories: ["5941"], require_passkey: true } }. Consumer created FIDO2 Passkey on device. All future payment instructions require Passkey assertion.',
+              iso8583: '// Token provisioning (one-time setup — not at checkout)\nPOST https://api.visa.com/vic/v1/tokens/enroll\n{\n  "agent_id": "agent-001",\n  "card_ref": "consumer-card-hash",\n  "controls": {\n    "limit_per_txn": 50000,  // cents: $500\n    "categories": ["5941"],\n    "velocity_daily": 100000, // cents: $1000\n    "require_passkey": true\n  }\n}\n// → { token_ref: "vts-AGNT-001", passkey_challenge: "...", status: "active" }',
             },
           },
           'tap-validation': {
@@ -227,7 +227,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
         properties: {
           standard: 'HTTP Message Signatures — IETF RFC 9421',
           algorithm: 'Ed25519 (primary) · RSA-PSS (fallback)',
-          key_directory: 'https://agent registry/public-key registry/',
+          key_directory: 'agent registry',
           token_ttl: 'short-lived — nonce-protected',
           replay_protection: 'nonce store + 60s timestamp window',
           latency: '40–80ms',
@@ -241,8 +241,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             active: false,
             layerText: {
               business: 'TAP is idle — the agent hasn\'t made a request yet. At this point the consumer is just issuing a natural language command to their AI assistant.',
-              technical: 'TAP endpoint at https://agent registry/v1/validate is waiting. Agent has not yet sent the signed HTTP request. TAP key directory is pre-populated with the agent\'s Ed25519 public key from initial registration.',
-              iso8583: '// TAP not yet involved\n// Agent registration (one-time, at agent onboarding):\nPOST https://agent registry/v1/agents/register\n{\n  "agent_id": "skyfire-agent-001",\n  "public_key": "ed25519:MCowBQYDK2Vd...",\n  "agent_name": "agent platform Shopping Assistant",\n  "operator": "agent platform Labs Inc"\n}',
+              technical: 'TAP endpoint at agent-registry validation endpoint is waiting. Agent has not yet sent the signed HTTP request. TAP key directory is pre-populated with the agent\'s Ed25519 public key from initial registration.',
+              iso8583: '// TAP not yet involved\n// Agent registration (one-time, at agent onboarding):\nPOST agent-registry registration endpoint\n{\n  "agent_id": "agent-001",\n  "public_key": "ed25519:MCowBQYDK2Vd...",\n  "agent_name": "agent platform Shopping Assistant",\n  "operator": "agent operator"\n}',
             },
           },
           'tap-validation': {
@@ -253,7 +253,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             layerText: {
               business: 'This is the critical trust moment of the entire flow. TAP verifies three things simultaneously: the agent is Visa-registered, the request is cryptographically signed by that specific agent, and the request has not been seen before (replay protection). A malicious bot cannot pass this check — it cannot forge the signature without the private key.',
               technical: 'TAP receives signed HTTP request. Fetches agent public key from key directory (cached, 5min TTL). Reconstructs canonical signature base from Signature-Input header fields. Verifies Ed25519 signature. Validates: nonce not in store ✓, created within 60s ✓, agent_id in registry ✓, tag="tap-purchase" ✓. Cloudflare behavioral analysis runs in parallel: request patterns ✓, TLS fingerprint ✓, velocity ✓.',
-              iso8583: '// Signed HTTP request from agent platform agent:\nGET https://head.com/product/head-delta-pro\nHost: head.com\nSignature-Input: tap-sig=(\n  "@method" "@target-uri" "@authority"\n  "content-digest" "x-tap-agent-id"\n  "x-tap-consumer-token" "x-tap-intent"\n);\n  keyid="skyfire-agent-001";\n  tag="tap-purchase";\n  created=1742518234;\n  nonce="a3f8c2e1d9b7"\n\nSignature: tap-sig=:MEQCIBx7zK...==:\nX-Tap-Agent-Id: skyfire-agent-001\nX-Tap-Intent: purchase\nX-Tap-Consumer-Token: eyJhbGciOiJFUzI1NiJ9...',
+              iso8583: '// Signed HTTP request from agent platform agent:\nGET https://head.com/product/head-delta-pro\nHost: head.com\nSignature-Input: tap-sig=(\n  "@method" "@target-uri" "@authority"\n  "content-digest" "x-tap-agent-id"\n  "x-tap-consumer-token" "x-tap-intent"\n);\n  keyid="agent-001";\n  tag="tap-purchase";\n  created=1742518234;\n  nonce="a3f8c2e1d9b7"\n\nSignature: tap-sig=:MEQCIBx7zK...==:\nX-Tap-Agent-Id: agent-001\nX-Tap-Intent: purchase\nX-Tap-Consumer-Token: eyJhbGciOiJFUzI1NiJ9...',
             },
           },
           'tap-credential-issued': {
@@ -263,7 +263,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             layerText: {
               business: 'TAP issues a short-lived credential — a Visa-signed JWT valid for exactly short-lived, tied to this specific transaction, merchant, and amount. This is the "VIP pass" the agent will present at checkout. The merchant will trust it without requiring any consumer interaction.',
               technical: 'TAP generates JWT signed with Visa\'s Ed25519 private key. Stores nonce "a3f8c2e1d9b7" in nonce registry to prevent reuse. Registers payment instruction in VIC registry. JWT payload includes: agent_id, consumer_recognized flag, instruction_ref, merchant_id, amount, exp (now+90), nonce. Returns JWT to agent.',
-              iso8583: '// TAP JWT issued — decoded payload:\n{\n  "iss": "agent registry",\n  "sub": "skyfire-agent-001",\n  "aud": "head.com",\n  "exp": 1742518324,     // T+short-lived ★\n  "iat": 1742518234,\n  "nonce": "a3f8c2e1d9b7",  // replay-protected ★\n  "consumer_recognized": true,\n  "instruction_ref": "pi-abc123",  // → private instruction reference downstream\n  "amount": 249.00,\n  "currency": "USD",\n  "tap_version": "1.0",\n  "risk_score": 12\n}',
+              iso8583: '// TAP JWT issued — decoded payload:\n{\n  "iss": "agent registry",\n  "sub": "agent-001",\n  "aud": "head.com",\n  "exp": 1742518324,     // a short validity window ★\n  "iat": 1742518234,\n  "nonce": "a3f8c2e1d9b7",  // replay-protected ★\n  "consumer_recognized": true,\n  "instruction_ref": "pi-abc123",  // → private instruction reference downstream\n  "amount": 249.00,\n  "currency": "USD",\n  "tap_version": "1.0",\n  "risk_score": 12\n}',
             },
           },
           'merchant-accepts': {
@@ -289,8 +289,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             active: true,
             layerText: {
               business: 'card network validates the TAP context by checking that the instruction reference in the payment message matches what was originally authorized by the consumer. If someone tampered with the amount or merchant in transit, this check fails.',
-              technical: 'VIC validates private instruction reference instruction_ref hash against payment instruction registry. Checks: stored_instruction.hash == private instruction reference.hash ✓, stored_instruction.amount == F004 ($249.00) ✓, stored_instruction.merchant == F042 (head.com) ✓. Any mismatch → decline with a decline.',
-              iso8583: '// card network private instruction reference integrity check:\nstored = vic.get_instruction("pi-abc123")\nassert(sha256(stored) == private instruction reference.hash)    // ★ critical\nassert(stored.amount == F004_amount)   // $249.00 == $249.00 ✓\nassert(stored.merchant == F042_id)     // head.com ✓\n// If any mismatch: F039=58 (invalid terminal) → decline',
+              technical: 'VIC validates private instruction reference instruction_ref hash against payment instruction registry. Checks: stored_instruction.hash == private instruction reference.hash ✓, stored_instruction.amount == F004 ($249.00) ✓, stored_instruction.merchant == F042 (head.com) ✓. Any mismatch can trigger a decline.',
+              iso8583: '// card network private instruction reference integrity check:\nstored = vic.get_instruction("pi-abc123")\nassert(sha256(stored) == private instruction reference.hash)    // ★ critical\nassert(stored.amount == F004_amount)   // $249.00 == $249.00 ✓\nassert(stored.merchant == F042_id)     // head.com ✓\n// If any mismatch: decline → decline',
             },
           },
           'issuer-auth': {
@@ -307,8 +307,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             active: false,
             layerText: {
               business: 'TAP\'s nonce for this transaction is permanently stored, preventing any replay of this credential.',
-              technical: 'Nonce "a3f8c2e1d9b7" permanently stored in TAP nonce registry. JWT has expired (TTL=short-lived). Transaction complete.',
-              iso8583: '// TAP nonce permanently stored:\nnonce_store.add("a3f8c2e1d9b7")  // permanent, no expiry\n// JWT expired at T+short-lived — cannot be reused',
+              technical: 'Nonce "a3f8c2e1d9b7" permanently stored in TAP nonce registry. JWT has expired (short-lived TTL). Transaction complete.',
+              iso8583: '// TAP nonce permanently stored:\nnonce_store.add("a3f8c2e1d9b7")  // permanent, no expiry\n// JWT expired at a short validity window — cannot be reused',
             },
           },
         },
@@ -474,9 +474,9 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             incomingEdge: 'e-merchant-to-acquirer',
             outgoingEdge: 'e-acquirer-to-visa',
             layerText: {
-              business: 'Stripe packages the payment request into an ISO 8583 authorization message and sends it to the Visa network. The single most important change from a standard human transaction: field F022 is set to 81, a new value that tells every downstream system "this was initiated by a verified AI agent — apply agent-specific rules."',
-              technical: 'Acquirer retrieves VCN tokenized_pan from VIC retrieve_payment_credentials() call. Builds ISO 8583 MTI 0100: F002=VCN "4111xxxxAGNT", agent-context flag (new agent-initiated POS entry mode), private condition field=59 (agent present), F048 appends agent-id "AGNT:skyfire-001", private instruction reference carries SHA-256 hash of TAP instruction_ref "pi-abc123". Sends via card network leased line.',
-              iso8583: 'ISO 8583 MTI: 0100  (Authorization Request)\n──────────────────────────────────────────────\nF002: 4111xxxxxxxxAGNT   ← agent VCN (not real PAN) ★\nF003: 000000             ← purchase\nF004: 000000024900       ← $249.00\nF007: 0321143422         ← datetime\nF011: 000123             ← STAN (sequence)\nF012: 143422             ← local time\nF022: agent-context (illustrative)                 ← POS entry: agent-initiated ★\nprivate condition field: 59                 ← POS condition: agent present\nF037: 000123143422       ← retrieval ref\nF041: AGNT-HEAD-COM-01   ← terminal ID\nF042: HEAD-MERCH-00001   ← merchant ID\nF043: HEAD.com US        ← merchant name/location\nF048: AGNT:skyfire-001   ← agent identifier ★\nF049: 840               ← USD\nF054: 010               ← addl amounts\nprivate instruction reference: pi-abc123:sha256:3a7f... ← TAP instruction_ref ★',
+              business: 'Stripe packages the payment request into an ISO 8583 authorization message and sends it to the Visa network. The single most important change from a standard human transaction: an agent-context indicator is attached, a new value that tells every downstream system "this was initiated by a verified AI agent — apply agent-specific rules."',
+              technical: 'Acquirer retrieves VCN tokenized_pan from VIC retrieve_payment_credentials() call. Builds ISO 8583 MTI 0100: F002=VCN "4111xxxxAGNT", agent-context flag (new agent-initiated POS entry mode), private condition field=59 (agent present), F048 appends agent-id "AGNT:agent-001", private instruction reference carries SHA-256 hash of TAP instruction_ref "pi-abc123". Sends via card network leased line.',
+              iso8583: 'ISO 8583 MTI: 0100  (Authorization Request)\n──────────────────────────────────────────────\nF002: 4111xxxxxxxxAGNT   ← agent VCN (not real PAN) ★\nF003: 000000             ← purchase\nF004: 000000024900       ← $249.00\nF007: 0321143422         ← datetime\nF011: 000123             ← STAN (sequence)\nF012: 143422             ← local time\nF022: agent-context (illustrative)                 ← POS entry: agent-initiated ★\nprivate condition field: 59                 ← POS condition: agent present\nF037: 000123143422       ← retrieval ref\nF041: AGNT-HEAD-COM-01   ← terminal ID\nF042: HEAD-MERCH-00001   ← merchant ID\nF043: HEAD.com US        ← merchant name/location\nF048: AGNT:agent-001   ← agent identifier ★\nF049: 840               ← USD\nF054: 010               ← addl amounts\nprivate instruction reference: pi-abc123:sha256:3a7f... ← TAP instruction_ref ★',
             },
           },
           'visanet-routes': {
@@ -503,7 +503,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             layerText: {
               business: 'Authorization approved. Acquirer returns confirmation to the merchant. T+1 clearing will permanently settle the funds.',
               technical: 'Acquirer receives MTI 0110, F039=00, F038=auth_code "123456". private instruction reference echoed with "agent-confirmed". Passes HTTP 200 to Stripe. Stripe fires webhook to merchant. Clearing file submitted to card network for T+1 settlement.',
-              iso8583: 'ISO 8583 MTI: 0110  (Authorization Response)\n──────────────────────────────────────────────\nF002: 4111xxxxxxxxAGNT    ← echoed\nF004: 000000024900        ← echoed\nF011: 000123              ← STAN echoed\nF037: 000123143422        ← retrieval ref\nF038: 123456              ← authorization code ★\nF039: 00                  ← response: approved  ★\nF048: AGNT:skyfire-001    ← echoed\nprivate instruction reference: agent-confirmed     ← TAP echo ★\n// Acquirer → Stripe → merchant webhook\n// Total card network round-trip: ~180ms',
+              iso8583: 'ISO 8583 MTI: 0110  (Authorization Response)\n──────────────────────────────────────────────\nF002: 4111xxxxxxxxAGNT    ← echoed\nF004: 000000024900        ← echoed\nF011: 000123              ← STAN echoed\nF037: 000123143422        ← retrieval ref\nF038: 123456              ← authorization code ★\nF039: 00                  ← response: approved  ★\nF048: AGNT:agent-001    ← echoed\nprivate instruction reference: agent-confirmed     ← TAP echo ★\n// Acquirer → Stripe → merchant webhook\n// Total card network round-trip: ~180ms',
             },
           },
         },
@@ -545,8 +545,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             active: true,
             layerText: {
               business: 'Visa is running the TAP validation — checking the agent\'s cryptographic identity, issuing the credential, and registering the payment instruction for later validation.',
-              technical: 'VIC TAP service handling validation request. Separate service from card network authorization path. Key directory at https://agent registry/public-key registry/ serving agent public keys.',
-              iso8583: '// TAP service (separate from card network auth path):\n// 1. Key directory lookup: GET public-key registry/skyfire-agent-001\n//    → { public_key: "ed25519:MCowBQY...", status: "active" }\n// 2. Signature verification: OK\n// 3. Register instruction in VIC registry\n// 4. Issue JWT to agent',
+              technical: 'VIC TAP service handling validation request. Separate service from card network authorization path. Key directory at agent registry serving agent public keys.',
+              iso8583: '// TAP service (separate from card network auth path):\n// 1. Key directory lookup: GET public-key registry/agent-001\n//    → { public_key: "ed25519:MCowBQY...", status: "active" }\n// 2. Signature verification: OK\n// 3. Register instruction in VIC registry\n// 4. Issue JWT to agent',
             },
           },
           'tap-credential-issued': {
@@ -555,7 +555,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             layerText: {
               business: 'Visa has signed and issued the TAP credential. The payment instruction is now registered in VIC\'s registry. When the ISO 8583 message arrives with private instruction reference, card network will validate it against this stored instruction.',
               technical: 'TAP JWT issued and signed with Visa private key. Payment instruction stored in VIC with TTL=300s. Nonce "a3f8c2e1d9b7" stored in nonce registry. VIC is now ready to validate private instruction reference when the ISO 8583 message arrives.',
-              iso8583: '// VIC state after TAP credential issuance:\nvic.registry["pi-abc123"] = {\n  hash: sha256("pi-abc123"),   // → will appear in private instruction reference\n  amount: 249.00,\n  merchant: "head.com",\n  agent_id: "skyfire-agent-001",\n  consumer_hash: "...",\n  status: "pending",\n  expires_at: now + 300\n}',
+              iso8583: '// VIC state after TAP credential issuance:\nvic.registry["pi-abc123"] = {\n  hash: sha256("pi-abc123"),   // → will appear in private instruction reference\n  amount: 249.00,\n  merchant: "head.com",\n  agent_id: "agent-001",\n  consumer_hash: "...",\n  status: "pending",\n  expires_at: now + 300\n}',
             },
           },
           'merchant-accepts': {
@@ -583,8 +583,8 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             outgoingEdge: 'e-visa-to-issuer',
             layerText: {
               business: 'card network receives the authorization request, validates the agent context, confirms the payment matches the original consumer authorization, de-tokenizes the VCN, and routes to the issuing bank — all in under 100ms. If the amount or merchant was tampered with in transit, this step rejects it.',
-              technical: 'card network processes MTI 0100: (1) Parse agent-context flag → apply agent_risk_ruleset instead of human fraud model (2) validate private instruction reference: stored_instruction.hash == private instruction reference.hash ✓, amount ✓, merchant ✓ — any mismatch → F039=58 decline (3) VTS de-tokenize: "4111xxxxAGNT" → real PAN "4111000000001111" → BIN 411100 (4) agent fraud score: behavioral baseline for agent-context flag transactions (5) forward 0100 to Chase with agent-context flag preserved.',
-              iso8583: '// card network processing pipeline:\n1. agent-context flag detected:\n   → switch(risk_model) to agent_ruleset\n\n2. private instruction reference integrity check:\n   stored = vic.get("pi-abc123")\n   assert(sha256(stored) == private instruction reference.hash)  ★\n   assert(stored.amount == F004)         ✓\n   assert(stored.merchant == F042)       ✓\n   // Any mismatch → F039=58 (decline)\n\n3. VTS de-tokenize:\n   "4111xxxxAGNT" → "4111000000001111"\n   BIN 411100 → Chase Bank NA\n\n4. Agent fraud score:\n   input_features: [agent-context flag, velocity, geo, BIN]\n   model: agent_classifier_v3\n   score: 12/100 (low risk ✓)\n\n5. Forward 0100 to Chase\n   agent-context flag preserved',
+              technical: 'card network processes MTI 0100: (1) Parse agent-context flag → apply agent_risk_ruleset instead of human fraud model (2) validate private instruction reference: stored_instruction.hash == private instruction reference.hash ✓, amount ✓, merchant ✓ — any mismatch → decline (3) VTS de-tokenize: "4111xxxxAGNT" → real PAN "4111000000001111" → BIN 411100 (4) agent fraud score: behavioral baseline for agent-context flag transactions (5) forward 0100 to Chase with agent-context flag preserved.',
+              iso8583: '// card network processing pipeline:\n1. agent-context flag detected:\n   → switch(risk_model) to agent_ruleset\n\n2. private instruction reference integrity check:\n   stored = vic.get("pi-abc123")\n   assert(sha256(stored) == private instruction reference.hash)  ★\n   assert(stored.amount == F004)         ✓\n   assert(stored.merchant == F042)       ✓\n   // Any mismatch → decline\n\n3. VTS de-tokenize:\n   "4111xxxxAGNT" → "4111000000001111"\n   BIN 411100 → Chase Bank NA\n\n4. Agent fraud score:\n   input_features: [agent-context flag, velocity, geo, BIN]\n   model: agent_classifier_v3\n   score: 12/100 (low risk ✓)\n\n5. Forward 0100 to Chase\n   agent-context flag preserved',
             },
           },
           'issuer-auth': {
@@ -689,7 +689,7 @@ export const agenticCheckoutE2E: PayarchDiagram = {
             layerText: {
               business: 'The consumer\'s bank makes the authorization decision. Because agent-context flag is set, the bank applies the agent-specific spending policy the consumer configured — not the normal human fraud model that would flag this machine-speed transaction. Amount is within limit. Category matches. Token is active. Approved in ~80ms.',
               technical: 'Issuer receives MTI 0100 with agent-context flag. Loads agent policy for token "4111xxxxAGNT". Runs checks: available_balance >= amount ✓, amount <= per_txn limit ✓, MCC 5941 in [5941] ✓, velocity_today + amount <= daily_limit ✓, token status active ✓, passkey assertion validated at instruction-creation time ✓. Writes authorization hold. Returns MTI 0110 F039=00 F038=123456.',
-              iso8583: '// Issuer authorization decision log\ntoken: "4111xxxxAGNT"\nagent_id: "skyfire-001"  (from F048)\nF022: agent-context (illustrative)  → load agent_spending_policy(token)\n\npolicy_checks:\n  available:  $2,847.33 >= $249.00  ✓\n  per_txn:    $249.00 <= $500.00    ✓\n  velocity:   $249.00 <= $1000/day  ✓\n  category:   5941 in [5941] ✓\n  token:      active               ✓\n  passkey:    verified t-120s ago  ✓\n\nrisk_score: 8/100  (low risk)\ndecision: APPROVE\n\n// Authorization hold written: $249.00\n// Response MTI 0110:\nF039: 00      ← approved ★\nF038: 123456  ← auth code ★',
+              iso8583: '// Issuer authorization decision log\ntoken: "4111xxxxAGNT"\nagent_id: "agent-001"  (from F048)\nF022: agent-context (illustrative)  → load agent_spending_policy(token)\n\npolicy_checks:\n  available:  $2,847.33 >= $249.00  ✓\n  per_txn:    $249.00 <= $500.00    ✓\n  velocity:   $249.00 <= $1000/day  ✓\n  category:   5941 in [5941] ✓\n  token:      active               ✓\n  passkey:    verified t-120s ago  ✓\n\nrisk_score: 8/100  (low risk)\ndecision: APPROVE\n\n// Authorization hold written: $249.00\n// Response MTI 0110:\nF039: 00      ← approved ★\nF038: 123456  ← auth code ★',
             },
           },
           'settlement-complete': {

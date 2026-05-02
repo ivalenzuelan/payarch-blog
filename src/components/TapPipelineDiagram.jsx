@@ -73,7 +73,7 @@ export default function TapPipelineDiagram() {
       <div className="tap-node tap-origin">
         <span>Merchant origin</span>
         <strong>X-Tap-Verified: true</strong>
-        <em>X-Tap-Agent-Id: skyfire-agent-001</em>
+        <em>X-Tap-Agent-Id: agent-001</em>
       </div>
 
       <style>{`

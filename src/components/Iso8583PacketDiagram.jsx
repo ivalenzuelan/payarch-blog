@@ -10,8 +10,8 @@ const fields = [
     field: 'F022',
     name: 'POS Entry Mode',
     source: 'Payment rail',
-    value: '81',
-    purpose: 'Signals agent-initiated mode instead of human ecommerce rules.',
+    value: 'agent context',
+    purpose: 'Illustrates how the rail could signal agent-initiated mode instead of human ecommerce rules.',
   },
   {
     field: 'F048',

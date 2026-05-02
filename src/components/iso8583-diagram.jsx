@@ -33,14 +33,14 @@ const REQUEST_FIELDS = [
     humanNote: "System Trace Audit Number — unique sequence per transaction within the acquirer.", agentNote: "Unchanged."
   },
   {
-    id: "F022", name: "POS Entry Mode", humanVal: "01", agentVal: "81", bytes: 3, type: "mod",
-    humanNote: "01 = manual key entry. Used for ecommerce since the late 19short-lived.",
-    agentNote: "★ 81 = agent-initiated. New value introduced for agentic commerce. Every downstream system that sees agent-context flag switches to agent-specific risk rules instead of human behavioral models."
+    id: "F022", name: "POS Entry Mode", humanVal: "CNP", agentVal: "agent ctx", bytes: 3, type: "mod",
+    humanNote: "Legacy card-not-present context. Downstream systems apply ordinary ecommerce risk rules.",
+    agentNote: "Illustrative agent-context signal. Downstream systems can route the transaction to agent-specific risk and policy rules instead of human behavioral models."
   },
   {
-    id: "private condition field", name: "POS Condition Code", humanVal: "00", agentVal: "59", bytes: 2, type: "mod",
+    id: "condition context", name: "POS Condition Code", humanVal: "00", agentVal: "agent", bytes: 2, type: "mod",
     humanNote: "00 = normal transaction conditions.",
-    agentNote: "★ 59 = agent present. New condition code indicating the initiating party is a software agent."
+    agentNote: "Illustrative condition context indicating the initiating party is a software agent."
   },
   {
     id: "F041", name: "Terminal ID", humanVal: "TERM-001", agentVal: "AGNT-001", bytes: 8, type: "mod",
@@ -52,7 +52,7 @@ const REQUEST_FIELDS = [
     humanNote: "Merchant identifier registered with the acquirer.", agentNote: "Unchanged — same merchant."
   },
   {
-    id: "F048", name: "Additional Data", humanVal: "—", agentVal: "AGNT:skyfire-001", bytes: 16, type: "new",
+    id: "F048", name: "Additional Data", humanVal: "—", agentVal: "AGNT:agent-001", bytes: 16, type: "new",
     humanNote: "Private use field — typically empty in consumer checkout.",
     agentNote: "★ Agent identifier injected. Format: AGNT:{agent_id}. Enables downstream audit trail and agent-specific analytics at issuer and card network level."
   },
@@ -74,8 +74,8 @@ const RESPONSE_FIELDS = [
   { id: "F007", name: "Date/Time", val: "0321143422", bytes: 10, type: "std", note: "Echoed from request." },
   { id: "F011", name: "STAN", val: "000123", bytes: 6, type: "std", note: "Echoed — used to match request to response." },
   { id: "F038", name: "Authorization Code", val: "123456", bytes: 6, type: "new", note: "★ 6-digit auth code issued by the issuer. Required for settlement. Must match at T+1 clearing." },
-  { id: "F039", name: "Response Code", val: "00", bytes: 2, type: "new", note: "★ 00 = approved. Other codes: 05 = do not honor, 51 = insufficient funds, 58 = invalid terminal (private instruction reference mismatch)." },
-  { id: "F048", name: "Additional Data", val: "AGNT:skyfire-001", bytes: 16, type: "std", note: "Agent identifier echoed — preserved through the chain for audit." },
+  { id: "F039", name: "Response Code", val: "00", bytes: 2, type: "new", note: "00 = approved. Declines remain issuer/network-specific." },
+  { id: "F048", name: "Additional Data", val: "AGNT:agent-001", bytes: 16, type: "std", note: "Agent identifier echoed — preserved through the chain for audit." },
   { id: "private instruction reference", name: "Private Use", val: "agent-confirmed", bytes: 16, type: "new", note: "★ TAP confirmation echo. Proves the issuer processed this as an agent-initiated transaction. Acquirer uses this as audit proof." },
 ]
 
@@ -121,10 +121,10 @@ const ALL_FIELDS = [
   { id:"F019", name:"Acquiring Institution Country Code", cat:"institution",    dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"ISO 3166 numeric country code of the acquiring institution." },
   { id:"F020", name:"PAN Extended, Country Code",         cat:"identification", dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Country code associated with the PAN. Used in some cross-border routing decisions." },
   { id:"F021", name:"Forwarding Institution Country Code",cat:"institution",    dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Country code of the forwarding institution." },
-  { id:"F022", name:"POS Entry Mode",                     cat:"terminal",       dtype:"n",   maxLen:3,    human:"M", agent:"M", type:"mod", desc:"★ How the card data was captured. 01 = manual key entry (ecommerce). 81 = agent-initiated (new). Every downstream system reads this to select the correct risk model. agent-context flag is the primary signal for agentic commerce." },
+  { id:"F022", name:"POS Entry Mode",                     cat:"terminal",       dtype:"n",   maxLen:3,    human:"M", agent:"M", type:"mod", desc:"How the card data was captured. Agentic commerce may require an agent-context signal so downstream systems can select the correct risk model. Exact values are network-specific." },
   { id:"F023", name:"Application PAN Sequence Number",    cat:"identification", dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Distinguishes between multiple cards with the same PAN (e.g., supplementary cards)." },
   { id:"F024", name:"Network International ID (NII)",     cat:"processing",     dtype:"n",   maxLen:3,    human:"C", agent:"C", type:"std", desc:"Identifies the network used to route the transaction. Set by the acquirer." },
-  { id:"private condition field", name:"POS Condition Code",                 cat:"terminal",       dtype:"n",   maxLen:2,    human:"C", agent:"C", type:"mod", desc:"★ Describes the conditions at the point of service. 00 = normal. 59 = agent present (new). Used alongside agent-context flag to provide full agent context to risk models." },
+  { id:"condition context", name:"POS Condition Code",                 cat:"terminal",       dtype:"n",   maxLen:2,    human:"C", agent:"C", type:"mod", desc:"Describes conditions at the point of service. Agentic commerce may use additional context alongside the entry-mode signal." },
   { id:"F026", name:"POS PIN Capture Code",               cat:"terminal",       dtype:"n",   maxLen:2,    human:"O", agent:"-",  type:"std", desc:"Maximum number of PIN capture attempts allowed. Not applicable for agent transactions (no PIN entered)." },
   { id:"F027", name:"Auth. ID Response Length",           cat:"processing",     dtype:"n",   maxLen:1,    human:"O", agent:"O", type:"std", desc:"Length of the authorization identification response expected in F038." },
   { id:"F028", name:"Amount, Transaction Fee",            cat:"amounts",        dtype:"x+n", maxLen:9,    human:"O", agent:"O", type:"std", desc:"Fee amount charged for the transaction. Signed (C=credit, D=debit)." },
@@ -138,7 +138,7 @@ const ALL_FIELDS = [
   { id:"F036", name:"Track 3 Data",                       cat:"card",           dtype:"z",   maxLen:104,  human:"-",  agent:"-",  type:"std", desc:"Magnetic stripe track 3. Rarely implemented. Not used in modern payment flows." },
   { id:"F037", name:"Retrieval Reference Number (RRN)",   cat:"tracing",        dtype:"an",  maxLen:12,   human:"C", agent:"C", type:"std", desc:"12-character alphanumeric identifier assigned by the acquirer. Used for dispute resolution and reconciliation. Unique per acquirer per day." },
   { id:"F038", name:"Authorization ID Response",          cat:"tracing",        dtype:"an",  maxLen:6,    human:"C", agent:"C", type:"std", desc:"★ 6-character auth code returned by the issuer in the 0110 response. Required for settlement. Must match exactly at clearing (MTI 0220)." },
-  { id:"F039", name:"Response Code",                      cat:"processing",     dtype:"an",  maxLen:2,    human:"M", agent:"M", type:"std", desc:"★ Issuer's response. 00 = approved. 05 = do not honor. 51 = insufficient funds. 54 = expired card. 58 = transaction not permitted (also used when private instruction reference hash mismatch detected)." },
+  { id:"F039", name:"Response Code",                      cat:"processing",     dtype:"an",  maxLen:2,    human:"M", agent:"M", type:"std", desc:"Issuer or network response. Approval and decline codes remain implementation-specific." },
   { id:"F040", name:"Service Restriction Code",           cat:"card",           dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"3-digit code from the card's magnetic stripe indicating geographic and service restrictions." },
   { id:"F041", name:"Card Acceptor Terminal ID",          cat:"terminal",       dtype:"ans", maxLen:8,    human:"M", agent:"M", type:"mod", desc:"★ Identifies the terminal where the transaction occurred. In agent transactions, prefixed AGNT- to distinguish from human checkout terminals in acquirer reporting and analytics." },
   { id:"F042", name:"Card Acceptor ID (Merchant ID)",     cat:"merchant",       dtype:"ans", maxLen:15,   human:"M", agent:"M", type:"std", desc:"Merchant identifier assigned by the acquirer. Also called MID. Appears in all settlement records." },
@@ -147,7 +147,7 @@ const ALL_FIELDS = [
   { id:"F045", name:"Track 1 Data",                       cat:"card",           dtype:"ans", maxLen:76,   human:"O", agent:"-",  type:"std", desc:"Magnetic stripe track 1 data. Contains PAN, name, and expiry. Not used in CNP or agent transactions." },
   { id:"F046", name:"Amounts, Fees",                      cat:"amounts",        dtype:"ans", maxLen:204,  human:"O", agent:"O", type:"std", desc:"Detailed breakdown of fees associated with the transaction." },
   { id:"F047", name:"Additional Data — National",         cat:"private",        dtype:"ans", maxLen:999,  human:"O", agent:"O", type:"std", desc:"Reserved for national use. Contents defined by individual payment networks for their markets." },
-  { id:"F048", name:"Additional Data — Private",          cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"M", type:"new", desc:"★ Used for agent identifier injection. Format: AGNT:{agent_id} (e.g., AGNT:skyfire-001). Enables downstream audit trail and agent-specific analytics at issuer and card network level. Empty in human transactions." },
+  { id:"F048", name:"Additional Data — Private",          cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"M", type:"new", desc:"★ Used for agent identifier injection. Format: AGNT:{agent_id} (e.g., AGNT:agent-001). Enables downstream audit trail and agent-specific analytics at issuer and card network level. Empty in human transactions." },
   { id:"F049", name:"Currency Code, Transaction",         cat:"currency",       dtype:"n",   maxLen:3,    human:"M", agent:"M", type:"std", desc:"ISO 4217 numeric currency code. 840 = USD, 978 = EUR, 826 = GBP." },
   { id:"F050", name:"Currency Code, Settlement",          cat:"currency",       dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Currency used for settlement between the acquiring and issuing banks." },
   { id:"F051", name:"Currency Code, Cardholder Billing",  cat:"currency",       dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Currency used for billing the cardholder. May differ from transaction currency in cross-border cases." },
@@ -504,7 +504,7 @@ export default function Iso8583Diagram() {
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.mod.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.mod.text, fontWeight: 600 }}>3 modified fields</span>
-                  <span style={{ color: "var(--ink-500)" }}>F002 PAN→VCN · F022 context flag · private condition field 00→59</span>
+                  <span style={{ color: "var(--ink-500)" }}>F002 PAN→VCN · F022 context flag · condition context</span>
                 </div>
               </>
             ) : (

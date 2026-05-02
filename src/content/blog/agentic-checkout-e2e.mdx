@@ -5,6 +5,11 @@ pubDate: 'Mar 21 2026'
 tags: ['visa', 'agentic-commerce', 'trusted-agent-protocol', 'iso8583', 'payments', 'x402', 'mcp']
 ---
 
+import { agenticCheckoutE2E } from '../../lib/core';
+import AgenticArchitecture from '../../components/agentic-architecture.jsx';
+import TapHandshake from '../../components/tap-handshake-diagram.jsx';
+import Iso8583Diagram from '../../components/iso8583-diagram.jsx';
+
 You say "buy me the HEAD Delta Pro padel racket." Your AI assistant does the research, chooses the item, and reaches checkout. The hard part is not finding the product. The hard part is proving three things before money moves:
 
 1. The request came from a registered agent, not a scraper or card-testing bot.
@@ -12,6 +17,8 @@ You say "buy me the HEAD Delta Pro padel racket." Your AI assistant does the res
 3. The payment credential is scoped enough that a stolen token is not a general-purpose card.
 
 That is the problem Visa Intelligent Commerce and the Trusted Agent Protocol are built around. The public documentation is clear on the primitives. It is less public about VisaNet field-level implementation details, so this post treats ISO 8583 examples as illustrative rather than official field assignments.
+
+<AgenticArchitecture client:load diagram={agenticCheckoutE2E} />
 
 ---
 
@@ -43,6 +50,8 @@ Content-Digest: sha-256=:base64-digest:
 Cloudflare's public write-up describes the validation pipeline at a high level: confirm the signature headers, pull the key ID, check the timestamp window, reject reused nonces, validate the browsing/payment tag, reconstruct the canonical signature base, and verify the Ed25519 signature.
 
 That gives the merchant a better question than "does this look human?" The question becomes "did a registered agent sign this exact request, and is it fresh?"
+
+<TapHandshake client:load />
 
 ---
 
@@ -88,6 +97,8 @@ What changes is the evidence attached to the authorization:
 - Policy context such as merchant, amount, category, limit, velocity, and revocation state.
 
 Public Visa and Cloudflare documents do **not** publish exact ISO 8583 data element numbers or values for agentic transactions. So any diagram that shows `F022`, `F048`, or `F126` should be read as packet anatomy: where this kind of context can travel in a card-network authorization, not a public Visa field specification.
+
+<Iso8583Diagram client:load />
 
 ---
 

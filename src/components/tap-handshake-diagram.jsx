@@ -16,9 +16,9 @@ const STEPS = [
     time: "t + 0ms",
     title: "Agent constructs signed HTTP request",
     rows: [
-      { key: "Signature-Input", val: 'tap-sig=("@method" "@target-uri" "x-tap-agent-id" "x-tap-intent"); keyid="skyfire-001"; tag="tap-purchase"; created=1742518234; nonce="a3f8c2e1d9b7"', hi: true },
+      { key: "Signature-Input", val: 'tap-sig=("@method" "@target-uri" "x-tap-agent-id" "x-tap-intent"); keyid="agent-001"; tag="tap-purchase"; created=1742518234; nonce="a3f8c2e1d9b7"', hi: true },
       { key: "Signature", val: "tap-sig=:MEQCIBx7zKp9mN3...base64==:", hi: true },
-      { key: "X-Tap-Agent-Id", val: "skyfire-agent-001", hi: false },
+      { key: "X-Tap-Agent-Id", val: "agent-001", hi: false },
       { key: "X-Tap-Intent", val: "purchase", hi: true },
       { key: "X-Tap-Consumer-Token", val: "eyJhbGciOiJFUzI1NiJ9...", hi: false },
     ],
@@ -33,7 +33,7 @@ const STEPS = [
     time: "t + 12ms",
     title: "Visa TAP runs three independent checks",
     rows: [
-      { key: "1. Key fetch", val: "GET public-key registry/skyfire-001 → ed25519:MCowBQYDK2Vd... (cached 5 min)", hi: false },
+      { key: "1. Key fetch", val: "GET agent public-key registry entry → ed25519:MCowBQYDK2Vd... (cached 5 min)", hi: false },
       { key: "2. Ed25519 verify", val: "Reconstruct canonical form → verify signature → ✓ valid", hi: true },
       { key: "3. Nonce check", val: "a3f8c2e1d9b7 not in store → ✓ unused · stored permanently", hi: true },
       { key: "4. Timestamp", val: "created=1742518234 · delta 8s < 60s limit → ✓", hi: false },
@@ -49,12 +49,12 @@ const STEPS = [
     sub: "Signed credential · short-lived",
     color: "var(--diagram-1)",
     time: "t + 48ms",
-    title: "Visa issues signed JWT — valid short-lived",
+    title: "Visa issues signed JWT — a short-lived credential",
     rows: [
       { key: "iss", val: "agent registry", hi: false },
-      { key: "sub", val: "skyfire-agent-001", hi: false },
+      { key: "sub", val: "agent-001", hi: false },
       { key: "aud", val: "head.com", hi: false },
-      { key: "exp", val: "1742518324 — TTL short-lived only", hi: true },
+      { key: "exp", val: "1742518324 — short-lived TTL only", hi: true },
       { key: "nonce", val: "a3f8c2e1d9b7 — replay-protected", hi: true },
       { key: "consumer_recognized", val: "true — returning customer", hi: true },
       { key: "instruction_ref", val: "pi-abc123 — will appear in ISO 8583 private instruction reference", hi: true },
@@ -80,7 +80,7 @@ const STEPS = [
     from: "merchant", to: "merchant",
     arrow: "merchant internal",
     label: "Verify JWT locally",
-    sub: "No external call · < 5ms",
+    sub: "Local verification",
     color: "var(--success)",
     time: "t + 56ms",
     title: "MerchantSDK validates — seven checks, all local",
@@ -124,8 +124,8 @@ const CRYPTO_DETAILS = {
         mono: true,
         lines: [
           '"@method": POST',
-          '"@target-uri": https://agent registry/v1/validate',
-          '"x-tap-agent-id": skyfire-agent-001',
+          '"@target-uri": agent-registry validation endpoint',
+          '"x-tap-agent-id": agent-001',
           '"x-tap-intent": purchase',
           '"content-digest": sha-256=:YjMzMDQ5YjQ4YzA=:',
         ]
@@ -135,7 +135,7 @@ const CRYPTO_DETAILS = {
         mono: true,
         lines: [
           '"@signature-params": ("@method" "@target-uri" "x-tap-agent-id"',
-          '  "x-tap-intent" "content-digest");keyid="skyfire-001";',
+          '  "x-tap-intent" "content-digest");keyid="agent-001";',
           '  tag="tap-purchase";created=1742518234;nonce="a3f8c2e1d9b7"',
         ]
       },
@@ -163,7 +163,7 @@ const CRYPTO_DETAILS = {
         label: "1. Fetch public key",
         mono: true,
         lines: [
-          "GET https://skyfire.xyz/public-key registry/skyfire-001",
+          "GET agent public-key registry entry",
           "→ { alg: Ed25519, pub: MCowBQYDK2VdA3IA... }",
           "   (cached 5 min, invalidated on key rotation)",
         ]
@@ -215,10 +215,10 @@ const CRYPTO_DETAILS = {
         mono: true,
         lines: [
           '{ "iss": "agent registry",',
-          '  "sub": "skyfire-agent-001",',
+          '  "sub": "agent-001",',
           '  "aud": "head.com",',
           '  "iat": 1742518234,',
-          '  "exp": 1742518324,          // +short-lived only',
+          '  "exp": 1742518324,          // short validity window',
           '  "nonce": "a3f8c2e1d9b7",   // replay protection',
           '  "consumer_recognized": true,',
           '  "instruction_ref": "pi-abc123",',

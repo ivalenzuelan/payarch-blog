@@ -157,7 +157,7 @@ const PRESETS = {
     label: "Agent checkout",
     sub: "MTI 0100 · agent-context flag",
     bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 18, 22, 25, 37, 38, 39, 41, 42, 43, 48, 49, 64, 126]),
-    note: "agent-context flag (agent-initiated). Adds F048 (agent ID: AGNT:skyfire-001) and private instruction reference (TAP instruction hash). Secondary bitmap required for private instruction reference.",
+    note: "agent-context flag (agent-initiated). Adds F048 (agent ID: AGNT:agent-001) and private instruction reference (TAP instruction hash). Secondary bitmap required for private instruction reference.",
   },
   settlement: {
     label: "Batch settlement",

@@ -61,10 +61,10 @@ const PROBLEMS = [
     bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))",
     border: "color-mix(in srgb, var(--diagram-1) 25%, var(--ink-200))",
     accentBg: "var(--signal-100)",
-    description: "Everything described in this post applies to domestic card transactions. International wire transfers operate on SWIFT and correspondent banking chains that sit entirely outside the ISO 8583 / card network stack. The agent authorization credential that travels in DE48 has no equivalent in a SWIFT pain.001 message.",
+    description: "Everything described in this post applies to domestic card transactions. International wire transfers operate on SWIFT and correspondent banking chains that sit entirely outside the ISO 8583 / card network stack. Agent authorization evidence in card-network metadata has no direct equivalent in a SWIFT pain.001 message.",
     source: "SWIFT ISO 20022 Payment Initiation Relay Rulebook (March 2025). BIS/SWIFT working groups active in 2025–2026. Formal ISO 20022 AI agent extensions expected H2 2026.",
     flow: [
-      { actor: "Agent", msg: "Authorized via TAP credential in DE48 · DE22=81", type: "agent" },
+      { actor: "Agent", msg: "Authorized via TAP-style credential · agent-context metadata", type: "agent" },
       { actor: "Domestic Auth", msg: "ISO 8583 0100 → card network → issuer ✓", type: "success" },
       { actor: "Cross-border", msg: "Payment requires international wire transfer", type: "neutral" },
       { actor: "SWIFT Relay", msg: "pain.001 Customer Credit Transfer — Forwarding Agent role exists", type: "neutral" },

@@ -347,7 +347,7 @@ function TamperTest({ publicKey, sigP, sigVal }) {
 
 export default function TapSimulator() {
   const [cfg, setCfg] = useState({
-    agentId: 'skyfire-001',
+    agentId: 'agent-001',
     domain: 'head.com',
     path: '/checkout',
     type: 'checkout',

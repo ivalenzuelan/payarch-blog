@@ -50,7 +50,7 @@ const systems = [
     name: "Visa",
     architecture: "TAP + VIC + VTS",
     fit: ["native", "native", "native", "native"],
-    note: "Most explicit ISO 8583 mapping: F022, F048, and private instruction reference carry the new evidence downstream.",
+    note: "Illustrative ISO 8583 mapping: entry context, additional data, and private-use fields can carry agent evidence downstream.",
     color: "var(--diagram-1)",
   },
   {

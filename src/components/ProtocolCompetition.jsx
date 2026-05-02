@@ -62,15 +62,15 @@ const MATRIX = {
     1: { coverage: "primary", note: "Core purpose. Ed25519 keypairs, RFC 9421 HTTP Message Signatures, 7-stage CDN verification pipeline. Every request cryptographically bound to a registered agent identity." },
     2: { coverage: "partial", note: "Consumer Recognition JWT carries delegation scope ID and agent DID — verifies the agent was authorized by a specific consumer. Does not define the full mandate chain." },
     3: { coverage: "none", note: "TAP does not enforce business policy. Its job is identity verification; business policy belongs in the wallet, agent platform, or AP system above it." },
-    4: { coverage: "primary", note: "TAP credential travels in DE48 (Additional Data). Agent-initiated flag in DE22. Payment Account Reference (PAR) links the token to the agent session in the clearing stream." },
+    4: { coverage: "primary", note: "TAP evidence can be represented in private authorization metadata. Agent context can be signaled to downstream risk systems, and token references can link the credential to the agent session for audit." },
     5: { coverage: "partial", note: "data enrichment incentivizes L3 data enrichment (possible interchange reduction) — adjacent to TAP but a separate Visa program. TAP itself does not define settlement." },
   },
   mc: {
     1: { coverage: "primary", note: "Know Your Agent (KYA) verification with tiered levels. Agent platform registers as MDES Token Requestor. Agentic tokens carry DSRP cryptogram + Agentic Commerce Identifiers in clearing." },
     2: { coverage: "primary", note: "Verifiable Intent — 3-layer SD-JWT credential chain: L1 (identity) → L2 (user→agent, constrained) → L3 (agent→network, specific transaction). Each layer is a strict subset of the layer above." },
     3: { coverage: "partial", note: "Intent Credential encodes constraints (merchant category, price ceiling, 7-day window). Enforcement is at credential verification — not a real-time policy engine." },
-    4: { coverage: "primary", note: "Agentic tokens extend MDES tokenization. DE105 Transaction Link Identifier revised (Oct 2025) to chain all lifecycle messages back to the original human authorization event." },
-    5: { coverage: "partial", note: "Agentic Commerce Identifiers travel in the clearing stream, enabling issuers to build separate behavioral baselines for agent vs. human transactions. Not a settlement mechanism itself." },
+    4: { coverage: "primary", note: "Agentic tokens extend MDES tokenization. Lifecycle identifiers can tie related messages back to the original authorization event." },
+    5: { coverage: "partial", note: "Agent metadata can support separate behavioral baselines for agent and human transactions. Not a settlement mechanism itself." },
   },
   ap2: {
     1: { coverage: "partial", note: "AP2 uses A2A AgentCards for agent discovery and role declaration. DID-based trust is in the roadmap (v1.x). Short-term: manually curated allowlists per actor." },
@@ -91,7 +91,7 @@ const MATRIX = {
     2: { coverage: "partial", note: "EIP-3009 signed pre-authorization separates signing from execution. Payment authorization is encoded in the X-PAYMENT header payload — amount, asset, network, recipient." },
     3: { coverage: "none", note: "x402 has no policy layer. The payment is self-contained in the HTTP headers. Budget enforcement, if any, must be implemented by the agent platform above x402." },
     4: { coverage: "none", note: "x402 is a separate rail — USDC on Base L2, not ISO 8583 / card networks. It targets sub-dollar API micropayments where card rails have never worked." },
-    5: { coverage: "primary", note: "Core purpose. ~$0.001 minimum payment. ~2 second end-to-end. ~$0 in gas fees on Base L2. Pay-per-API-call with zero subscriptions, zero accounts, zero human approvals. Already adopted by Cloudflare and 250+ contributors." },
+    5: { coverage: "primary", note: "Core purpose. Low-value payments and fast HTTP-native settlement. Pay-per-API-call with zero subscriptions, zero accounts, zero human approvals. Useful for API and machine-to-machine payments." },
   },
 }
 

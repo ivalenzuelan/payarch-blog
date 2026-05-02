@@ -101,7 +101,7 @@ const phases = [
 
 const fields = [
   ["F002", "agent-bound token", "credential"],
-  ["F022", "81", "entry mode"],
+  ["entry", "agent context", "routing signal"],
   ["F048", "agent identity", "context"],
   ["private instruction reference", "instruction hash", "integrity"],
 ];

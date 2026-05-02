@@ -27,7 +27,7 @@ const REBUILD = [
     question:"Does the transaction signal match?",
     before:[
       { tool:"AVS / CVV match",   broken:"Agent submits programmatically — no address to verify" },
-      { tool:"F022 = 01",         broken:"POS Entry Mode 'manual key entry' since 19short-lived — triggers human rules downstream" },
+      { tool:"F022 = 01",         broken:"POS Entry Mode 'manual key entry' in legacy ecommerce — triggers human rules downstream" },
       { tool:"IP reputation",     broken:"Data center IP triggers every heuristic" },
     ],
     visa:{ tool:"agent-context flag + F048 + private instruction reference", standard:"ISO 8583 · VIC", detail:"agent-context flag = agent-initiated (new value) · F048 = agent identifier · private instruction reference = TAP instruction hash. All three propagate agent context through the entire downstream chain." },
@@ -41,7 +41,7 @@ const REBUILD = [
       { tool:"Distributed detection",broken:"Agent shopping = bot testing cards across merchants" },
       { tool:"No pre-auth registry", broken:"No way to verify consumer already approved this intent" },
     ],
-    visa:{ tool:"VIC instruction registry", standard:"Visa Intelligent Commerce", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount + merchant tamper = immediate decline (a decline). agent-context flag triggers agent-aware ML model." },
+    visa:{ tool:"VIC instruction registry", standard:"Visa Intelligent Commerce", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount or merchant tampering can trigger a decline. agent-context flag triggers agent-aware ML model." },
     mc:  { tool:"Agentic Token binding", standard:"Mastercard Token Service", detail:"Network validates token was issued for this exact agent + consumer + context. Token carries cryptographic proof through entire authorization chain." },
   },
   {

@@ -51,7 +51,7 @@ const LAYERS = [
       "card-not-present entry signal tells ALL downstream: apply human fraud rules",
       "Machine-speed pattern reads as coordinated attack",
     ],
-    failNote:"card-not-present entry signal is the root cause — the ecommerce default since the 19short-lived. No field existed for agents.",
+    failNote:"The legacy card-not-present signal is the root cause. It gives downstream systems no clean way to distinguish delegated agent checkout from ordinary browser checkout.",
     visaFix:{ tool:"agent-context flag + F048 + private instruction reference", detail:"Three new ISO 8583 fields: agent-context flag (agent-initiated) · F048: agent identifier · private instruction reference: TAP instruction hash. Propagate agent context through entire chain." },
     mcFix:  { tool:"Agentic Token + F022 equivalent", detail:"Agent identity embedded in the token metadata itself — not in message fields. New POS Entry Mode value signals agent rules downstream." },
   },
@@ -74,7 +74,7 @@ const LAYERS = [
       "No way to validate consumer pre-authorized this specific intent",
     ],
     failNote:"The most powerful models in the entire chain were built to catch this exact pattern.",
-    visaFix:{ tool:"VIC instruction registry", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount + merchant tamper = immediate decline (a decline). agent-context flag triggers agent risk model." },
+    visaFix:{ tool:"VIC instruction registry", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount or merchant tampering can trigger a decline. agent-context flag triggers agent risk model." },
     mcFix:  { tool:"Agentic Token binding", detail:"Network validates token was issued for this specific agent + consumer + context. Token carries agent proof through the entire authorization chain." },
   },
   {
