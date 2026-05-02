@@ -65,7 +65,7 @@ export default function TapPipelineDiagram() {
           </div>
         </div>
 
-        <div className="tap-budget">budget: edge validation budget at edge</div>
+        <div className="tap-budget">verification target: edge-local check, specific latency budget not publicly specified</div>
       </div>
 
       <div className="tap-arrow" aria-hidden="true">{'->'}</div>

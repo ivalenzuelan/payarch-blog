@@ -1,10 +1,10 @@
 const fields = [
   {
-    field: 'Token field',
-    name: 'Tokenized credential',
+    field: 'DE 2',
+    name: 'Tokenized PAN',
     source: 'VIC API',
     value: 'agent-bound VCN',
-    purpose: 'Merchant and acquirer handle a token, not the real PAN.',
+    purpose: 'The PAN field carries a network token (VCN) rather than the real account number. Merchant and acquirer never see the underlying PAN.',
   },
   {
     field: 'Context signal',
@@ -28,11 +28,11 @@ const fields = [
     purpose: 'Conceptually binds authorization to a consumer-authorized instruction without claiming a public field number.',
   },
   {
-    field: 'Issuer response',
-    name: 'Authorization decision',
+    field: 'DE 39',
+    name: 'Response code',
     source: 'Issuer',
-    value: 'network-specific code',
-    purpose: 'Issuer returns an approval or decline using the network response model.',
+    value: '00 = approved / decline code',
+    purpose: 'Issuer returns a two-character response code (00 for approval). Agent-specific decline codes for mandate violations are not publicly specified.',
   },
 ];
 

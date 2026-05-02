@@ -19,12 +19,12 @@ const systems = [
   },
   {
     id: 'vdcap',
-    name: 'data enrichment',
-    role: 'Data economics',
+    name: 'VDCAP',
+    role: 'Auth enrichment',
     color: 'var(--diagram-3)',
     bg: 'color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))',
-    items: ['device ID', 'IP address', 'email hash', 'AVS data'],
-    output: 'enriched transaction evidence',
+    items: ['device ID', 'IP address', 'email hash', 'AVS billing data'],
+    output: 'structured auth data + interchange incentive',
   },
 ];
 
