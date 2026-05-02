@@ -7,24 +7,25 @@ const ACTOR_LAYOUT = {
   consumer: { id: "consumer", band: "Consumer", layer: 0, col: 1, label: "Consumer", sub: "Sets spending policy once" },
   agent: { id: "agent", band: "Agent Layer", layer: 1, col: 0, nodeId: "n-agent-runtime" },
   wallet: { id: "wallet", band: "Agent Layer", layer: 1, col: 2, nodeId: "n-agent-wallet" },
-  keystore: { id: "keystore", band: "Trust & Payment Network", layer: 2, col: 0, nodeId: "n-tap", label: "Visa Key Store", sub: "TAP · Ed25519 keys · agent registry" },
-  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · card network · Token Service" },
+  keystore: { id: "keystore", band: "Trust & Payment Network", layer: 2, col: 0, nodeId: "n-tap", label: "Agent Key Registry", sub: "TAP · public keys · agent registry" },
+  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · Visa Token Service" },
   issuer: { id: "issuer", band: "Payment Rails", layer: 3, col: 2, nodeId: "n-issuer" },
   acquirer: { id: "acquirer", band: "Payment Rails", layer: 4, col: 1, nodeId: "n-acquirer" },
   merchant: { id: "merchant", band: "Payment Rails", layer: 5, col: 0, nodeId: "n-merchant" },
 }
 
 const CONNECTION_SPECS = [
-  { from: "consumer", to: "agent", label: "delegates intent", type: "delegate" },
-  { from: "consumer", to: "wallet", label: "pre-authorizes + Passkey", type: "delegate" },
-  { from: "agent", to: "vic", label: "request credential", type: "api" },
-  { from: "wallet", to: "vic", label: "credential scope", type: "payment" },
-  { from: "agent", to: "merchant", edgeId: "e-agent-to-merchant", type: "identity" },
-  { from: "merchant", to: "keystore", label: "verify Ed25519 signature", type: "identity" },
+  { from: "consumer", to: "agent",    label: "delegates intent",       type: "delegate" },
+  { from: "consumer", to: "wallet",   label: "passkey enrollment",     type: "delegate" },
+  { from: "agent",    to: "vic",      label: "purchase instruction",   type: "api" },
+  { from: "agent",    to: "merchant", edgeId: "e-agent-to-merchant",   type: "identity" },
+  { from: "merchant", to: "keystore", label: "fetch agent public key", type: "identity" },
+  { from: "merchant", to: "vic",      label: "retrieve credential",    type: "api" },
   { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment" },
-  { from: "acquirer", to: "vic", edgeId: "e-acquirer-to-visa", type: "payment" },
-  { from: "vic", to: "issuer", edgeId: "e-visa-to-issuer", type: "payment" },
-  { from: "issuer", to: "vic", edgeId: "e-issuer-to-visa", type: "response" },
+  { from: "acquirer", to: "vic",      edgeId: "e-acquirer-to-visa",    type: "payment" },
+  { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment" },
+  { from: "issuer",   to: "vic",      edgeId: "e-issuer-to-visa",      type: "response" },
+  { from: "acquirer", to: "merchant", label: "approval",               type: "response" },
 ]
 
 const NODE_ACCENT = {
@@ -165,7 +166,9 @@ function getEdge(fromId, toId, actors) {
   const isVertical = fromActor.layer !== toActor.layer
   const isBidi =
     (fromId === "vic" && toId === "issuer") ||
-    (fromId === "issuer" && toId === "vic")
+    (fromId === "issuer" && toId === "vic") ||
+    (fromId === "merchant" && toId === "acquirer") ||
+    (fromId === "acquirer" && toId === "merchant")
 
   if (isVertical) {
     y1 = dy > 0 ? fy + NODE_H / 2 : fy - NODE_H / 2
@@ -260,7 +263,7 @@ function buildDetails(diagram) {
     acquirer: {
       body: getStepText(acquirer, "acquirer-iso8583", "business"),
       facts: [
-        propertyFact(acquirer, "key_modifications", "Key ISO changes"),
+        propertyFact(acquirer, "key_modifications", "Authorization metadata"),
         propertyFact(acquirer, "connection", "Connection"),
         propertyFact(acquirer, "message_encryption", "Transport"),
       ].filter(Boolean),
@@ -351,7 +354,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
           <div style={{ fontSize: 10, letterSpacing: "0.13em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "ui-monospace,'Courier New',monospace", marginBottom: 5 }}>
             Agentic Commerce · System Architecture
           </div>
-          <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, color: "var(--ink-800)", letterSpacing: "-0.02em", lineHeight: 1 }}>
+          <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, color: "var(--ink-800)", letterSpacing: 0, lineHeight: 1 }}>
             {diagram.title}
           </div>
         </div>
@@ -417,7 +420,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                   >
                     <div style={{ width: 3, height: 32, background: accent, borderRadius: 2, flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)", letterSpacing: "-0.01em" }}>{actor.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)", letterSpacing: 0 }}>{actor.label}</div>
                       <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", marginTop: 2 }}>{actor.sub}</div>
                     </div>
                     <div style={{ fontSize: 12, color: isSelected ? accent : "var(--ink-200)" }}>{isSelected ? "▲" : "▼"}</div>
@@ -561,7 +564,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                     <g transform={`translate(${x + 14},${y + NODE_H / 2 - 9}) scale(0.75)`}>
                       <path d={ICON[actor.id]} fill={tint} opacity={isSelected ? 0.85 : isHovered ? 0.65 : 0.45} style={{ transition: "opacity 0.15s" }} />
                     </g>
-                    <text x={x + 37} y={y + 27} dominantBaseline="central" style={{ fontSize: 12, fontWeight: 600, fontFamily: "system-ui,sans-serif", fill: isSelected ? "var(--ink-900)" : isHovered ? "var(--ink-800)" : "var(--ink-800)", letterSpacing: "-0.01em", transition: "fill 0.15s" }}>
+                    <text x={x + 37} y={y + 27} dominantBaseline="central" style={{ fontSize: 12, fontWeight: 600, fontFamily: "system-ui,sans-serif", fill: isSelected ? "var(--ink-900)" : isHovered ? "var(--ink-800)" : "var(--ink-800)", letterSpacing: 0, transition: "fill 0.15s" }}>
                       {actor.label}
                     </text>
                     <text x={x + 37} y={y + 46} dominantBaseline="central" style={{ fontSize: 8.5, fontFamily: "ui-monospace,monospace", fill: isSelected ? "var(--ink-500)" : "var(--ink-400)", letterSpacing: "0.01em", transition: "fill 0.15s" }}>
@@ -681,9 +684,9 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                   {[
                     [diagram.metadata?.totalLatency ?? "timing varies", "end to end"],
                     [diagram.settlementCycle ?? "T+1", "settlement"],
-                    ["agent-context flag", "agent flag"],
+                    ["trust context", "agent signal"],
                     [getNode(diagram, "n-tap")?.data?.properties?.algorithm?.split(" ")[0] ?? "Ed25519", "local signing"],
-                    ["zero", "consumer friction"],
+                    ["policy-based", "consumer friction"],
                   ].map(([value, label]) => (
                     <div key={`${value}-${label}`} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                       <span style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)" }}>{value}</span>

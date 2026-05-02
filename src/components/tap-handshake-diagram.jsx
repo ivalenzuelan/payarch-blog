@@ -17,7 +17,7 @@ const STEPS = [
     title: "Agent constructs signed HTTP request",
     rows: [
       { key: "Signature-Input", val: 'sig1=("@method" "@target-uri" "content-digest"); keyid="agent-key-001"; tag="agent-checkout"; created=...; nonce="..."', hi: true },
-      { key: "Signature", val: "tap-sig=:MEQCIBx7zKp9mN3...base64==:", hi: true },
+      { key: "Signature", val: "tap-sig=:base64-signature:", hi: true },
       { key: "Content-Digest", val: "sha-256=:base64-digest:", hi: false },
       { key: "Request tag", val: "agent-checkout", hi: true },
       { key: "Key id", val: "registered agent key", hi: false },
@@ -93,17 +93,17 @@ const STEPS = [
   {
     from: "merchant", to: "agent",
     arrow: "merchant -> agent",
-    label: "200 OK · Order confirmed",
-    sub: "No CAPTCHA · No redirect · No form",
+    label: "Order accepted",
+    sub: "merchant policy passed",
     color: "var(--success)",
     time: "illustrative",
-    title: "Order accepted — zero friction",
+    title: "Order accepted — payment can proceed",
     rows: [
       { key: "order_id", val: "HEAD-2026-78234", hi: true },
       { key: "status", val: "pending_payment", hi: false },
       { key: "next_step", val: "Stripe PaymentIntent → ISO 8583 0100 → card network → issuer", hi: true },
     ],
-    note: "The consumer never saw a checkout page. No card number entered. No CAPTCHA solved. Exact production timing depends on the merchant, verifier, PSP, and issuer path.",
+    note: "A trusted-agent flow can reduce checkout friction when merchant policy allows it. Exact production timing and any step-up requirement depend on the merchant, verifier, PSP, and issuer path.",
   },
 ]
 
@@ -136,14 +136,14 @@ const CRYPTO_DETAILS = {
         label: "3. Sign with Ed25519 private key",
         mono: false,
         lines: [
-          "The canonical string is hashed with SHA-512, then signed with the agent's Ed25519 private key. Ed25519 signatures are deterministic — the same input always produces the same signature. Key length: 32 bytes (256 bits).",
+          "The agent signs the canonical string with its Ed25519 private key. Ed25519 uses SHA-512 internally, but the application signs the signature base as the message rather than sending a separate pre-hash. Key length: 32 bytes (256 bits).",
         ]
       },
       {
-        label: "4. Encode as base64url",
+        label: "4. Encode as a structured-field byte sequence",
         mono: true,
         lines: [
-          "tap-sig=:MEQCIBx7zKp9mN3vQs8Tr...base64==:",
+          "tap-sig=:base64-signature:",
         ]
       },
     ],
@@ -174,8 +174,8 @@ const CRYPTO_DETAILS = {
         lines: [
           "ed25519.verify(",
           "  pubkey:    MCowBQYDK2Vd...",
-          "  message:   SHA-512(canonical_string)",
-          "  signature: MEQCIBx7zKp9mN3...",
+          "  message:   canonical_string",
+          "  signature: base64-signature",
           ") → true ✓",
         ]
       },
@@ -273,7 +273,7 @@ export default function TapHandshake() {
   const progress = activeStep < 0 ? 0 : ((activeStep + 1) / STEPS.length) * 100
 
   return (
-    <div style={{ 
+    <div className="tap-handshake" style={{ 
       fontFamily: "'Georgia','Times New Roman',serif", color: "var(--ink-900)", background: "var(--paper)", borderRadius: 12, border: "1px solid var(--ink-200)", overflow: "hidden", 
       width: "100vw", maxWidth: 1040, position: "relative", left: "50%", transform: "translateX(-50%)", margin: "20px 0"
     }}>
@@ -285,8 +285,8 @@ export default function TapHandshake() {
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.02em", margin: "0 0 3px" }}>
-              Agent authentication &amp; credential issuance
+            <h2 style={{ fontSize: 17, fontWeight: 400, letterSpacing: 0, margin: "0 0 3px" }}>
+              Agent authentication &amp; checkout trust result
             </h2>
             <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
               6 illustrative steps · click any step to expand
@@ -307,6 +307,8 @@ export default function TapHandshake() {
         </div>
       </div>
 
+      <div className="tap-timeline-scroll">
+        <div className="tap-timeline-inner">
       {/* Actor columns */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", paddingTop: 14 }}>
         {ACTORS.map(a => (
@@ -490,9 +492,11 @@ export default function TapHandshake() {
           )
         })}
       </div>
+        </div>
+      </div>
 
       {/* Controls */}
-      <div style={{ padding: "11px 20px", borderTop: "1px solid var(--ink-200)", background: "var(--ink-100)", display: "flex", alignItems: "center", gap: 8 }}>
+      <div className="tap-controls" style={{ padding: "11px 20px", borderTop: "1px solid var(--ink-200)", background: "var(--ink-100)", display: "flex", alignItems: "center", gap: 8 }}>
         <button
           onClick={() => { if (playing) { playingRef.current = false; setPlaying(false) } else { setPlaying(true) } }}
           style={{ padding: "5px 14px", borderRadius: 5, fontSize: 11, fontFamily: "'Courier New',monospace", cursor: "pointer", border: `1px solid ${playing ? "var(--diagram-1)" : "var(--ink-300)"}`, background: playing ? "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))" : "var(--paper)", color: playing ? "var(--diagram-1)" : "var(--ink-700)", transition: "all .15s" }}>
@@ -530,6 +534,30 @@ export default function TapHandshake() {
           </div>
         )}
       </div>
+
+      <style>{`
+        .tap-timeline-scroll {
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .tap-timeline-inner {
+          min-width: 760px;
+        }
+
+        @media (max-width: 760px) {
+          .tap-handshake {
+            width: 100% !important;
+            left: auto !important;
+            transform: none !important;
+          }
+
+          .tap-controls {
+            overflow-x: auto;
+          }
+        }
+      `}</style>
 
     </div>
   )
