@@ -15,13 +15,13 @@ const ROWS = [
   },
   {
     category: "Identity protocol",
-    visa: { val: "Trusted Agent Protocol (TAP)", note: "HTTP Message Signatures (RFC 9421) · Ed25519 · JWT issued to agent · 90s TTL · developer.visa.com" },
+    visa: { val: "Trusted Agent Protocol (TAP)", note: "HTTP Message Signatures (RFC 9421) · Ed25519 · JWT issued to agent · short-lived TTL · developer.visa.com" },
     mc:   { val: "Agent Pay Acceptance Framework", note: "Web Bot Auth (RFC 9421) at CDN layer · Cloudflare verification · Dynamic Token Verification Code" },
     diff: true,
   },
   {
     category: "Merchant integration",
-    visa: { val: "TAP SDK — explicit", note: "Merchant validates JWT locally <5ms · receives consumer context (consumer_recognized) · sees full instruction_ref" },
+    visa: { val: "TAP SDK — explicit", note: "Merchant validates JWT locally local verification · receives consumer context (consumer_recognized) · sees full instruction_ref" },
     mc:   { val: "CDN layer — no-code", note: "Cloudflare verifies agent before request reaches merchant · existing checkout form unchanged · Dynamic Token Verification Code in standard card fields" },
     diff: true,
   },
@@ -33,7 +33,7 @@ const ROWS = [
   },
   {
     category: "ISO 8583 field",
-    visa: { val: "F022=81, F048, F126", note: "F022=81 = agent-initiated POS entry mode · F048 = agent identifier · F126 = TAP instruction reference hash" },
+    visa: { val: "agent-context flag, F048, private instruction reference", note: "agent-context flag = agent-initiated POS entry mode · F048 = agent identifier · private instruction reference = TAP instruction reference hash" },
     mc:   { val: "Equivalent modifications", note: "Agent-initiated POS entry mode · agent identifier · instruction reference · exact values in Agent Pay technical spec (non-public)" },
     diff: true,
   },
@@ -45,7 +45,7 @@ const ROWS = [
   },
   {
     category: "AI platform partners",
-    visa: { val: "Skyfire, Anthropic, OpenAI", note: "Skyfire KYAPay protocol · 30+ VIC sandbox partners · 20+ integrating directly · github.com/visa/mcp (open source MCP server)" },
+    visa: { val: "agent platforms and AI assistants", note: "Public examples show Visa AI tooling, tokenization demos, and partner-controlled access paths." },
     mc:   { val: "Microsoft, OpenAI, Google, PayPal", note: "Microsoft Azure OpenAI + Copilot Studio · OpenAI Instant Checkout (September 2025) · Google Gemini checkout · PayPal partnership October 2025" },
     diff: true,
   },
@@ -57,7 +57,7 @@ const ROWS = [
   },
   {
     category: "Open source",
-    visa: { val: "github.com/visa/mcp", note: "Full VIC access via MCP tool calls · any Claude/GPT agent can initiate payments without custom integration" },
+    visa: { val: "Visa AI examples", note: "Public repositories show documentation and demo tooling; production payment access remains partner-controlled." },
     mc:   { val: "developer.mastercard.com/agent-pay", note: "Developer documentation · no open source MCP server equivalent published" },
     diff: true,
   },

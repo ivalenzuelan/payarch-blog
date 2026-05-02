@@ -34,7 +34,7 @@ export default function TapPipelineDiagram() {
             <span className="tap-num">02</span>
             <div>
               <strong>Fetch public key</strong>
-              <p>Read `tap.visa.com/.well-known/agents`; cache for 5 minutes.</p>
+              <p>Read `agent registry/public-key registry`; cache for 5 minutes.</p>
             </div>
           </div>
 
@@ -65,7 +65,7 @@ export default function TapPipelineDiagram() {
           </div>
         </div>
 
-        <div className="tap-budget">budget: 2-4ms at edge</div>
+        <div className="tap-budget">budget: edge validation budget at edge</div>
       </div>
 
       <div className="tap-arrow" aria-hidden="true">{'->'}</div>

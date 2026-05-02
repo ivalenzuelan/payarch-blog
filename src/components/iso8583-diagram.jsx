@@ -22,7 +22,7 @@ const REQUEST_FIELDS = [
   {
     id: "F004", name: "Amount", humanVal: "000000024900", agentVal: "000000024900", bytes: 12, type: "std",
     humanNote: "$249.00 with implied 2 decimal places. Zero-padded to 12 digits.",
-    agentNote: "Unchanged. VisaNet validates this against the stored payment instruction — any tampering in transit = decline."
+    agentNote: "Unchanged. card network validates this against the stored payment instruction — any tampering in transit = decline."
   },
   {
     id: "F007", name: "Date/Time", humanVal: "0321143422", agentVal: "0321143422", bytes: 10, type: "std",
@@ -34,11 +34,11 @@ const REQUEST_FIELDS = [
   },
   {
     id: "F022", name: "POS Entry Mode", humanVal: "01", agentVal: "81", bytes: 3, type: "mod",
-    humanNote: "01 = manual key entry. Used for ecommerce since the late 1990s.",
-    agentNote: "★ 81 = agent-initiated. New value introduced for agentic commerce. Every downstream system that sees F022=81 switches to agent-specific risk rules instead of human behavioral models."
+    humanNote: "01 = manual key entry. Used for ecommerce since the late 19short-lived.",
+    agentNote: "★ 81 = agent-initiated. New value introduced for agentic commerce. Every downstream system that sees agent-context flag switches to agent-specific risk rules instead of human behavioral models."
   },
   {
-    id: "F025", name: "POS Condition Code", humanVal: "00", agentVal: "59", bytes: 2, type: "mod",
+    id: "private condition field", name: "POS Condition Code", humanVal: "00", agentVal: "59", bytes: 2, type: "mod",
     humanNote: "00 = normal transaction conditions.",
     agentNote: "★ 59 = agent present. New condition code indicating the initiating party is a software agent."
   },
@@ -54,16 +54,16 @@ const REQUEST_FIELDS = [
   {
     id: "F048", name: "Additional Data", humanVal: "—", agentVal: "AGNT:skyfire-001", bytes: 16, type: "new",
     humanNote: "Private use field — typically empty in consumer checkout.",
-    agentNote: "★ Agent identifier injected. Format: AGNT:{agent_id}. Enables downstream audit trail and agent-specific analytics at issuer and VisaNet level."
+    agentNote: "★ Agent identifier injected. Format: AGNT:{agent_id}. Enables downstream audit trail and agent-specific analytics at issuer and card network level."
   },
   {
     id: "F049", name: "Currency Code", humanVal: "840", agentVal: "840", bytes: 3, type: "std",
     humanNote: "840 = USD (ISO 4217).", agentNote: "Unchanged."
   },
   {
-    id: "F126", name: "Private Use", humanVal: "—", agentVal: "pi-abc123:sha256:3a7f", bytes: 24, type: "new",
+    id: "private instruction reference", name: "Private Use", humanVal: "—", agentVal: "pi-abc123:sha256:3a7f", bytes: 24, type: "new",
     humanNote: "Private use field — empty in standard consumer transactions.",
-    agentNote: "★ TAP payment instruction reference. SHA-256 hash of the VIC instruction. VisaNet validates this — if amount or merchant was tampered in transit, transaction is declined."
+    agentNote: "★ TAP payment instruction reference. SHA-256 hash of the VIC instruction. card network validates this — if amount or merchant was tampered in transit, transaction is declined."
   },
 ]
 
@@ -74,9 +74,9 @@ const RESPONSE_FIELDS = [
   { id: "F007", name: "Date/Time", val: "0321143422", bytes: 10, type: "std", note: "Echoed from request." },
   { id: "F011", name: "STAN", val: "000123", bytes: 6, type: "std", note: "Echoed — used to match request to response." },
   { id: "F038", name: "Authorization Code", val: "123456", bytes: 6, type: "new", note: "★ 6-digit auth code issued by the issuer. Required for settlement. Must match at T+1 clearing." },
-  { id: "F039", name: "Response Code", val: "00", bytes: 2, type: "new", note: "★ 00 = approved. Other codes: 05 = do not honor, 51 = insufficient funds, 58 = invalid terminal (F126 mismatch)." },
+  { id: "F039", name: "Response Code", val: "00", bytes: 2, type: "new", note: "★ 00 = approved. Other codes: 05 = do not honor, 51 = insufficient funds, 58 = invalid terminal (private instruction reference mismatch)." },
   { id: "F048", name: "Additional Data", val: "AGNT:skyfire-001", bytes: 16, type: "std", note: "Agent identifier echoed — preserved through the chain for audit." },
-  { id: "F126", name: "Private Use", val: "agent-confirmed", bytes: 16, type: "new", note: "★ TAP confirmation echo. Proves the issuer processed this as an agent-initiated transaction. Acquirer uses this as audit proof." },
+  { id: "private instruction reference", name: "Private Use", val: "agent-confirmed", bytes: 16, type: "new", note: "★ TAP confirmation echo. Proves the issuer processed this as an agent-initiated transaction. Acquirer uses this as audit proof." },
 ]
 
 // ─── REFERENCE VIEW DATA (all 128 fields) ────────────────────────────────────
@@ -103,7 +103,7 @@ const ALL_FIELDS = [
   { id:"F001", name:"Bitmap, Secondary",                  cat:"security",       dtype:"b",   maxLen:8,    human:"C", agent:"C", type:"std", desc:"Set when the message contains fields F065–F128. First bit of the message." },
   { id:"F002", name:"Primary Account Number (PAN)",       cat:"identification", dtype:"n",   maxLen:19,   human:"C", agent:"C", type:"mod", desc:"The card number. In agent transactions replaced by a VCN (Virtual Card Number) — the real PAN never leaves Visa Token Service." },
   { id:"F003", name:"Processing Code",                    cat:"processing",     dtype:"n",   maxLen:6,    human:"M", agent:"M", type:"std", desc:"6-digit code describing the transaction type. 000000 = purchase. First 2 digits: transaction type. Digits 3–4: from-account type. Digits 5–6: to-account type." },
-  { id:"F004", name:"Transaction Amount",                 cat:"amounts",        dtype:"n",   maxLen:12,   human:"M", agent:"M", type:"std", desc:"Amount in the smallest currency unit. $249.00 USD = 000000024900. VisaNet validates this against F126 for agent transactions." },
+  { id:"F004", name:"Transaction Amount",                 cat:"amounts",        dtype:"n",   maxLen:12,   human:"M", agent:"M", type:"std", desc:"Amount in the smallest currency unit. $249.00 USD = 000000024900. card network validates this against private instruction reference for agent transactions." },
   { id:"F005", name:"Settlement Amount",                  cat:"amounts",        dtype:"n",   maxLen:12,   human:"O", agent:"O", type:"std", desc:"Amount in settlement currency. Populated by the network if different from transaction currency." },
   { id:"F006", name:"Cardholder Billing Amount",          cat:"amounts",        dtype:"n",   maxLen:12,   human:"O", agent:"O", type:"std", desc:"Amount billed to the cardholder in their billing currency after conversion." },
   { id:"F007", name:"Transmission Date/Time",             cat:"datetime",       dtype:"n",   maxLen:10,   human:"M", agent:"M", type:"std", desc:"MMDDhhmmss format. Set by the originator. Used to match messages and detect replays." },
@@ -121,10 +121,10 @@ const ALL_FIELDS = [
   { id:"F019", name:"Acquiring Institution Country Code", cat:"institution",    dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"ISO 3166 numeric country code of the acquiring institution." },
   { id:"F020", name:"PAN Extended, Country Code",         cat:"identification", dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Country code associated with the PAN. Used in some cross-border routing decisions." },
   { id:"F021", name:"Forwarding Institution Country Code",cat:"institution",    dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Country code of the forwarding institution." },
-  { id:"F022", name:"POS Entry Mode",                     cat:"terminal",       dtype:"n",   maxLen:3,    human:"M", agent:"M", type:"mod", desc:"★ How the card data was captured. 01 = manual key entry (ecommerce). 81 = agent-initiated (new). Every downstream system reads this to select the correct risk model. F022=81 is the primary signal for agentic commerce." },
+  { id:"F022", name:"POS Entry Mode",                     cat:"terminal",       dtype:"n",   maxLen:3,    human:"M", agent:"M", type:"mod", desc:"★ How the card data was captured. 01 = manual key entry (ecommerce). 81 = agent-initiated (new). Every downstream system reads this to select the correct risk model. agent-context flag is the primary signal for agentic commerce." },
   { id:"F023", name:"Application PAN Sequence Number",    cat:"identification", dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Distinguishes between multiple cards with the same PAN (e.g., supplementary cards)." },
   { id:"F024", name:"Network International ID (NII)",     cat:"processing",     dtype:"n",   maxLen:3,    human:"C", agent:"C", type:"std", desc:"Identifies the network used to route the transaction. Set by the acquirer." },
-  { id:"F025", name:"POS Condition Code",                 cat:"terminal",       dtype:"n",   maxLen:2,    human:"C", agent:"C", type:"mod", desc:"★ Describes the conditions at the point of service. 00 = normal. 59 = agent present (new). Used alongside F022=81 to provide full agent context to risk models." },
+  { id:"private condition field", name:"POS Condition Code",                 cat:"terminal",       dtype:"n",   maxLen:2,    human:"C", agent:"C", type:"mod", desc:"★ Describes the conditions at the point of service. 00 = normal. 59 = agent present (new). Used alongside agent-context flag to provide full agent context to risk models." },
   { id:"F026", name:"POS PIN Capture Code",               cat:"terminal",       dtype:"n",   maxLen:2,    human:"O", agent:"-",  type:"std", desc:"Maximum number of PIN capture attempts allowed. Not applicable for agent transactions (no PIN entered)." },
   { id:"F027", name:"Auth. ID Response Length",           cat:"processing",     dtype:"n",   maxLen:1,    human:"O", agent:"O", type:"std", desc:"Length of the authorization identification response expected in F038." },
   { id:"F028", name:"Amount, Transaction Fee",            cat:"amounts",        dtype:"x+n", maxLen:9,    human:"O", agent:"O", type:"std", desc:"Fee amount charged for the transaction. Signed (C=credit, D=debit)." },
@@ -138,7 +138,7 @@ const ALL_FIELDS = [
   { id:"F036", name:"Track 3 Data",                       cat:"card",           dtype:"z",   maxLen:104,  human:"-",  agent:"-",  type:"std", desc:"Magnetic stripe track 3. Rarely implemented. Not used in modern payment flows." },
   { id:"F037", name:"Retrieval Reference Number (RRN)",   cat:"tracing",        dtype:"an",  maxLen:12,   human:"C", agent:"C", type:"std", desc:"12-character alphanumeric identifier assigned by the acquirer. Used for dispute resolution and reconciliation. Unique per acquirer per day." },
   { id:"F038", name:"Authorization ID Response",          cat:"tracing",        dtype:"an",  maxLen:6,    human:"C", agent:"C", type:"std", desc:"★ 6-character auth code returned by the issuer in the 0110 response. Required for settlement. Must match exactly at clearing (MTI 0220)." },
-  { id:"F039", name:"Response Code",                      cat:"processing",     dtype:"an",  maxLen:2,    human:"M", agent:"M", type:"std", desc:"★ Issuer's response. 00 = approved. 05 = do not honor. 51 = insufficient funds. 54 = expired card. 58 = transaction not permitted (also used when F126 hash mismatch detected)." },
+  { id:"F039", name:"Response Code",                      cat:"processing",     dtype:"an",  maxLen:2,    human:"M", agent:"M", type:"std", desc:"★ Issuer's response. 00 = approved. 05 = do not honor. 51 = insufficient funds. 54 = expired card. 58 = transaction not permitted (also used when private instruction reference hash mismatch detected)." },
   { id:"F040", name:"Service Restriction Code",           cat:"card",           dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"3-digit code from the card's magnetic stripe indicating geographic and service restrictions." },
   { id:"F041", name:"Card Acceptor Terminal ID",          cat:"terminal",       dtype:"ans", maxLen:8,    human:"M", agent:"M", type:"mod", desc:"★ Identifies the terminal where the transaction occurred. In agent transactions, prefixed AGNT- to distinguish from human checkout terminals in acquirer reporting and analytics." },
   { id:"F042", name:"Card Acceptor ID (Merchant ID)",     cat:"merchant",       dtype:"ans", maxLen:15,   human:"M", agent:"M", type:"std", desc:"Merchant identifier assigned by the acquirer. Also called MID. Appears in all settlement records." },
@@ -147,7 +147,7 @@ const ALL_FIELDS = [
   { id:"F045", name:"Track 1 Data",                       cat:"card",           dtype:"ans", maxLen:76,   human:"O", agent:"-",  type:"std", desc:"Magnetic stripe track 1 data. Contains PAN, name, and expiry. Not used in CNP or agent transactions." },
   { id:"F046", name:"Amounts, Fees",                      cat:"amounts",        dtype:"ans", maxLen:204,  human:"O", agent:"O", type:"std", desc:"Detailed breakdown of fees associated with the transaction." },
   { id:"F047", name:"Additional Data — National",         cat:"private",        dtype:"ans", maxLen:999,  human:"O", agent:"O", type:"std", desc:"Reserved for national use. Contents defined by individual payment networks for their markets." },
-  { id:"F048", name:"Additional Data — Private",          cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"M", type:"new", desc:"★ Used for agent identifier injection. Format: AGNT:{agent_id} (e.g., AGNT:skyfire-001). Enables downstream audit trail and agent-specific analytics at issuer and VisaNet level. Empty in human transactions." },
+  { id:"F048", name:"Additional Data — Private",          cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"M", type:"new", desc:"★ Used for agent identifier injection. Format: AGNT:{agent_id} (e.g., AGNT:skyfire-001). Enables downstream audit trail and agent-specific analytics at issuer and card network level. Empty in human transactions." },
   { id:"F049", name:"Currency Code, Transaction",         cat:"currency",       dtype:"n",   maxLen:3,    human:"M", agent:"M", type:"std", desc:"ISO 4217 numeric currency code. 840 = USD, 978 = EUR, 826 = GBP." },
   { id:"F050", name:"Currency Code, Settlement",          cat:"currency",       dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Currency used for settlement between the acquiring and issuing banks." },
   { id:"F051", name:"Currency Code, Cardholder Billing",  cat:"currency",       dtype:"n",   maxLen:3,    human:"O", agent:"O", type:"std", desc:"Currency used for billing the cardholder. May differ from transaction currency in cross-border cases." },
@@ -225,7 +225,7 @@ const ALL_FIELDS = [
   { id:"F123", name:"Reserved Private",                   cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"-",  type:"std", desc:"Reserved for private network use." },
   { id:"F124", name:"Reserved Private",                   cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"-",  type:"std", desc:"Reserved for private network use." },
   { id:"F125", name:"Reserved Private",                   cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"-",  type:"std", desc:"Reserved for private network use." },
-  { id:"F126", name:"Private Use — TAP Instruction Ref", cat:"private",         dtype:"ans", maxLen:999,  human:"-",  agent:"M", type:"new", desc:"★ Used by Visa TAP to carry the SHA-256 hash of the payment instruction registered in VIC. VisaNet validates this hash against the stored instruction — if the amount, merchant, or currency was modified in transit, the response code is 58 and the transaction is declined." },
+  { id:"private instruction reference", name:"Private Use — TAP Instruction Ref", cat:"private",         dtype:"ans", maxLen:999,  human:"-",  agent:"M", type:"new", desc:"★ Used by Visa TAP to carry the SHA-256 hash of the payment instruction registered in VIC. card network validates this hash against the stored instruction — if the amount, merchant, or currency was modified in transit, the response code is 58 and the transaction is declined." },
   { id:"F127", name:"Reserved Private",                   cat:"private",        dtype:"ans", maxLen:999,  human:"-",  agent:"-",  type:"std", desc:"Reserved for private network use." },
   { id:"F128", name:"MAC (Secondary)",                    cat:"security",       dtype:"b",   maxLen:8,    human:"-",  agent:"-",  type:"std", desc:"Secondary Message Authentication Code for the extended bitmap. Used when fields beyond F064 are present." },
 ]
@@ -490,7 +490,7 @@ export default function Iso8583Diagram() {
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.new.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.new.text, fontWeight: 600 }}>3 new fields in response</span>
-                  <span style={{ color: "var(--ink-500)" }}>F038 auth code · F039 result · F126 TAP confirmation</span>
+                  <span style={{ color: "var(--ink-500)" }}>F038 auth code · F039 result · private instruction reference TAP confirmation</span>
                 </div>
                 <div style={{ marginLeft: "auto", fontFamily: "'Courier New',monospace", fontSize: 10, color: "var(--ink-500)" }}>~180ms round-trip</div>
               </>
@@ -499,12 +499,12 @@ export default function Iso8583Diagram() {
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.new.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.new.text, fontWeight: 600 }}>2 new fields</span>
-                  <span style={{ color: "var(--ink-500)" }}>F048 agent-id · F126 TAP hash</span>
+                  <span style={{ color: "var(--ink-500)" }}>F048 agent-id · private instruction reference TAP hash</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 1, background: COLORS.mod.dot }} />
                   <span style={{ fontFamily: "'Courier New',monospace", color: COLORS.mod.text, fontWeight: 600 }}>3 modified fields</span>
-                  <span style={{ color: "var(--ink-500)" }}>F002 PAN→VCN · F022 01→81 · F025 00→59</span>
+                  <span style={{ color: "var(--ink-500)" }}>F002 PAN→VCN · F022 context flag · private condition field 00→59</span>
                 </div>
               </>
             ) : (

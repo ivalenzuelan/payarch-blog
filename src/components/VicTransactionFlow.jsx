@@ -11,9 +11,9 @@ const phases = [
     steps: [
       ['03', 'Instruction registered', 'VIC API', 'Passkey assertion creates instruction_ref for merchant, amount, and item.'],
       ['04', 'Agent reaches checkout', 'TAP', 'Signed HTTP request is verified at the edge before merchant origin.'],
-      ['05', 'Credential retrieved', 'VIC API', 'Merchant receives VCN plus enriched VDCAP data.'],
-      ['06', 'Authorization sent', 'ISO 8583', 'F002, F022, F048, and F126 carry the new agent context.'],
-      ['07', 'Issuer approves', 'VisaNet + issuer', 'Agent policy checks replace the human 3DS path.'],
+      ['05', 'Credential retrieved', 'VIC API', 'Merchant receives VCN plus enriched data enrichment data.'],
+      ['06', 'Authorization sent', 'ISO 8583', 'F002, F022, F048, and private instruction reference carry the new agent context.'],
+      ['07', 'Issuer approves', 'card network + issuer', 'Agent policy checks replace the human 3DS path.'],
       ['08', 'Commerce signal closes loop', 'VIC API', 'Order outcome feeds dispute evidence and fraud intelligence.'],
     ],
   },
@@ -24,7 +24,7 @@ const ownerClass = {
   TAP: 'vic-owner-tap',
   Device: 'vic-owner-device',
   'ISO 8583': 'vic-owner-iso',
-  'VisaNet + issuer': 'vic-owner-network',
+  'card network + issuer': 'vic-owner-network',
 };
 
 export default function VicTransactionFlow() {

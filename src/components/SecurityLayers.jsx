@@ -30,7 +30,7 @@ const LAYERS = [
       "Identical pattern to credential stuffing attack",
     ],
     failNote:"Blocked before generating an authorization request.",
-    visaFix:{ tool:"TAP JWT", detail:"Ed25519-signed credential from Visa (TTL 90s) validated locally in <5ms. Merchant sees consumer_recognized + instruction_ref." },
+    visaFix:{ tool:"TAP JWT", detail:"Ed25519-signed credential from Visa (short-lived) validated locally in local verification. Merchant sees consumer_recognized + instruction_ref." },
     mcFix:  { tool:"CDN verification", detail:"Cloudflare verifies agent at edge via Web Bot Auth — before the request reaches merchant infrastructure. No merchant code change." },
   },
   {
@@ -48,11 +48,11 @@ const LAYERS = [
     fails:[
       "No AVS match — agent submits credentials programmatically",
       "Data center IP triggers every malicious IP heuristic",
-      "F022=01 tells ALL downstream: apply human fraud rules",
+      "card-not-present entry signal tells ALL downstream: apply human fraud rules",
       "Machine-speed pattern reads as coordinated attack",
     ],
-    failNote:"F022=01 is the root cause — the ecommerce default since the 1990s. No field existed for agents.",
-    visaFix:{ tool:"F022=81 + F048 + F126", detail:"Three new ISO 8583 fields: F022=81 (agent-initiated) · F048: agent identifier · F126: TAP instruction hash. Propagate agent context through entire chain." },
+    failNote:"card-not-present entry signal is the root cause — the ecommerce default since the 19short-lived. No field existed for agents.",
+    visaFix:{ tool:"agent-context flag + F048 + private instruction reference", detail:"Three new ISO 8583 fields: agent-context flag (agent-initiated) · F048: agent identifier · private instruction reference: TAP instruction hash. Propagate agent context through entire chain." },
     mcFix:  { tool:"Agentic Token + F022 equivalent", detail:"Agent identity embedded in the token metadata itself — not in message fields. New POS Entry Mode value signals agent rules downstream." },
   },
   {
@@ -74,7 +74,7 @@ const LAYERS = [
       "No way to validate consumer pre-authorized this specific intent",
     ],
     failNote:"The most powerful models in the entire chain were built to catch this exact pattern.",
-    visaFix:{ tool:"VIC instruction registry", detail:"VisaNet validates F126 hash against pre-authorized payment instruction. Amount + merchant tamper = immediate decline (response code 58). F022=81 triggers agent risk model." },
+    visaFix:{ tool:"VIC instruction registry", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount + merchant tamper = immediate decline (a decline). agent-context flag triggers agent risk model." },
     mcFix:  { tool:"Agentic Token binding", detail:"Network validates token was issued for this specific agent + consumer + context. Token carries agent proof through the entire authorization chain." },
   },
   {
@@ -96,7 +96,7 @@ const LAYERS = [
       "No fallback path exists — the sale is irreversibly lost",
     ],
     failNote:"Step-up is unrecoverable. There is no path back once 3DS is triggered for an agent.",
-    visaFix:{ tool:"Agent spending policy + Passkey", detail:"FIDO2 Passkey assertion at instruction time, not transaction time. F022=81 → issuer loads agent policy. Deterministic checks: balance ✓ · limit ✓ · category ✓ · velocity ✓. No 3DS." },
+    visaFix:{ tool:"Agent spending policy + Passkey", detail:"FIDO2 Passkey assertion at instruction time, not transaction time. agent-context flag → issuer loads agent policy. Deterministic checks: balance ✓ · limit ✓ · category ✓ · velocity ✓. No 3DS." },
     mcFix:  { tool:"Mastercard Payment Passkey", detail:"Pre-authorized spending policy replaces step-up entirely. Consumer proves intent once with biometric Passkey. Issuer runs policy checks, not real-time challenges." },
   },
 ]

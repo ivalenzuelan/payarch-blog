@@ -19,7 +19,7 @@ const REBUILD = [
       { tool:"Device fingerprint", broken:"Headless Chrome — perfect bot signature" },
       { tool:"Velocity / IP check",broken:"AWS IP · machine speed — flags as attack" },
     ],
-    visa:{ tool:"TAP JWT", standard:"RFC 9421", detail:"Ed25519-signed JWT from tap.visa.com · validated locally in <5ms · consumer_recognized flag · instruction_ref links to pre-authorized intent" },
+    visa:{ tool:"TAP JWT", standard:"RFC 9421", detail:"Ed25519-signed JWT from agent registry · validated locally in local verification · consumer_recognized flag · instruction_ref links to pre-authorized intent" },
     mc:  { tool:"CDN agent verification", standard:"Web Bot Auth", detail:"Cloudflare verifies cryptographic agent identity at edge · unregistered agents never reach merchant · no code change required" },
   },
   {
@@ -27,10 +27,10 @@ const REBUILD = [
     question:"Does the transaction signal match?",
     before:[
       { tool:"AVS / CVV match",   broken:"Agent submits programmatically — no address to verify" },
-      { tool:"F022 = 01",         broken:"POS Entry Mode 'manual key entry' since 1990s — triggers human rules downstream" },
+      { tool:"F022 = 01",         broken:"POS Entry Mode 'manual key entry' since 19short-lived — triggers human rules downstream" },
       { tool:"IP reputation",     broken:"Data center IP triggers every heuristic" },
     ],
-    visa:{ tool:"F022=81 + F048 + F126", standard:"ISO 8583 · VIC", detail:"F022=81 = agent-initiated (new value) · F048 = agent identifier · F126 = TAP instruction hash. All three propagate agent context through the entire downstream chain." },
+    visa:{ tool:"agent-context flag + F048 + private instruction reference", standard:"ISO 8583 · VIC", detail:"agent-context flag = agent-initiated (new value) · F048 = agent identifier · private instruction reference = TAP instruction hash. All three propagate agent context through the entire downstream chain." },
     mc:  { tool:"Agentic Token + F022 equiv.", standard:"ISO 8583 · MC", detail:"Agent identity embedded in Agentic Token metadata — not in message fields. New POS Entry Mode value tells issuer: load agent policy, not human rules." },
   },
   {
@@ -41,7 +41,7 @@ const REBUILD = [
       { tool:"Distributed detection",broken:"Agent shopping = bot testing cards across merchants" },
       { tool:"No pre-auth registry", broken:"No way to verify consumer already approved this intent" },
     ],
-    visa:{ tool:"VIC instruction registry", standard:"Visa Intelligent Commerce", detail:"VisaNet validates F126 hash against pre-authorized payment instruction. Amount + merchant tamper = immediate decline (code 58). F022=81 triggers agent-aware ML model." },
+    visa:{ tool:"VIC instruction registry", standard:"Visa Intelligent Commerce", detail:"card network validates private instruction reference hash against pre-authorized payment instruction. Amount + merchant tamper = immediate decline (a decline). agent-context flag triggers agent-aware ML model." },
     mc:  { tool:"Agentic Token binding", standard:"Mastercard Token Service", detail:"Network validates token was issued for this exact agent + consumer + context. Token carries cryptographic proof through entire authorization chain." },
   },
   {
@@ -52,7 +52,7 @@ const REBUILD = [
       { tool:"3DS step-up auth",        broken:"SMS challenge sent — agent cannot respond in real time" },
       { tool:"Human-in-loop fallback",  broken:"Transaction fails permanently. No recovery path." },
     ],
-    visa:{ tool:"Agent policy + FIDO2 Passkey", standard:"FIDO2 · VIC Auth API", detail:"Passkey assertion at instruction time, not transaction time. F022=81 → issuer loads: balance ✓ · limit ✓ · category ✓ · velocity ✓. No step-up authentication." },
+    visa:{ tool:"Agent policy + FIDO2 Passkey", standard:"FIDO2 · VIC Auth API", detail:"Passkey assertion at instruction time, not transaction time. agent-context flag → issuer loads: balance ✓ · limit ✓ · category ✓ · velocity ✓. No step-up authentication." },
     mc:  { tool:"Payment Passkey + spending policy", standard:"FIDO2 · MC Agent Pay", detail:"Consumer proves intent once with biometric Passkey. Pre-authorized spending policy loaded at F022 signal. Deterministic rules replace probabilistic scoring and 3DS entirely." },
   },
 ]

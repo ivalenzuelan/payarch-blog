@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react"
 
 const ACTORS = [
-  { id: "agent", label: "AI Agent", sub: "Skyfire · Claude", color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" },
-  { id: "visa", label: "Visa TAP", sub: "tap.visa.com · Cloudflare", color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))" },
+  { id: "agent", label: "AI Agent", sub: "agent platform · Claude", color: "var(--diagram-4)", bg: "color-mix(in srgb, var(--diagram-4) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-4) 25%, var(--ink-200))" },
+  { id: "visa", label: "Visa TAP", sub: "agent registry · Cloudflare", color: "var(--diagram-1)", bg: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))", border: "color-mix(in srgb, var(--diagram-1) 30%, var(--ink-200))" },
   { id: "merchant", label: "Merchant", sub: "head.com · TAP SDK", color: "var(--success)", bg: "color-mix(in srgb, var(--success) 8%, var(--paper-pure))", border: "color-mix(in srgb, var(--success) 28%, var(--ink-200))" },
 ]
 
@@ -33,7 +33,7 @@ const STEPS = [
     time: "t + 12ms",
     title: "Visa TAP runs three independent checks",
     rows: [
-      { key: "1. Key fetch", val: "GET .well-known/agents/skyfire-001 → ed25519:MCowBQYDK2Vd... (cached 5 min)", hi: false },
+      { key: "1. Key fetch", val: "GET public-key registry/skyfire-001 → ed25519:MCowBQYDK2Vd... (cached 5 min)", hi: false },
       { key: "2. Ed25519 verify", val: "Reconstruct canonical form → verify signature → ✓ valid", hi: true },
       { key: "3. Nonce check", val: "a3f8c2e1d9b7 not in store → ✓ unused · stored permanently", hi: true },
       { key: "4. Timestamp", val: "created=1742518234 · delta 8s < 60s limit → ✓", hi: false },
@@ -46,18 +46,18 @@ const STEPS = [
     from: "visa", to: "agent",
     arrow: "visa → agent",
     label: "200 OK · TAP JWT",
-    sub: "Signed credential · TTL 90s",
+    sub: "Signed credential · short-lived",
     color: "var(--diagram-1)",
     time: "t + 48ms",
-    title: "Visa issues signed JWT — valid 90 seconds",
+    title: "Visa issues signed JWT — valid short-lived",
     rows: [
-      { key: "iss", val: "tap.visa.com", hi: false },
+      { key: "iss", val: "agent registry", hi: false },
       { key: "sub", val: "skyfire-agent-001", hi: false },
       { key: "aud", val: "head.com", hi: false },
-      { key: "exp", val: "1742518324 — TTL 90 seconds only", hi: true },
+      { key: "exp", val: "1742518324 — TTL short-lived only", hi: true },
       { key: "nonce", val: "a3f8c2e1d9b7 — replay-protected", hi: true },
       { key: "consumer_recognized", val: "true — returning customer", hi: true },
-      { key: "instruction_ref", val: "pi-abc123 — will appear in ISO 8583 F126", hi: true },
+      { key: "instruction_ref", val: "pi-abc123 — will appear in ISO 8583 private instruction reference", hi: true },
       { key: "risk_score", val: "12 / 100 — low risk", hi: false },
     ],
     note: "JWT signed with Visa's private key. Merchant verifies using Visa's public key — no call to Visa needed at checkout. The instruction_ref links this credential to the ISO 8583 message downstream.",
@@ -92,7 +92,7 @@ const STEPS = [
       { key: "amount", val: "249.00 === cart total → ✓", hi: false },
       { key: "consumer_recognized", val: "true → skip new-customer onboarding", hi: true },
     ],
-    note: "All checks pass in under 5ms with no external call. Total TAP handshake: ~60ms. Order created. Stripe PaymentIntent called. The ISO 8583 leg begins.",
+    note: "All checks pass locally in this illustrative flow. Order created. The payment authorization leg begins.",
   },
   {
     from: "merchant", to: "agent",
@@ -100,14 +100,14 @@ const STEPS = [
     label: "200 OK · Order confirmed",
     sub: "No CAPTCHA · No redirect · No form",
     color: "var(--success)",
-    time: "t + 60ms · total",
+    time: "illustrative",
     title: "Order accepted — zero friction",
     rows: [
       { key: "order_id", val: "HEAD-2026-78234", hi: true },
       { key: "status", val: "pending_payment", hi: false },
-      { key: "next_step", val: "Stripe PaymentIntent → ISO 8583 0100 → VisaNet → issuer", hi: true },
+      { key: "next_step", val: "Stripe PaymentIntent → ISO 8583 0100 → card network → issuer", hi: true },
     ],
-    note: "The consumer never saw a checkout page. No card number entered. No CAPTCHA solved. The TAP handshake took 60ms. Payment authorization will take another ~1040ms.",
+    note: "The consumer never saw a checkout page. No card number entered. No CAPTCHA solved. Exact production timing depends on the merchant, verifier, PSP, and issuer path.",
   },
 ]
 
@@ -124,7 +124,7 @@ const CRYPTO_DETAILS = {
         mono: true,
         lines: [
           '"@method": POST',
-          '"@target-uri": https://tap.visa.com/v1/validate',
+          '"@target-uri": https://agent registry/v1/validate',
           '"x-tap-agent-id": skyfire-agent-001',
           '"x-tap-intent": purchase',
           '"content-digest": sha-256=:YjMzMDQ5YjQ4YzA=:',
@@ -154,7 +154,7 @@ const CRYPTO_DETAILS = {
         ]
       },
     ],
-    note: "The private key never leaves the agent's secure enclave. Visa only stores the corresponding public key, retrieved from .well-known/agents/{agent_id}."
+    note: "The private key never leaves the agent's secure enclave. Visa only stores the corresponding public key, retrieved from public-key registry/{agent_id}."
   },
   1: {
     title: "Signature verification internals (Ed25519)",
@@ -163,7 +163,7 @@ const CRYPTO_DETAILS = {
         label: "1. Fetch public key",
         mono: true,
         lines: [
-          "GET https://skyfire.xyz/.well-known/agents/skyfire-001",
+          "GET https://skyfire.xyz/public-key registry/skyfire-001",
           "→ { alg: Ed25519, pub: MCowBQYDK2VdA3IA... }",
           "   (cached 5 min, invalidated on key rotation)",
         ]
@@ -196,7 +196,7 @@ const CRYPTO_DETAILS = {
         ]
       },
     ],
-    note: "Ed25519 verification takes ~0.05ms. The nonce check adds ~0.3ms (Redis lookup). Timestamp delta check is pure arithmetic. Total: <1ms of the 12ms validation window."
+    note: "Ed25519 verification is cheap compared with network I/O, but exact production latency depends on the verifier and nonce-store implementation."
   },
   2: {
     title: "JWT structure (RFC 7519 + TAP extensions)",
@@ -214,11 +214,11 @@ const CRYPTO_DETAILS = {
         label: "Payload",
         mono: true,
         lines: [
-          '{ "iss": "tap.visa.com",',
+          '{ "iss": "agent registry",',
           '  "sub": "skyfire-agent-001",',
           '  "aud": "head.com",',
           '  "iat": 1742518234,',
-          '  "exp": 1742518324,          // +90 seconds only',
+          '  "exp": 1742518324,          // +short-lived only',
           '  "nonce": "a3f8c2e1d9b7",   // replay protection',
           '  "consumer_recognized": true,',
           '  "instruction_ref": "pi-abc123",',
@@ -227,14 +227,14 @@ const CRYPTO_DETAILS = {
         ]
       },
       {
-        label: "Why 90 seconds TTL?",
+        label: "Why short-lived TTL?",
         mono: false,
         lines: [
           "Long enough for the agent to reach the merchant and complete checkout. Short enough that a stolen JWT is useless — the nonce is bound to the token and already consumed at Visa. The aud claim is merchant-bound, so it cannot be replayed at a different merchant.",
         ]
       },
     ],
-    note: "The merchant never calls Visa during checkout. It verifies the JWT signature using Visa's public key (fetched once on startup, rotated quarterly). Verification: <5ms, zero network calls."
+    note: "The merchant never calls Visa during checkout. It verifies the JWT signature using Visa's public key (fetched once on startup, rotated quarterly). Verification: local verification, zero network calls."
   },
 }
 
@@ -300,7 +300,7 @@ export default function TapHandshake() {
               Agent authentication &amp; credential issuance
             </h2>
             <div style={{ fontSize: 11, color: "var(--ink-500)", fontFamily: "'Courier New',monospace" }}>
-              6 steps · ~60ms total · click any step to expand
+              6 illustrative steps · click any step to expand
             </div>
           </div>
           <button

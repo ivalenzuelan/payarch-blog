@@ -31,10 +31,10 @@ const EDGE_LABELS: Record<string, string> = {
   'e-agent-to-tap':         'DID + intent',
   'e-wallet-to-tap':        'token ref',
   'e-tap-validates':        'VIC registry',
-  'e-tap-to-merchant':      'TAP JWT · 90s',
+  'e-tap-to-merchant':      'TAP JWT · short-lived',
   'e-agent-to-merchant':    'checkout + TAP',
   'e-merchant-to-acquirer': 'PaymentIntent',
-  'e-acquirer-to-visa':     'MTI 0100 · F022=81',
+  'e-acquirer-to-visa':     'MTI 0100 · agent-context flag',
   'e-visa-to-issuer':       '0100 → issuer',
   'e-issuer-to-visa':       'MTI 0110 · F039=00',
 }
@@ -352,7 +352,7 @@ export default function PayarchDiagram({ diagram, defaultLayer = 'technical', au
           { color: 'var(--diagram-4)', label: 'agent layer' },
           { color: 'var(--diagram-1)', label: 'trust & identity' },
           { color: 'var(--diagram-3)', label: 'ISO 8583' },
-          { color: 'var(--diagram-2)', label: 'VisaNet routing' },
+          { color: 'var(--diagram-2)', label: 'card network routing' },
           { color: 'var(--success)', label: 'auth response' },
         ].map(l => (
           <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>

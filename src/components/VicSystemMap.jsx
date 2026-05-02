@@ -19,12 +19,12 @@ const systems = [
   },
   {
     id: 'vdcap',
-    name: 'VDCAP',
+    name: 'data enrichment',
     role: 'Data economics',
     color: 'var(--diagram-3)',
     bg: 'color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))',
     items: ['device ID', 'IP address', 'email hash', 'AVS data'],
-    output: '0.05-0.10% fee incentive',
+    output: 'enriched transaction evidence',
   },
 ];
 
@@ -58,7 +58,7 @@ export default function VicSystemMap() {
         <div className="vic-auth">
           <span>Convergence point</span>
           <strong>ISO 8583 authorization</strong>
-          <p>F002 carries the token, F022 marks agent mode, F048 carries identity and enriched data, F126 binds the authorization to the original instruction.</p>
+          <p>F002 carries the token, F022 marks agent mode, F048 carries identity and enriched data, private instruction reference binds the authorization to the original instruction.</p>
         </div>
       </div>
 

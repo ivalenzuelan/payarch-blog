@@ -151,13 +151,13 @@ const PRESETS = {
     label: "Human checkout",
     sub: "MTI 0100",
     bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 18, 22, 25, 37, 38, 39, 41, 42, 43, 49, 64]),
-    note: "F022=01 (manual entry). No F048 agent ID, no F126 TAP hash. Standard ecommerce authorization request.",
+    note: "card-not-present entry signal (manual entry). No F048 agent ID, no private instruction reference TAP hash. Standard ecommerce authorization request.",
   },
   agent: {
     label: "Agent checkout",
-    sub: "MTI 0100 · F022=81",
+    sub: "MTI 0100 · agent-context flag",
     bits: new Set([2, 3, 4, 7, 11, 12, 13, 14, 18, 22, 25, 37, 38, 39, 41, 42, 43, 48, 49, 64, 126]),
-    note: "F022=81 (agent-initiated). Adds F048 (agent ID: AGNT:skyfire-001) and F126 (TAP instruction hash). Secondary bitmap required for F126.",
+    note: "agent-context flag (agent-initiated). Adds F048 (agent ID: AGNT:skyfire-001) and private instruction reference (TAP instruction hash). Secondary bitmap required for private instruction reference.",
   },
   settlement: {
     label: "Batch settlement",

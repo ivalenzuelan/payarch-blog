@@ -7,8 +7,8 @@ const ACTOR_LAYOUT = {
   consumer: { id: "consumer", band: "Consumer", layer: 0, col: 1, label: "Consumer", sub: "Sets spending policy once" },
   agent: { id: "agent", band: "Agent Layer", layer: 1, col: 0, nodeId: "n-agent-runtime" },
   wallet: { id: "wallet", band: "Agent Layer", layer: 1, col: 2, nodeId: "n-agent-wallet" },
-  keystore: { id: "keystore", band: "Trust & Payment Network", layer: 2, col: 0, nodeId: "n-tap", label: "Visa Key Store", sub: "TAP · Ed25519 keys · tap.visa.com" },
-  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · VisaNet · Token Service" },
+  keystore: { id: "keystore", band: "Trust & Payment Network", layer: 2, col: 0, nodeId: "n-tap", label: "Visa Key Store", sub: "TAP · Ed25519 keys · agent registry" },
+  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · card network · Token Service" },
   issuer: { id: "issuer", band: "Payment Rails", layer: 3, col: 2, nodeId: "n-issuer" },
   acquirer: { id: "acquirer", band: "Payment Rails", layer: 4, col: 1, nodeId: "n-acquirer" },
   merchant: { id: "merchant", band: "Payment Rails", layer: 5, col: 0, nodeId: "n-merchant" },
@@ -681,7 +681,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                   {[
                     [diagram.metadata?.totalLatency ?? "~1,100ms", "end to end"],
                     [diagram.settlementCycle ?? "T+1", "settlement"],
-                    ["F022=81", "agent flag"],
+                    ["agent-context flag", "agent flag"],
                     [getNode(diagram, "n-tap")?.data?.properties?.algorithm?.split(" ")[0] ?? "Ed25519", "local signing"],
                     ["zero", "consumer friction"],
                   ].map(([value, label]) => (

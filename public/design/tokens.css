@@ -53,7 +53,7 @@
      Convention across posts:
        diagram-1 = primary system in focus    (e.g. VIC API)
        diagram-2 = secondary system           (e.g. TAP)
-       diagram-3 = tertiary / data flow       (e.g. VDCAP)
+       diagram-3 = tertiary / data flow
        diagram-4 = auxiliary / network        (e.g. issuer, acquirer)
        diagram-5 = background / disabled / "not in scope"
      Once a system is assigned a color in one post, keep it across all posts.

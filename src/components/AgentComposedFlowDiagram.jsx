@@ -84,7 +84,7 @@ const phases = [
       {
         num: "09",
         actor: "Network",
-        action: "Matches F126 to instruction",
+        action: "Matches private instruction reference to instruction",
         detail: "Amount and merchant tampering fails before issuer routing.",
         primitives: ["P3"],
       },
@@ -103,7 +103,7 @@ const fields = [
   ["F002", "agent-bound token", "credential"],
   ["F022", "81", "entry mode"],
   ["F048", "agent identity", "context"],
-  ["F126", "instruction hash", "integrity"],
+  ["private instruction reference", "instruction hash", "integrity"],
 ];
 
 const primitiveTone = {

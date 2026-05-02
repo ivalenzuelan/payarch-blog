@@ -61,9 +61,9 @@ const MATRIX = {
   tap: {
     1: { coverage: "primary", note: "Core purpose. Ed25519 keypairs, RFC 9421 HTTP Message Signatures, 7-stage CDN verification pipeline. Every request cryptographically bound to a registered agent identity." },
     2: { coverage: "partial", note: "Consumer Recognition JWT carries delegation scope ID and agent DID — verifies the agent was authorized by a specific consumer. Does not define the full mandate chain." },
-    3: { coverage: "none", note: "TAP does not enforce business policy. Its job is identity verification only. Policy lives in the AP platform above it (e.g. Ramp's spend rules)." },
+    3: { coverage: "none", note: "TAP does not enforce business policy. Its job is identity verification; business policy belongs in the wallet, agent platform, or AP system above it." },
     4: { coverage: "primary", note: "TAP credential travels in DE48 (Additional Data). Agent-initiated flag in DE22. Payment Account Reference (PAR) links the token to the agent session in the clearing stream." },
-    5: { coverage: "partial", note: "VDCAP incentivizes L3 data enrichment (0.05–0.10% interchange reduction) — adjacent to TAP but a separate Visa program. TAP itself does not define settlement." },
+    5: { coverage: "partial", note: "data enrichment incentivizes L3 data enrichment (possible interchange reduction) — adjacent to TAP but a separate Visa program. TAP itself does not define settlement." },
   },
   mc: {
     1: { coverage: "primary", note: "Know Your Agent (KYA) verification with tiered levels. Agent platform registers as MDES Token Requestor. Agentic tokens carry DSRP cryptogram + Agentic Commerce Identifiers in clearing." },

@@ -33,10 +33,10 @@ const layers = [
     id: "L2",
     actor: "Acquirer + Processor",
     question: "Does this match the merchant baseline?",
-    oldSignal: "F022=01, AVS, CVV, IP reputation, ecommerce heuristics",
+    oldSignal: "card-not-present entry signal, AVS, CVV, IP reputation, ecommerce heuristics",
     failure: "The transaction is tagged as manual key entry and inherits human fraud rules.",
     primitive: "Agent-bound credential",
-    newSignal: "Token plus F022=81 and agent context fields.",
+    newSignal: "Token plus agent-context flag and agent context fields.",
     detail:
       "The credential becomes useless outside the agent that owns it. The ISO message now carries an explicit agent mode instead of pretending the card was typed into a form.",
     color: "var(--diagram-3)",

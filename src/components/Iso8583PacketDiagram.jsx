@@ -16,12 +16,12 @@ const fields = [
   {
     field: 'F048',
     name: 'Additional Data',
-    source: 'TAP + VDCAP',
+    source: 'TAP + data enrichment',
     value: 'agent_id, device_id, ip, email_hash',
     purpose: 'Carries agent identity and enriched data for fraud and fee treatment.',
   },
   {
-    field: 'F126',
+    field: 'private instruction reference',
     name: 'Extended Data',
     source: 'TAP + VIC API',
     value: 'instruction_ref:sha256',

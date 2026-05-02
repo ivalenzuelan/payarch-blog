@@ -295,7 +295,7 @@ function TamperTest({ publicKey, sigP, sigVal }) {
       </div>
       <div style={{ padding: '12px 14px', background: 'var(--paper)' }}>
         <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
-          An attacker intercepts the request and changes the path. They don't have the private key, so they can't re-sign. The original signature is unchanged. Does Visa's CDN accept it?
+          An attacker intercepts the request and changes the path. They don't have the private key, so they can't re-sign. The original signature is unchanged. Does the verifier accept it?
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
           <span style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10.5, color: 'var(--ink-500)', flexShrink: 0 }}>Modified "@path":</span>
@@ -579,7 +579,7 @@ export default function TapSimulator() {
           if (step.id === 'sigbase') return (
             <StepCard key="sigbase" color="var(--signal-600)" stepNum="02" title="Signature base string — RFC 9421 §2.5" badge="COMPUTED">
               <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
-                The canonical string the private key signs. Visa's CDN reconstructs this verbatim from the incoming request and runs the same verification. Any tampering — different method, path, authority, or content-type — produces a different string and fails.
+                The canonical string the private key signs. A TAP-style verifier reconstructs this verbatim from the incoming request and runs the same verification. Any tampering — different method, path, authority, or content-type — produces a different string and fails.
               </div>
               <DarkCode copyText={step.sigBase}>{step.sigBase}</DarkCode>
               <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 20px', fontFamily: 'DM Mono, Courier New, monospace', fontSize: 10, color: 'var(--ink-500)', lineHeight: 1.65 }}>
@@ -610,7 +610,7 @@ export default function TapSimulator() {
           if (step.id === 'request') return (
             <StepCard key="request" color="var(--diagram-1)" stepNum="04" title="Signed HTTP request">
               <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
-                The complete request as the agent sends it. Cloudflare or Akamai at the merchant's edge intercepts this before it reaches the origin server. The <span style={{ color: 'var(--ink-900)' }}>Signature-Input</span> header tells the CDN which components are covered; <span style={{ color: 'var(--ink-900)' }}>Signature</span> is the proof.
+                The complete request as the agent sends it. A merchant edge, payment-network verifier, or protocol gateway can inspect this before it reaches the origin server. The <span style={{ color: 'var(--ink-900)' }}>Signature-Input</span> header says which components are covered; <span style={{ color: 'var(--ink-900)' }}>Signature</span> is the proof.
               </div>
               <DarkCode copyText={step.httpReq}>{step.httpReq}</DarkCode>
             </StepCard>
@@ -624,7 +624,7 @@ export default function TapSimulator() {
                 <div style={{ fontFamily: 'DM Mono, Courier New, monospace', fontSize: 11, color: 'var(--ink-500)', marginBottom: 10, lineHeight: 1.65 }}>
                   <span style={{ color: 'var(--ink-900)' }}>crypto.subtle.verify({'{'}name: "Ed25519"{'}'}, publicKey, signature, sigBase)</span>
                   <br/>
-                  The same check Visa's CDN runs — using the actual keypair and signature from steps 01–03. This is not a simulation of verification. It is verification.
+                  The same cryptographic check a TAP-style verifier runs — using the actual keypair and signature from steps 01–03. This is not a simulation of verification. It is verification.
                 </div>
 
                 {/* Big result */}

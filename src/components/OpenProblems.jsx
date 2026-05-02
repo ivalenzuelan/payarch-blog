@@ -65,7 +65,7 @@ const PROBLEMS = [
     source: "SWIFT ISO 20022 Payment Initiation Relay Rulebook (March 2025). BIS/SWIFT working groups active in 2025–2026. Formal ISO 20022 AI agent extensions expected H2 2026.",
     flow: [
       { actor: "Agent", msg: "Authorized via TAP credential in DE48 · DE22=81", type: "agent" },
-      { actor: "Domestic Auth", msg: "ISO 8583 0100 → VisaNet → issuer ✓", type: "success" },
+      { actor: "Domestic Auth", msg: "ISO 8583 0100 → card network → issuer ✓", type: "success" },
       { actor: "Cross-border", msg: "Payment requires international wire transfer", type: "neutral" },
       { actor: "SWIFT Relay", msg: "pain.001 Customer Credit Transfer — Forwarding Agent role exists", type: "neutral" },
       { actor: "⚠ Gap", msg: "No AI agent presence field in pain.001. No mandate chain concept. No identity standard.", type: "attack" },
