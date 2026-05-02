@@ -21,11 +21,11 @@ const CONNECTION_SPECS = [
   { from: "agent",    to: "merchant", edgeId: "e-agent-to-merchant",   type: "identity",  phase: "checkout" },
   { from: "merchant", to: "keystore", label: "fetch agent public key", type: "identity",  phase: "checkout" },
   { from: "merchant", to: "vic",      label: "retrieve credential",    type: "api",       phase: "checkout" },
-  { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment",  phase: "rails" },
+  { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment",  phase: "rails", labelDy: -18 },
   { from: "acquirer", to: "vic",      edgeId: "e-acquirer-to-visa",    type: "payment",   phase: "rails" },
-  { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment",   phase: "rails" },
-  { from: "issuer",   to: "vic",      edgeId: "e-issuer-to-visa",      type: "response",  phase: "rails" },
-  { from: "acquirer", to: "merchant", label: "approval",               type: "response",  phase: "rails" },
+  { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment",   phase: "rails", labelDy: -14 },
+  { from: "issuer",   to: "vic",      edgeId: "e-issuer-to-visa",      type: "response",  phase: "rails", labelDy: 14 },
+  { from: "acquirer", to: "merchant", label: "approval",               type: "response",  phase: "rails", labelDy: 18 },
 ]
 
 const NODE_ACCENT = {
@@ -524,7 +524,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                       <g>
                         <rect
                           x={mx - 46}
-                          y={my - 9}
+                          y={my - 9 + (connection.labelDy ?? 0)}
                           width={92}
                           height={17}
                           rx={4}
@@ -533,7 +533,7 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                           strokeWidth={isRelated ? 1 : 0.8}
                           strokeOpacity={isRelated ? 0.7 : 0.5}
                         />
-                        <text x={mx} y={my + 0.5} textAnchor="middle" dominantBaseline="central" style={{ fontSize: 8, fontFamily: "ui-monospace,monospace", fill: isRelated ? edgeStyle.label : "var(--ink-500)", letterSpacing: "0.02em" }}>
+                        <text x={mx} y={my + 0.5 + (connection.labelDy ?? 0)} textAnchor="middle" dominantBaseline="central" style={{ fontSize: 8, fontFamily: "ui-monospace,monospace", fill: isRelated ? edgeStyle.label : "var(--ink-500)", letterSpacing: "0.02em" }}>
                           {connection.label}
                         </text>
                       </g>
