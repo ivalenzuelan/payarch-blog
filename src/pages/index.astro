@@ -10,7 +10,7 @@ import {
   getAbsoluteUrl,
 } from '../lib/seo';
 
-const allPosts = (await getCollection('blog')).sort(
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 const posts = allPosts;
