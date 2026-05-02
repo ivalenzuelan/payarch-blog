@@ -15,17 +15,17 @@ const ACTOR_LAYOUT = {
 }
 
 const CONNECTION_SPECS = [
-  { from: "consumer", to: "agent",    label: "delegates intent",       type: "delegate" },
-  { from: "consumer", to: "wallet",   label: "passkey enrollment",     type: "delegate" },
-  { from: "agent",    to: "vic",      label: "purchase instruction",   type: "api" },
-  { from: "agent",    to: "merchant", edgeId: "e-agent-to-merchant",   type: "identity" },
-  { from: "merchant", to: "keystore", label: "fetch agent public key", type: "identity" },
-  { from: "merchant", to: "vic",      label: "retrieve credential",    type: "api" },
-  { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment" },
-  { from: "acquirer", to: "vic",      edgeId: "e-acquirer-to-visa",    type: "payment" },
-  { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment" },
-  { from: "issuer",   to: "vic",      edgeId: "e-issuer-to-visa",      type: "response" },
-  { from: "acquirer", to: "merchant", label: "approval",               type: "response" },
+  { from: "consumer", to: "agent",    label: "delegates intent",       type: "delegate",  phase: "enrollment" },
+  { from: "consumer", to: "wallet",   label: "passkey enrollment",     type: "delegate",  phase: "enrollment" },
+  { from: "agent",    to: "vic",      label: "purchase instruction",   type: "api",       phase: "checkout" },
+  { from: "agent",    to: "merchant", edgeId: "e-agent-to-merchant",   type: "identity",  phase: "checkout" },
+  { from: "merchant", to: "keystore", label: "fetch agent public key", type: "identity",  phase: "checkout" },
+  { from: "merchant", to: "vic",      label: "retrieve credential",    type: "api",       phase: "checkout" },
+  { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment",  phase: "rails" },
+  { from: "acquirer", to: "vic",      edgeId: "e-acquirer-to-visa",    type: "payment",   phase: "rails" },
+  { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment",   phase: "rails" },
+  { from: "issuer",   to: "vic",      edgeId: "e-issuer-to-visa",      type: "response",  phase: "rails" },
+  { from: "acquirer", to: "merchant", label: "approval",               type: "response",  phase: "rails" },
 ]
 
 const NODE_ACCENT = {
@@ -64,6 +64,13 @@ const EDGE_STYLE = {
   payment: { stroke: "var(--diagram-1)", glow: "var(--diagram-1)", dash: "none", label: "var(--diagram-1)", animDur: "1.9s", dotR: 2.5 },
   response: { stroke: "var(--success)", glow: "var(--success)", dash: "4 3", label: "var(--success)", animDur: "2.7s", dotR: 2 },
 }
+
+const PHASES = [
+  { id: "all",        label: "All" },
+  { id: "enrollment", label: "1 · Enrollment" },
+  { id: "checkout",   label: "2 · Agent + TAP" },
+  { id: "rails",      label: "3 · Payment rails" },
+]
 
 const COL_X = { 0: 58, 1: 278, 2: 498 }
 const LAYER_Y = { 0: 50, 1: 196, 2: 342, 3: 493, 4: 653, 5: 813 }
@@ -309,6 +316,7 @@ function buildConnections(diagram) {
 export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
   const [selected, setSelected] = useState(null)
   const [hovered, setHovered] = useState(null)
+  const [activePhase, setActivePhase] = useState("all")
   const [isMobile, setIsMobile] = useState(false)
 
   const actors = buildActors(diagram)
@@ -340,47 +348,52 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
       margin: "2.5rem 0",
     }}>
 
-      <div style={{
-        padding: isMobile ? "14px 16px 12px" : "18px 28px 15px",
-        borderBottom: "1px solid var(--ink-200)",
-        background: "var(--ink-100)",
-        display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        alignItems: isMobile ? "flex-start" : "center",
-        justifyContent: "space-between",
-        gap: isMobile ? 8 : 16,
-      }}>
-        <div>
-          <div style={{ fontSize: 10, letterSpacing: "0.13em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "ui-monospace,'Courier New',monospace", marginBottom: 5 }}>
-            Agentic Commerce · System Architecture
+      <div style={{ borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{
+          padding: isMobile ? "14px 16px 10px" : "16px 28px 12px",
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}>
+          <div>
+            <div style={{ fontSize: 10, letterSpacing: "0.13em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "ui-monospace,'Courier New',monospace", marginBottom: 5 }}>
+              Agentic Commerce · System Architecture
+            </div>
+            <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, color: "var(--ink-800)", letterSpacing: 0, lineHeight: 1 }}>
+              {diagram.title}
+            </div>
           </div>
-          <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, color: "var(--ink-800)", letterSpacing: 0, lineHeight: 1 }}>
-            {diagram.title}
+          <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", flexShrink: 0 }}>
+            {ACTOR_ORDER.length} actors · {connections.length} connections
           </div>
         </div>
-        {!isMobile && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
-            <div style={{ display: "flex", gap: 10 }}>
-              {Object.entries(EDGE_STYLE).map(([type, edgeStyle]) => (
-                <div key={type} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <svg width="22" height="10" style={{ overflow: "visible" }}>
-                    <line x1="0" y1="5" x2="18" y2="5" stroke={edgeStyle.stroke} strokeWidth="1.5" strokeDasharray={edgeStyle.dash} />
-                    <polygon points="16,2.5 20,5 16,7.5" fill={edgeStyle.stroke} />
-                  </svg>
-                  <span style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)", letterSpacing: "0.05em" }}>{type}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)" }}>
-              {ACTOR_ORDER.length} actors · {connections.length} connections · {diagram.metadata?.totalLatency ?? "timing varies"} end to end
-            </div>
-          </div>
-        )}
-        {isMobile && (
-          <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)" }}>
-            {ACTOR_ORDER.length} actors · {connections.length} connections · {diagram.metadata?.totalLatency ?? "timing varies"} · tap any node
-          </div>
-        )}
+        <div style={{ padding: isMobile ? "0 16px 12px" : "0 28px 14px", display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {PHASES.map((phase) => {
+            const isActive = activePhase === phase.id
+            return (
+              <button
+                key={phase.id}
+                onClick={() => { setActivePhase(phase.id); setSelected(null) }}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: 6,
+                  border: `1px solid ${isActive ? "var(--diagram-1)" : "var(--ink-200)"}`,
+                  background: isActive ? "color-mix(in srgb, var(--diagram-1) 12%, var(--paper-pure))" : "transparent",
+                  color: isActive ? "var(--diagram-1)" : "var(--ink-500)",
+                  fontSize: 10,
+                  fontFamily: "ui-monospace,monospace",
+                  letterSpacing: "0.05em",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {phase.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row" }}>
@@ -463,13 +476,9 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
-                <pattern id="dotgrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="0.8" fill="var(--ink-200)" opacity="0.5" />
-                </pattern>
               </defs>
 
               <rect width={SVG_W} height={SVG_H} fill="var(--paper)" />
-              <rect width={SVG_W} height={SVG_H} fill="url(#dotgrid)" />
 
               {LAYER_BANDS.map((band) => (
                 <g key={band.label}>
@@ -484,10 +493,12 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                 const { d, mx, my } = getEdge(connection.from, connection.to, actors)
                 const edgeStyle = EDGE_STYLE[connection.type]
                 const isRelated = selected && (connection.from === selected || connection.to === selected)
-                const isFaded = selected && !isRelated
+                const isInPhase = activePhase === "all" || connection.phase === activePhase
+                const isFaded = selected ? !isRelated : !isInPhase
+                const showLabel = isRelated || (activePhase !== "all" && isInPhase)
 
                 return (
-                  <g key={`${connection.from}-${connection.to}`} style={{ opacity: isFaded ? 0.1 : 1, transition: "opacity 0.25s" }}>
+                  <g key={`${connection.from}-${connection.to}`} style={{ opacity: isFaded ? 0.08 : 1, transition: "opacity 0.25s" }}>
                     {isRelated && (
                       <path d={d} fill="none" stroke={edgeStyle.glow} strokeWidth={5} strokeOpacity={0.15} filter="url(#edge-glow)" />
                     )}
@@ -501,28 +512,32 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
                       markerEnd={`url(#arr-${connection.type})`}
                       style={{ transition: "stroke-width 0.2s, stroke-opacity 0.2s" }}
                     />
-                    <circle r={isRelated ? edgeStyle.dotR + 0.5 : edgeStyle.dotR} fill={edgeStyle.stroke} opacity={isRelated ? 0.9 : 0.4}>
-                      <animateMotion dur={isRelated ? `${parseFloat(edgeStyle.animDur) * 0.65}s` : edgeStyle.animDur} repeatCount="indefinite" begin={`${index * 0.38}s`}>
-                        <mpath href={`#ep-${index}`} />
-                      </animateMotion>
-                    </circle>
+                    {!isFaded && (
+                      <circle r={isRelated ? edgeStyle.dotR + 0.5 : edgeStyle.dotR} fill={edgeStyle.stroke} opacity={isRelated ? 0.9 : 0.55}>
+                        <animateMotion dur={isRelated ? `${parseFloat(edgeStyle.animDur) * 0.65}s` : edgeStyle.animDur} repeatCount="indefinite" begin={`${index * 0.38}s`}>
+                          <mpath href={`#ep-${index}`} />
+                        </animateMotion>
+                      </circle>
+                    )}
                     <path id={`ep-${index}`} d={d} fill="none" stroke="none" />
-                    <g style={{ opacity: isFaded ? 0 : 1, transition: "opacity 0.2s" }}>
-                      <rect
-                        x={mx - 46}
-                        y={my - 9}
-                        width={92}
-                        height={17}
-                        rx={4}
-                        fill={isRelated ? "var(--paper-pure)" : "var(--paper)"}
-                        stroke={isRelated ? edgeStyle.stroke : "var(--ink-200)"}
-                        strokeWidth={isRelated ? 1 : 0.8}
-                        strokeOpacity={isRelated ? 0.7 : 0.6}
-                      />
-                      <text x={mx} y={my + 0.5} textAnchor="middle" dominantBaseline="central" style={{ fontSize: 8, fontFamily: "ui-monospace,monospace", fill: isRelated ? edgeStyle.label : "var(--ink-500)", letterSpacing: "0.02em" }}>
-                        {connection.label}
-                      </text>
-                    </g>
+                    {showLabel && (
+                      <g>
+                        <rect
+                          x={mx - 46}
+                          y={my - 9}
+                          width={92}
+                          height={17}
+                          rx={4}
+                          fill={isRelated ? "var(--paper-pure)" : "var(--paper)"}
+                          stroke={isRelated ? edgeStyle.stroke : "var(--ink-200)"}
+                          strokeWidth={isRelated ? 1 : 0.8}
+                          strokeOpacity={isRelated ? 0.7 : 0.5}
+                        />
+                        <text x={mx} y={my + 0.5} textAnchor="middle" dominantBaseline="central" style={{ fontSize: 8, fontFamily: "ui-monospace,monospace", fill: isRelated ? edgeStyle.label : "var(--ink-500)", letterSpacing: "0.02em" }}>
+                          {connection.label}
+                        </text>
+                      </g>
+                    )}
                   </g>
                 )
               })}
