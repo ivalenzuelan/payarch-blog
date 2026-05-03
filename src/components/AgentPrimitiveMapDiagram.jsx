@@ -2,6 +2,7 @@ const primitives = [
   {
     id: "P1",
     name: "Cryptographic agent identity",
+    short: "identity",
     old: "CAPTCHA, device fingerprint, IP reputation",
     layer: "Merchant + gateway",
     evidence: ["Signature-Input", "Signature", "agent public key"],
@@ -13,6 +14,7 @@ const primitives = [
   {
     id: "P2",
     name: "Agent-bound credential",
+    short: "credential",
     old: "Reusable PAN or token without agent context",
     layer: "Acquirer + processor",
     evidence: ["tokenized credential", "agent context", "network metadata"],
@@ -24,6 +26,7 @@ const primitives = [
   {
     id: "P3",
     name: "Registered payment instruction",
+    short: "instruction",
     old: "ML risk score without prior intent proof",
     layer: "Card network",
     evidence: ["payment scope", "merchant match", "amount match"],
@@ -35,6 +38,7 @@ const primitives = [
   {
     id: "P4",
     name: "Pre-authorized spending policy",
+    short: "policy",
     old: "3DS challenge to a live cardholder",
     layer: "Issuer bank",
     evidence: ["Passkey assertion", "limit", "MCC", "velocity"],
@@ -135,7 +139,10 @@ export default function AgentPrimitiveMapDiagram() {
           <div className="fit-row fit-labels">
             <span>system</span>
             {primitives.map((primitive) => (
-              <span key={primitive.id}>{primitive.id}</span>
+              <div className="fit-prim-label" key={primitive.id} style={{ "--prim-color": primitive.color }}>
+                <b>{primitive.id}</b>
+                <span>{primitive.short}</span>
+              </div>
             ))}
             <span>architecture note</span>
           </div>
@@ -151,10 +158,11 @@ export default function AgentPrimitiveMapDiagram() {
                   data-primitive={primitives[index].id}
                   key={`${system.name}-${primitives[index].id}`}
                 >
+                  <div className="fit-dot" />
                   <span>{fitLabel[fit]}</span>
                 </div>
               ))}
-              <p>{system.note}</p>
+              <p className="fit-note">{system.note}</p>
             </div>
           ))}
         </div>
@@ -330,7 +338,7 @@ export default function AgentPrimitiveMapDiagram() {
 
         .fit-row {
           display: grid;
-          grid-template-columns: minmax(160px, 0.95fr) repeat(4, 84px) minmax(220px, 1.25fr);
+          grid-template-columns: minmax(160px, 0.95fr) repeat(4, 90px) minmax(220px, 1.25fr);
           align-items: stretch;
           border-bottom: 1px solid var(--ink-200);
         }
@@ -352,9 +360,30 @@ export default function AgentPrimitiveMapDiagram() {
           background: var(--ink-100);
         }
 
-        .fit-labels span {
+        .fit-labels > span {
           display: flex;
           align-items: center;
+        }
+
+        .fit-prim-label {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+        }
+
+        .fit-prim-label b {
+          color: var(--prim-color);
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+        }
+
+        .fit-system {
+          border-left: 3px solid var(--system);
+          padding-left: 10px;
         }
 
         .fit-system strong {
@@ -374,11 +403,31 @@ export default function AgentPrimitiveMapDiagram() {
 
         .fit-cell {
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          background:
-            linear-gradient(135deg, transparent 0 46%, color-mix(in srgb, var(--system) 20%, transparent) 46% 54%, transparent 54% 100%),
-            var(--paper);
+          gap: 6px;
+          background: var(--paper);
+        }
+
+        .fit-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          flex-shrink: 0;
+          border: 1.5px solid var(--ink-300);
+          background: transparent;
+        }
+
+        .fit-cell.native .fit-dot {
+          background: var(--success);
+          border-color: var(--success);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 18%, transparent);
+        }
+
+        .fit-cell.partial .fit-dot {
+          background: linear-gradient(to right, var(--warning) 50%, transparent 50%);
+          border-color: var(--warning);
         }
 
         .fit-cell span {
@@ -408,7 +457,7 @@ export default function AgentPrimitiveMapDiagram() {
           color: var(--ink-600);
         }
 
-        .fit-row p {
+        .fit-note {
           margin: 0;
           color: var(--ink-700);
           font-size: 12px;
@@ -431,7 +480,7 @@ export default function AgentPrimitiveMapDiagram() {
           }
 
           .fit-row {
-            grid-template-columns: minmax(150px, 0.9fr) repeat(4, minmax(70px, 1fr)) minmax(190px, 1.15fr);
+            grid-template-columns: minmax(150px, 0.9fr) repeat(4, minmax(72px, 1fr)) minmax(190px, 1.15fr);
           }
         }
 
@@ -459,15 +508,18 @@ export default function AgentPrimitiveMapDiagram() {
           }
 
           .fit-system,
-          .fit-row p {
+          .fit-note {
             grid-column: 1 / -1;
             border-right: 0;
           }
 
+          .fit-system {
+            border-left: 3px solid var(--system);
+            padding-left: 10px;
+          }
+
           .fit-cell {
-            min-height: 56px;
-            flex-direction: column;
-            gap: 5px;
+            min-height: 64px;
           }
 
           .fit-cell::before {
@@ -479,7 +531,7 @@ export default function AgentPrimitiveMapDiagram() {
             color: var(--ink-500);
           }
 
-          .fit-row p {
+          .fit-note {
             border-top: 1px solid var(--ink-200);
           }
         }
