@@ -1,949 +1,726 @@
-import { useEffect, useMemo, useRef, useState } from "react"
-import { RotateCcw } from "lucide-react"
 import { agenticCheckoutE2E } from "../lib/core"
+import { useEffect, useState } from "react"
 
-const SVG_W = 900
-const SVG_H = 1424
-const ACTOR_HEAD_W = 118
-const ACTOR_HEAD_H = 50
-const LIFELINE_TOP = 118
-const LIFELINE_BOTTOM = 1346
-const MARKER_ID = "vic-sequence-arrow"
+const ACTOR_ORDER = ["consumer", "agent", "wallet", "keystore", "vic", "issuer", "acquirer", "merchant"]
 
-const ACTORS = [
-  {
-    id: "consumer",
-    label: "Consumer",
-    sublabel: "policy + passkey",
-    x: 76,
-    accent: "var(--ink-500)",
-    fill: "var(--paper-pure)",
-  },
-  {
-    id: "agent",
-    label: "AI agent",
-    sublabel: "runtime + tools",
-    x: 224,
-    accent: "var(--diagram-4)",
-    fill: "color-mix(in srgb, var(--diagram-4) 10%, var(--paper-pure))",
-  },
-  {
-    id: "vic",
-    label: "VIC",
-    sublabel: "TAP + tokens",
-    x: 372,
-    accent: "var(--diagram-1)",
-    fill: "color-mix(in srgb, var(--diagram-1) 10%, var(--paper-pure))",
-  },
-  {
-    id: "merchant",
-    label: "Merchant",
-    sublabel: "checkout",
-    x: 520,
-    accent: "var(--diagram-3)",
-    fill: "color-mix(in srgb, var(--diagram-3) 10%, var(--paper-pure))",
-  },
-  {
-    id: "acquirer",
-    label: "Acquirer",
-    sublabel: "PSP / gateway",
-    x: 668,
-    accent: "var(--success)",
-    fill: "color-mix(in srgb, var(--success) 10%, var(--paper-pure))",
-  },
-  {
-    id: "issuer",
-    label: "Issuer",
-    sublabel: "auth decision",
-    x: 816,
-    accent: "var(--diagram-2)",
-    fill: "color-mix(in srgb, var(--diagram-2) 10%, var(--paper-pure))",
-  },
+const ACTOR_LAYOUT = {
+  consumer: { id: "consumer", band: "Consumer", layer: 0, col: 1, label: "Consumer", sub: "Sets spending policy once" },
+  agent: { id: "agent", band: "Agent Layer", layer: 1, col: 0, nodeId: "n-agent-runtime" },
+  wallet: { id: "wallet", band: "Agent Layer", layer: 1, col: 2, nodeId: "n-agent-wallet" },
+  keystore: { id: "keystore", band: "Trust & Payment Network", layer: 2, col: 0, nodeId: "n-tap", label: "Agent Key Registry", sub: "TAP · public keys · agent registry" },
+  vic: { id: "vic", band: "Trust & Payment Network", layer: 2, col: 2, nodeId: "n-visa", label: "Visa Intelligent Commerce", sub: "VIC API · VisaNet · Token Service" },
+  issuer: { id: "issuer", band: "Payment Rails", layer: 3, col: 2, nodeId: "n-issuer" },
+  acquirer: { id: "acquirer", band: "Payment Rails", layer: 4, col: 1, nodeId: "n-acquirer" },
+  merchant: { id: "merchant", band: "Payment Rails", layer: 5, col: 0, nodeId: "n-merchant" },
+}
+
+const CONNECTION_SPECS = [
+  { from: "consumer", to: "agent",    label: "delegates intent",       type: "delegate",  phase: "enrollment" },
+  { from: "consumer", to: "wallet",   label: "passkey enrollment",     type: "delegate",  phase: "enrollment" },
+  { from: "agent",    to: "vic",      label: "1 · purchase instruction", type: "api",      phase: "checkout" },
+  { from: "agent",    to: "merchant", label: "2 · checkout request",    type: "identity", phase: "checkout" },
+  { from: "merchant", to: "keystore", label: "3 · public key (cached)", type: "identity", phase: "checkout", dash: "5 4" },
+  { from: "merchant", to: "vic",      label: "4 · retrieve credential", type: "api",      phase: "checkout" },
+  { from: "merchant", to: "acquirer", edgeId: "e-merchant-to-acquirer", type: "payment",  phase: "rails", labelDy: -18 },
+  { from: "acquirer", to: "vic",      edgeId: "e-acquirer-to-visa",    type: "payment",   phase: "rails" },
+  { from: "vic",      to: "issuer",   edgeId: "e-visa-to-issuer",      type: "payment",   phase: "rails", labelDy: -14 },
+  { from: "issuer",   to: "vic",      edgeId: "e-issuer-to-visa",      type: "response",  phase: "rails", labelDy: 14 },
+  { from: "acquirer", to: "merchant", label: "approval",               type: "response",  phase: "rails", labelDy: 18 },
 ]
+
+const NODE_ACCENT = {
+  consumer: "var(--diagram-3)",
+  agent: "var(--diagram-4)",
+  wallet: "var(--diagram-4)",
+  keystore: "var(--diagram-1)",
+  vic: "var(--diagram-1)",
+  issuer: "var(--success)",
+  acquirer: "var(--success)",
+  merchant: "var(--diagram-3)",
+}
+
+const NODE_ICON_TINT = {
+  consumer: "var(--diagram-3)",
+  agent: "var(--diagram-4)",
+  wallet: "var(--diagram-4)",
+  keystore: "var(--diagram-1)",
+  vic: "var(--diagram-1)",
+  issuer: "var(--success)",
+  acquirer: "var(--success)",
+  merchant: "var(--diagram-3)",
+}
+
+const LAYER_BANDS = [
+  { y: 20, h: 130, label: "Consumer", color: "color-mix(in srgb, var(--diagram-3) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-3) 18%, transparent)" },
+  { y: 166, h: 130, label: "Agent Layer", color: "color-mix(in srgb, var(--diagram-4) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-4) 18%, transparent)" },
+  { y: 312, h: 130, label: "Trust & Network Services", color: "color-mix(in srgb, var(--diagram-1) 5%, transparent)", border: "color-mix(in srgb, var(--diagram-1) 18%, transparent)" },
+  { y: 458, h: 375, label: "Payment Rails & Merchant", color: "color-mix(in srgb, var(--success) 5%, transparent)", border: "color-mix(in srgb, var(--success) 15%, transparent)" },
+]
+
+const EDGE_STYLE = {
+  delegate: { stroke: "var(--ink-400)", glow: "var(--ink-300)", dash: "5 4", label: "var(--ink-500)", animDur: "2.5s", dotR: 2.5 },
+  api: { stroke: "var(--diagram-4)", glow: "var(--diagram-4)", dash: "none", label: "var(--diagram-4)", animDur: "1.8s", dotR: 2.5 },
+  identity: { stroke: "var(--diagram-1)", glow: "var(--diagram-1)", dash: "none", label: "var(--diagram-1)", animDur: "2.2s", dotR: 2.5 },
+  payment: { stroke: "var(--diagram-1)", glow: "var(--diagram-1)", dash: "none", label: "var(--diagram-1)", animDur: "1.9s", dotR: 2.5 },
+  response: { stroke: "var(--success)", glow: "var(--success)", dash: "4 3", label: "var(--success)", animDur: "2.7s", dotR: 2.5 },
+}
 
 const PHASES = [
-  {
-    id: "setup",
-    shortLabel: "Enrollment",
-    label: "Phase 1 - one-time enrollment",
-    y: 130,
-    h: 158,
-    accent: "var(--diagram-3)",
-    fill: "color-mix(in srgb, var(--diagram-3) 9%, var(--paper-pure))",
-    delay: 0.08,
-  },
-  {
-    id: "intent",
-    shortLabel: "Intent",
-    label: "Phase 2 - shopping and instruction capture",
-    y: 320,
-    h: 338,
-    accent: "var(--diagram-4)",
-    fill: "color-mix(in srgb, var(--diagram-4) 9%, var(--paper-pure))",
-    delay: 1.12,
-  },
-  {
-    id: "trust",
-    shortLabel: "Trust",
-    label: "Phase 3 - checkout trust and credential retrieval",
-    y: 690,
-    h: 294,
-    accent: "var(--diagram-1)",
-    fill: "color-mix(in srgb, var(--diagram-1) 9%, var(--paper-pure))",
-    delay: 4.12,
-  },
-  {
-    id: "rails",
-    shortLabel: "Rails",
-    label: "Phase 4 - authorization on existing card rails",
-    y: 1016,
-    h: 340,
-    accent: "var(--success)",
-    fill: "color-mix(in srgb, var(--success) 9%, var(--paper-pure))",
-    delay: 6.56,
-  },
+  { id: "all",        label: "All" },
+  { id: "enrollment", label: "1 · Enrollment" },
+  { id: "checkout",   label: "2 · Agent + TAP" },
+  { id: "rails",      label: "3 · Payment rails" },
 ]
 
-const MESSAGES = [
-  {
-    phase: "setup",
-    from: "consumer",
-    to: "agent",
-    y: 198,
-    label: ["Passkey + spending policy"],
-    width: 168,
-    delay: 0.32,
-  },
-  {
-    phase: "setup",
-    from: "agent",
-    to: "vic",
-    y: 236,
-    label: ["Register agent", "and enroll card"],
-    width: 142,
-    delay: 0.64,
-  },
-  {
-    phase: "setup",
-    from: "vic",
-    to: "agent",
-    y: 274,
-    label: ["Agent token + registry entry"],
-    width: 180,
-    response: true,
-    delay: 0.96,
-  },
-  {
-    phase: "intent",
-    from: "consumer",
-    to: "agent",
-    y: 398,
-    label: ["Buy a padel racket", "under $250"],
-    width: 144,
-    delay: 1.42,
-  },
-  {
-    phase: "intent",
-    from: "agent",
-    to: "merchant",
-    y: 440,
-    label: ["Browse merchant catalog"],
-    width: 172,
-    delay: 1.72,
-  },
-  {
-    phase: "intent",
-    from: "merchant",
-    to: "agent",
-    y: 482,
-    label: ["Product + final price"],
-    width: 152,
-    response: true,
-    delay: 2.02,
-  },
-  {
-    phase: "intent",
-    from: "agent",
-    to: "consumer",
-    y: 524,
-    label: ["Confirm purchase intent"],
-    width: 162,
-    response: true,
-    delay: 2.34,
-  },
-  {
-    phase: "intent",
-    from: "consumer",
-    to: "agent",
-    y: 566,
-    label: ["Passkey assertion"],
-    width: 132,
-    delay: 2.66,
-  },
-  {
-    phase: "intent",
-    from: "agent",
-    to: "vic",
-    y: 608,
-    label: ["Create payment instruction"],
-    width: 176,
-    delay: 2.98,
-  },
-  {
-    phase: "intent",
-    from: "vic",
-    to: "agent",
-    y: 646,
-    label: ["Instruction reference"],
-    width: 150,
-    response: true,
-    delay: 3.3,
-  },
-  {
-    phase: "trust",
-    from: "agent",
-    to: "merchant",
-    y: 768,
-    label: ["Signed checkout request", "(RFC 9421)"],
-    width: 180,
-    delay: 4.42,
-  },
-  {
-    phase: "trust",
-    from: "merchant",
-    to: "vic",
-    y: 812,
-    label: ["Verify TAP signature"],
-    width: 154,
-    delay: 4.76,
-  },
-  {
-    phase: "trust",
-    from: "vic",
-    to: "merchant",
-    y: 856,
-    label: ["Agent identity verified"],
-    width: 164,
-    response: true,
-    delay: 5.1,
-  },
-  {
-    phase: "trust",
-    from: "agent",
-    to: "vic",
-    y: 900,
-    label: ["Request scoped credential"],
-    width: 178,
-    delay: 5.44,
-  },
-  {
-    phase: "trust",
-    from: "vic",
-    to: "agent",
-    y: 940,
-    label: ["Agent-bound network token"],
-    width: 178,
-    response: true,
-    delay: 5.78,
-  },
-  {
-    phase: "trust",
-    from: "agent",
-    to: "merchant",
-    y: 974,
-    label: ["Submit token at checkout"],
-    width: 172,
-    delay: 6.12,
-  },
-  {
-    phase: "rails",
-    from: "merchant",
-    to: "acquirer",
-    y: 1094,
-    label: ["ISO 8583 auth request"],
-    width: 168,
-    delay: 6.86,
-  },
-  {
-    phase: "rails",
-    from: "acquirer",
-    to: "vic",
-    y: 1136,
-    label: ["Route through VisaNet"],
-    width: 158,
-    delay: 7.18,
-  },
-  {
-    phase: "rails",
-    from: "vic",
-    to: "issuer",
-    y: 1178,
-    label: ["Token + policy context"],
-    width: 170,
-    delay: 7.5,
-  },
-  {
-    phase: "rails",
-    from: "issuer",
-    to: "vic",
-    y: 1220,
-    label: ["Approval response"],
-    width: 142,
-    response: true,
-    delay: 7.82,
-  },
-  {
-    phase: "rails",
-    from: "vic",
-    to: "acquirer",
-    y: 1262,
-    label: ["Network response"],
-    width: 138,
-    response: true,
-    delay: 8.14,
-  },
-  {
-    phase: "rails",
-    from: "acquirer",
-    to: "merchant",
-    y: 1304,
-    label: ["Approval to merchant"],
-    width: 150,
-    response: true,
-    delay: 8.46,
-  },
-  {
-    phase: "rails",
-    from: "merchant",
-    to: "consumer",
-    y: 1342,
-    label: ["Order confirmation"],
-    width: 148,
-    response: true,
-    delay: 8.78,
-  },
-]
+const COL_X = { 0: 58, 1: 278, 2: 498 }
+const LAYER_Y = { 0: 50, 1: 196, 2: 342, 3: 493, 4: 613, 5: 733 }
+const NODE_W = 202
+const NODE_H = 70
+const SVG_W = 760
+const SVG_H = 860
 
-const SPEEDS = [
-  { id: "slow", label: "Slow", value: 0.72 },
-  { id: "normal", label: "Normal", value: 1 },
-  { id: "fast", label: "Fast", value: 1.45 },
-]
-
-function actorMap() {
-  return ACTORS.reduce((acc, actor) => {
-    acc[actor.id] = actor
-    return acc
-  }, {})
+const ICON = {
+  consumer: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
+  agent: "M4 6h2V4H4v2zm4 0h2V4H8v2zm4 0h2V4h-2v2zm4 0h2V4h-2v2zM4 10h2V8H4v2zm4 0h2V8H8v2zm4 0h2V8h-2v2zm4 0h2V8h-2v2zM4 14h2v-2H4v2zm4 0h2v-2H8v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zM2 4v16h20V4H2zm18 14H4V6h16v12z",
+  wallet: "M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z",
+  keystore: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4.9l5 2.23V11c0 3.12-2.09 6.04-5 7.09-2.91-1.05-5-3.97-5-7.09V7.9l5-2.23z",
+  vic: "M11 2v20c-5.07-.5-9-4.79-9-10s3.93-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z",
+  issuer: "M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zM11.5 1L2 6v2h19V6l-9.5-5z",
+  acquirer: "M19 14V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zm-9-1c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-6v11c0 1.1-.9 2-2 2H4v-2h17V7h2z",
+  merchant: "M19 6H17C17 3.24 14.76 1 12 1S7 3.24 7 6H5C3.9 6 3 6.9 3 8V20C3 21.1 3.9 22 5 22H19C20.1 22 21 21.1 21 20V8C21 6.9 20.1 6 19 6ZM12 3C13.65 3 15 4.35 15 6H9C9 4.35 10.35 3 12 3ZM12 13C10.35 13 9 11.65 9 10H11C11 10.55 11.45 11 12 11S13 10.55 13 10H15C15 11.65 13.65 13 12 13Z",
 }
 
-function phaseMap() {
-  return PHASES.reduce((acc, phase) => {
-    acc[phase.id] = phase
-    return acc
-  }, {})
+function cx(actor) {
+  return COL_X[actor.col] + NODE_W / 2
 }
 
-function lineGeometry(from, to) {
-  const direction = to.x > from.x ? 1 : -1
-  const startOffset = Math.min(ACTOR_HEAD_W / 2 - 10, Math.abs(to.x - from.x) / 4)
-  const endOffset = Math.min(ACTOR_HEAD_W / 2 - 10, Math.abs(to.x - from.x) / 4)
+function cy(actor) {
+  return LAYER_Y[actor.layer] + NODE_H / 2
+}
 
-  return {
-    x1: from.x + direction * startOffset,
-    x2: to.x - direction * endOffset,
-    mid: (from.x + to.x) / 2,
+function getNode(diagram, nodeId) {
+  return diagram.nodes.find((node) => node.id === nodeId)
+}
+
+function getEdgeById(diagram, edgeId) {
+  return diagram.edges.find((edge) => edge.id === edgeId)
+}
+
+function getStepText(node, stepId, layer = "business") {
+  return node?.data?.steps?.[stepId]?.layerText?.[layer] ?? ""
+}
+
+function formatValue(value) {
+  if (Array.isArray(value)) {
+    return value.length > 3
+      ? `${value.slice(0, 3).join(" · ")} +${value.length - 3} more`
+      : value.join(" · ")
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No"
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value)
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .slice(0, 3)
+      .map(([key, entryValue]) => `${key}: ${formatValue(entryValue)}`)
+      .join(" · ")
+  }
+
+  return ""
+}
+
+function propertyFact(node, key, label) {
+  const value = node?.data?.properties?.[key]
+  if (value == null) return null
+  const formatted = formatValue(value)
+  return formatted ? `${label}: ${formatted}` : null
+}
+
+function compactCategories(categories) {
+  if (!Array.isArray(categories) || categories.length === 0) return null
+  return categories.join(" · ")
+}
+
+function keyDirectoryHost(url) {
+  if (typeof url !== "string") return null
+  try {
+    return new URL(url).host
+  } catch {
+    return url
   }
 }
 
-function Message({ message, actorsById, phasesById, activePhase, speed }) {
-  const from = actorsById[message.from]
-  const to = actorsById[message.to]
-  const phase = phasesById[message.phase]
-  const { x1, x2, mid } = lineGeometry(from, to)
-  const labelHeight = message.label.length * 13 + 9
-  const muted = activePhase !== "all" && activePhase !== message.phase
-  const color = message.response ? "var(--ink-500)" : phase.accent
+function getEdge(fromId, toId, actors) {
+  const fromActor = actors[fromId]
+  const toActor = actors[toId]
+  const fx = cx(fromActor)
+  const fy = cy(fromActor)
+  const tx = cx(toActor)
+  const ty = cy(toActor)
+  const dy = ty - fy
+  const dx = tx - fx
+  let x1 = fx
+  let y1 = fy
+  let x2 = tx
+  let y2 = ty
 
-  return (
-    <g opacity={muted ? 0.16 : 1}>
-      <g
-        className="seq-item"
-        style={{
-          animationDelay: `${message.delay / speed}s`,
-          animationDuration: `${0.34 / speed}s`,
-        }}
-      >
-        <rect
-          x={mid - message.width / 2}
-          y={message.y - labelHeight - 8}
-          width={message.width}
-          height={labelHeight}
-          rx="5"
-          fill="var(--paper-pure)"
-          stroke={message.response ? "var(--ink-200)" : color}
-          strokeWidth={message.response ? 0.7 : 0.9}
-          strokeOpacity={message.response ? 1 : 0.75}
-        />
-        <text
-          x={mid}
-          y={message.y - labelHeight + 8}
-          textAnchor="middle"
-          className="seq-message-label"
-        >
-          {message.label.map((line, index) => (
-            <tspan key={line} x={mid} dy={index === 0 ? 0 : 13}>
-              {line}
-            </tspan>
-          ))}
-        </text>
-        <line
-          x1={x1}
-          y1={message.y}
-          x2={x2}
-          y2={message.y}
-          stroke={color}
-          strokeWidth={message.response ? 1 : 1.35}
-          strokeDasharray={message.response ? "5 4" : undefined}
-          markerEnd={`url(#${MARKER_ID})`}
-          className="seq-line"
-        />
-        {!message.response && (
-          <circle r="3.4" fill={color} opacity="0.72">
-            <animateMotion dur={`${1.8 / speed}s`} begin={`${message.delay / speed}s`} repeatCount="indefinite">
-              <mpath href={`#path-${message.phase}-${message.y}`} />
-            </animateMotion>
-          </circle>
-        )}
-        <path
-          id={`path-${message.phase}-${message.y}`}
-          d={`M${x1},${message.y} L${x2},${message.y}`}
-          fill="none"
-          stroke="none"
-        />
-      </g>
-    </g>
-  )
+  const isVertical = fromActor.layer !== toActor.layer
+  const isBidi =
+    (fromId === "vic" && toId === "issuer") ||
+    (fromId === "issuer" && toId === "vic") ||
+    (fromId === "merchant" && toId === "acquirer") ||
+    (fromId === "acquirer" && toId === "merchant")
+
+  if (isVertical) {
+    y1 = dy > 0 ? fy + NODE_H / 2 : fy - NODE_H / 2
+    y2 = dy > 0 ? ty - NODE_H / 2 : ty + NODE_H / 2
+    if (isBidi) {
+      const offset = dy > 0 ? -20 : 20
+      x1 += offset
+      x2 += offset
+    }
+  } else {
+    x1 = dx > 0 ? fx + NODE_W / 2 : fx - NODE_W / 2
+    x2 = dx > 0 ? tx - NODE_W / 2 : tx + NODE_W / 2
+  }
+
+  const mx = (x1 + x2) / 2
+  const my = (y1 + y2) / 2
+  const d = isVertical
+    ? `M${x1},${y1} C${x1},${(y1 + y2) / 2} ${x2},${(y1 + y2) / 2} ${x2},${y2}`
+    : `M${x1},${y1} L${x2},${y2}`
+
+  return { d, mx, my }
 }
 
-function Actor({ actor }) {
-  return (
-    <g>
-      <rect
-        x={actor.x - ACTOR_HEAD_W / 2}
-        y="54"
-        width={ACTOR_HEAD_W}
-        height={ACTOR_HEAD_H}
-        rx="8"
-        fill={actor.fill}
-        stroke={actor.accent}
-        strokeWidth="1"
-      />
-      <rect
-        x={actor.x - ACTOR_HEAD_W / 2 + 1}
-        y="54"
-        width={ACTOR_HEAD_W - 2}
-        height="4"
-        rx="2"
-        fill={actor.accent}
-        opacity="0.75"
-      />
-      <text x={actor.x} y="76" textAnchor="middle" className="seq-actor-label">
-        {actor.label}
-      </text>
-      <text x={actor.x} y="94" textAnchor="middle" className="seq-actor-sub">
-        {actor.sublabel}
-      </text>
-      <line
-        x1={actor.x}
-        y1={LIFELINE_TOP}
-        x2={actor.x}
-        y2={LIFELINE_BOTTOM}
-        stroke={actor.accent}
-        strokeWidth="0.65"
-        strokeDasharray="3 6"
-        opacity="0.38"
-      />
-    </g>
-  )
+function buildConsumerDetail(diagram) {
+  const wallet = getNode(diagram, "n-agent-wallet")
+  const props = wallet?.data?.properties ?? {}
+  const categories = compactCategories(props.categories)
+
+  return {
+    body: `The consumer is present once, at enrollment, not during checkout. They provision the wallet with ${props.token_type ?? "an agent-specific payment credential"}, configure controls like ${props.spend_limit ?? "per-transaction limits"}${categories ? ` and category rules for ${categories}` : ""}, and bind the flow to a Passkey before the agent is allowed to spend.`,
+    facts: [
+      props.spend_limit ? `Per-transaction limit: ${props.spend_limit}` : null,
+      categories ? `Allowed categories: ${categories}` : null,
+      props.passkey_bound ? "Passkey required before instructions become spendable" : null,
+    ].filter(Boolean),
+  }
 }
 
-function PhaseBand({ phase, activePhase, speed }) {
-  const muted = activePhase !== "all" && activePhase !== phase.id
+function buildDetails(diagram) {
+  const agent = getNode(diagram, "n-agent-runtime")
+  const wallet = getNode(diagram, "n-agent-wallet")
+  const tap = getNode(diagram, "n-tap")
+  const merchant = getNode(diagram, "n-merchant")
+  const acquirer = getNode(diagram, "n-acquirer")
+  const visa = getNode(diagram, "n-visa")
+  const issuer = getNode(diagram, "n-issuer")
 
-  return (
-    <g opacity={muted ? 0.18 : 1}>
-      <g
-        className="seq-phase"
-        style={{
-          animationDelay: `${phase.delay / speed}s`,
-          animationDuration: `${0.36 / speed}s`,
-        }}
-      >
-        <rect
-          x="36"
-          y={phase.y}
-          width={SVG_W - 72}
-          height={phase.h}
-          rx="9"
-          fill={phase.fill}
-          stroke={phase.accent}
-          strokeWidth="0.7"
-          strokeOpacity="0.38"
-        />
-        <rect
-          x="52"
-          y={phase.y + 15}
-          width="4"
-          height="24"
-          rx="2"
-          fill={phase.accent}
-        />
-        <text
-          x="66"
-          y={phase.y + 31}
-          className="seq-phase-label"
-          fill={phase.accent}
-        >
-          {phase.label}
-        </text>
-      </g>
-    </g>
-  )
+  const tapDirectoryHost = keyDirectoryHost(tap?.data?.properties?.key_directory)
+
+  return {
+    consumer: buildConsumerDetail(diagram),
+    agent: {
+      body: getStepText(agent, "consumer-intent", "business"),
+      facts: [
+        propertyFact(agent, "runtime", "Runtime"),
+        propertyFact(agent, "identity_protocol", "Identity protocol"),
+        propertyFact(agent, "tool_calls", "Tool calls"),
+      ].filter(Boolean),
+    },
+    wallet: {
+      body: getStepText(wallet, "consumer-intent", "business"),
+      facts: [
+        propertyFact(wallet, "token_type", "Credential"),
+        propertyFact(wallet, "spend_limit", "Spend limit"),
+        propertyFact(wallet, "provisioning", "Provisioning"),
+      ].filter(Boolean),
+    },
+    keystore: {
+      body: `${tap?.data?.label ?? "The TAP trust layer"} exposes the key directory${tapDirectoryHost ? ` at ${tapDirectoryHost}` : ""} so merchants and CDNs can fetch agent public keys, verify ${tap?.data?.properties?.algorithm ?? "agent signatures"}, and enforce ${tap?.data?.properties?.replay_protection ?? "replay protection"} before checkout traffic reaches payment rails.`,
+      facts: [
+        propertyFact(tap, "standard", "Standard"),
+        propertyFact(tap, "algorithm", "Algorithm"),
+        propertyFact(tap, "key_directory", "Key directory"),
+      ].filter(Boolean),
+    },
+    vic: {
+      body: getStepText(visa, "visanet-routes", "business"),
+      facts: [
+        propertyFact(visa, "platform", "Platform"),
+        propertyFact(visa, "token_service", "Token service"),
+        propertyFact(visa, "mcp_server", "Open source"),
+      ].filter(Boolean),
+    },
+    issuer: {
+      body: getStepText(issuer, "issuer-auth", "business"),
+      facts: [
+        propertyFact(issuer, "decision_factors", "Decision factors"),
+        propertyFact(issuer, "passkey_validation", "Passkey validation"),
+        propertyFact(issuer, "response_time", "Typical latency"),
+      ].filter(Boolean),
+    },
+    acquirer: {
+      body: getStepText(acquirer, "acquirer-iso8583", "business"),
+      facts: [
+        propertyFact(acquirer, "key_modifications", "Authorization metadata"),
+        propertyFact(acquirer, "connection", "Connection"),
+        propertyFact(acquirer, "message_encryption", "Transport"),
+      ].filter(Boolean),
+    },
+    merchant: {
+      body: getStepText(merchant, "merchant-accepts", "business"),
+      facts: [
+        propertyFact(merchant, "tap_integration", "Integration"),
+        propertyFact(merchant, "bot_protection", "Bot protection"),
+        propertyFact(merchant, "consumer_recognition", "Recognition signal"),
+      ].filter(Boolean),
+    },
+  }
+}
+
+function buildActors(diagram) {
+  const details = buildDetails(diagram)
+
+  return ACTOR_ORDER.reduce((acc, id) => {
+    const spec = ACTOR_LAYOUT[id]
+    const node = spec.nodeId ? getNode(diagram, spec.nodeId) : null
+
+    acc[id] = {
+      ...spec,
+      label: spec.label ?? node?.data?.label ?? id,
+      sub: spec.sub ?? node?.data?.sublabel ?? node?.type ?? "",
+      detail: details[id],
+    }
+
+    return acc
+  }, {})
+}
+
+function buildConnections(diagram) {
+  return CONNECTION_SPECS.map((connection) => {
+    const diagramLabel = connection.edgeId
+      ? getEdgeById(diagram, connection.edgeId)?.label ?? null
+      : null
+    return { ...connection, label: connection.label ?? diagramLabel }
+  })
 }
 
 export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
-  const [activePhase, setActivePhase] = useState("all")
-  const [speed, setSpeed] = useState(1)
-  const [animationKey, setAnimationKey] = useState(0)
-  const rootRef = useRef(null)
-  const actorsById = useMemo(actorMap, [])
-  const phasesById = useMemo(phaseMap, [])
+  const [selected, setSelected] = useState(null)
+  const [hovered, setHovered] = useState(null)
+  const [activePhase, setActivePhase] = useState("enrollment")
+  const [isMobile, setIsMobile] = useState(false)
+
+  const actors = buildActors(diagram)
+  const connections = buildConnections(diagram)
+  const detail = selected ? actors[selected]?.detail : null
+  const selActor = selected ? actors[selected] : null
+  const selAccent = selected ? NODE_ACCENT[selected] : null
 
   useEffect(() => {
-    let wasVisible = false
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !wasVisible) {
-          wasVisible = true
-          setAnimationKey((key) => key + 1)
-        }
-        if (!entry.isIntersecting) {
-          wasVisible = false
-        }
-      },
-      { threshold: 0.28 }
-    )
-
-    if (rootRef.current) observer.observe(rootRef.current)
-    return () => observer.disconnect()
+    const check = () => setIsMobile(window.innerWidth <= 640)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
   }, [])
 
-  const replay = () => setAnimationKey((key) => key + 1)
-
   return (
-    <figure className="vic-sequence" ref={rootRef}>
-      <div className="vic-sequence__header">
-        <div>
-          <div className="vic-sequence__eyebrow">Agentic Commerce - Sequence View</div>
-          <h2 className="vic-sequence__title">Agentic checkout - end-to-end sequence</h2>
-          <p className="vic-sequence__subtitle">
-            VIC groups TAP verification, token services and VisaNet routing while the issuer remains the authorization decision point.
-          </p>
+    <div style={{
+      fontFamily: "system-ui,-apple-system,'Segoe UI',sans-serif",
+      background: "var(--paper)",
+      borderRadius: 14,
+      border: "1px solid var(--ink-200)",
+      overflow: "hidden",
+      boxShadow: "0 2px 8px color-mix(in srgb, var(--ink-900) 7%, transparent), 0 12px 32px color-mix(in srgb, var(--ink-900) 6%, transparent)",
+      width: isMobile ? "100%" : "100vw",
+      maxWidth: 1040,
+      position: isMobile ? "static" : "relative",
+      left: isMobile ? "auto" : "50%",
+      transform: isMobile ? "none" : "translateX(-50%)",
+      margin: "2.5rem 0",
+    }}>
+
+      <div style={{ borderBottom: "1px solid var(--ink-200)", background: "var(--ink-100)" }}>
+        <div style={{
+          padding: isMobile ? "14px 16px 10px" : "16px 28px 12px",
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}>
+          <div>
+            <div style={{ fontSize: 10, letterSpacing: "0.13em", textTransform: "uppercase", color: "var(--ink-500)", fontFamily: "ui-monospace,'Courier New',monospace", marginBottom: 5 }}>
+              Agentic Commerce · System Architecture
+            </div>
+            <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, color: "var(--ink-800)", letterSpacing: 0, lineHeight: 1 }}>
+              {diagram.title}
+            </div>
+          </div>
+          <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", flexShrink: 0 }}>
+            {ACTOR_ORDER.length} actors · {connections.length} connections
+          </div>
         </div>
-        <div className="vic-sequence__meta">
-          <span>{ACTORS.length} actors</span>
-          <span>{MESSAGES.length} messages</span>
+        <div style={{ padding: isMobile ? "0 16px 12px" : "0 28px 14px", display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {PHASES.map((phase) => {
+            const isActive = activePhase === phase.id
+            return (
+              <button
+                key={phase.id}
+                onClick={() => { setActivePhase(phase.id); setSelected(null) }}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: 6,
+                  border: `1px solid ${isActive ? "var(--diagram-1)" : "var(--ink-200)"}`,
+                  background: isActive ? "color-mix(in srgb, var(--diagram-1) 12%, var(--paper-pure))" : "transparent",
+                  color: isActive ? "var(--diagram-1)" : "var(--ink-500)",
+                  fontSize: 10,
+                  fontFamily: "ui-monospace,monospace",
+                  letterSpacing: "0.05em",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {phase.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      <div className="vic-sequence__toolbar" aria-label="Diagram controls">
-        <div className="vic-sequence__segments" aria-label="Phase filter">
-          {[{ id: "all", shortLabel: "All" }, ...PHASES].map((phase) => (
-            <button
-              key={phase.id}
-              type="button"
-              aria-pressed={activePhase === phase.id}
-              onClick={() => setActivePhase(phase.id)}
-              className={activePhase === phase.id ? "is-active" : ""}
-            >
-              {phase.shortLabel}
-            </button>
-          ))}
-        </div>
-        <div className="vic-sequence__segments vic-sequence__segments--speed" aria-label="Animation speed">
-          {SPEEDS.map((speedOption) => (
-            <button
-              key={speedOption.id}
-              type="button"
-              aria-pressed={speed === speedOption.value}
-              onClick={() => {
-                setSpeed(speedOption.value)
-                setAnimationKey((key) => key + 1)
-              }}
-              className={speed === speedOption.value ? "is-active" : ""}
-            >
-              {speedOption.label}
-            </button>
-          ))}
-        </div>
-        <button type="button" className="vic-sequence__replay" onClick={replay}>
-          <RotateCcw size={14} strokeWidth={1.8} aria-hidden="true" />
-          Replay
-        </button>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row" }}>
+        {isMobile && (
+          <div style={{ padding: "12px 16px 4px" }}>
+            <div style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", marginBottom: 10, letterSpacing: "0.06em" }}>
+              TAP ANY ACTOR TO INSPECT
+            </div>
+            {ACTOR_ORDER.map((id, index) => {
+              const actor = actors[id]
+              const accent = NODE_ACCENT[id]
+              const isSelected = selected === id
+              const previousId = index > 0 ? ACTOR_ORDER[index - 1] : null
+              const showBand = !previousId || actors[previousId].band !== actor.band
+
+              return (
+                <div key={id}>
+                  {showBand && (
+                    <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", letterSpacing: "0.08em", textTransform: "uppercase", marginTop: index === 0 ? 0 : 10, marginBottom: 4 }}>
+                      {actor.band}
+                    </div>
+                  )}
+                  <div
+                    onClick={() => setSelected(selected === id ? null : id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      marginBottom: 3,
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      background: isSelected ? "var(--paper-pure)" : "var(--paper-pure)",
+                      border: `1px solid ${isSelected ? accent : "var(--ink-200)"}`,
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <div style={{ width: 3, height: 32, background: accent, borderRadius: 2, flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)", letterSpacing: 0 }}>{actor.label}</div>
+                      <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", marginTop: 2 }}>{actor.sub}</div>
+                    </div>
+                    <div style={{ fontSize: 12, color: isSelected ? accent : "var(--ink-200)" }}>{isSelected ? "▲" : "▼"}</div>
+                  </div>
+                  {isSelected && actor.detail && (
+                    <div style={{ margin: "0 0 8px 14px", padding: "12px 14px", background: "var(--ink-100)", borderRadius: "0 0 8px 8px", borderLeft: `2px solid ${accent}` }}>
+                      <p style={{ fontSize: 12, color: "var(--ink-700)", lineHeight: 1.7, margin: "0 0 10px" }}>{actor.detail.body}</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {actor.detail.facts.map((fact, factIndex) => (
+                          <div key={factIndex} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                            <div style={{ width: 4, height: 4, borderRadius: "50%", background: accent, flexShrink: 0, marginTop: 5 }} />
+                            <div style={{ fontSize: 10.5, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)", lineHeight: 1.5 }}>{fact}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {!isMobile && (
+          <div style={{ flex: 1, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+            <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ display: "block", minWidth: SVG_W }}>
+              <defs>
+                {Object.entries(EDGE_STYLE).map(([type, edgeStyle]) => (
+                  <marker key={type} id={`arr-${type}`} viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M1 1.5L6.5 4L1 6.5" fill="none" stroke={edgeStyle.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </marker>
+                ))}
+                <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.12" />
+                </filter>
+                <filter id="edge-glow" x="-40%" y="-300%" width="180%" height="700%">
+                  <feGaussianBlur stdDeviation="2" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <rect width={SVG_W} height={SVG_H} fill="var(--paper)" />
+
+              {LAYER_BANDS.map((band) => (
+                <g key={band.label}>
+                  <rect x={14} y={band.y} width={SVG_W - 28} height={band.h} rx={8} fill={band.color} stroke={band.border} strokeWidth={1} />
+                  <text x={30} y={band.y + 13} style={{ fontSize: 8.5, fontFamily: "ui-monospace,monospace", fill: band.border, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                    {band.label}
+                  </text>
+                </g>
+              ))}
+
+              {connections.map((connection, index) => {
+                const { d, mx, my } = getEdge(connection.from, connection.to, actors)
+                const edgeStyle = EDGE_STYLE[connection.type]
+                const isRelated = selected && (connection.from === selected || connection.to === selected)
+                const isInPhase = activePhase === "all" || connection.phase === activePhase
+                const isFaded = selected ? !isRelated : !isInPhase
+                const showLabel = isRelated || (activePhase !== "all" && isInPhase)
+
+                return (
+                  <g key={`${connection.from}-${connection.to}`} style={{ opacity: isFaded ? 0.08 : 1, transition: "opacity 0.25s" }}>
+                    {isRelated && (
+                      <path d={d} fill="none" stroke={edgeStyle.glow} strokeWidth={5} strokeOpacity={0.15} filter="url(#edge-glow)" />
+                    )}
+                    <path
+                      d={d}
+                      fill="none"
+                      stroke={edgeStyle.stroke}
+                      strokeWidth={isRelated ? 1.8 : 1.1}
+                      strokeDasharray={connection.dash ?? edgeStyle.dash}
+                      strokeOpacity={isRelated ? 1 : 0.6}
+                      markerEnd={`url(#arr-${connection.type})`}
+                      style={{ transition: "stroke-width 0.2s, stroke-opacity 0.2s" }}
+                    />
+                    {!isFaded && (
+                      <circle r={isRelated ? edgeStyle.dotR + 0.5 : edgeStyle.dotR} fill={edgeStyle.stroke} opacity={isRelated ? 0.9 : 0.55}>
+                        <animateMotion dur={isRelated ? `${parseFloat(edgeStyle.animDur) * 0.65}s` : edgeStyle.animDur} repeatCount="indefinite" begin={`${index * 0.38}s`}>
+                          <mpath href={`#ep-${index}`} />
+                        </animateMotion>
+                      </circle>
+                    )}
+                    <path id={`ep-${index}`} d={d} fill="none" stroke="none" />
+                    {showLabel && (
+                      <g>
+                        <rect
+                          x={mx - 46}
+                          y={my - 9 + (connection.labelDy ?? 0)}
+                          width={92}
+                          height={17}
+                          rx={4}
+                          fill={isRelated ? "var(--paper-pure)" : "var(--paper)"}
+                          stroke={isRelated ? edgeStyle.stroke : "var(--ink-200)"}
+                          strokeWidth={isRelated ? 1 : 0.8}
+                          strokeOpacity={isRelated ? 0.7 : 0.5}
+                        />
+                        <text x={mx} y={my + 0.5 + (connection.labelDy ?? 0)} textAnchor="middle" dominantBaseline="central" style={{ fontSize: 8, fontFamily: "ui-monospace,monospace", fill: isRelated ? edgeStyle.label : "var(--ink-500)", letterSpacing: "0.02em" }}>
+                          {connection.label}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                )
+              })}
+
+              {ACTOR_ORDER.map((id) => {
+                const actor = actors[id]
+                const x = COL_X[actor.col]
+                const y = LAYER_Y[actor.layer]
+                const accent = NODE_ACCENT[actor.id]
+                const tint = NODE_ICON_TINT[actor.id]
+                const isSelected = selected === actor.id
+                const isHovered = hovered === actor.id
+                const isFaded = selected && !isSelected
+
+                return (
+                  <g
+                    key={actor.id}
+                    onClick={() => setSelected(selected === actor.id ? null : actor.id)}
+                    onMouseEnter={() => setHovered(actor.id)}
+                    onMouseLeave={() => setHovered(null)}
+                    style={{ cursor: "pointer", opacity: isFaded ? 0.22 : 1, transition: "opacity 0.25s" }}
+                  >
+                    {isSelected && (
+                      <rect x={x - 5} y={y - 5} width={NODE_W + 10} height={NODE_H + 10} rx={13} fill="none" stroke={accent} strokeWidth={1.5} strokeOpacity={0.35} />
+                    )}
+                    <rect
+                      x={x}
+                      y={y}
+                      width={NODE_W}
+                      height={NODE_H}
+                      rx={9}
+                      fill={isSelected ? "var(--paper-pure)" : isHovered ? "var(--paper)" : "var(--paper-pure)"}
+                      stroke={isSelected ? accent : isHovered ? "var(--ink-300)" : "var(--ink-200)"}
+                      strokeWidth={isSelected ? 1.5 : 1}
+                      filter={isSelected ? "url(#node-shadow)" : undefined}
+                      style={{ transition: "fill 0.15s, stroke 0.15s" }}
+                    />
+                    <rect x={x + 1} y={y} width={NODE_W - 2} height={3} rx={2} fill={accent} fillOpacity={isSelected ? 1 : isHovered ? 0.75 : 0.5} style={{ transition: "fill-opacity 0.15s" }} />
+                    <g transform={`translate(${x + 14},${y + NODE_H / 2 - 9}) scale(0.75)`}>
+                      <path d={ICON[actor.id]} fill={tint} opacity={isSelected ? 0.85 : isHovered ? 0.65 : 0.45} style={{ transition: "opacity 0.15s" }} />
+                    </g>
+                    <text x={x + 37} y={y + 27} dominantBaseline="central" style={{ fontSize: 12, fontWeight: 600, fontFamily: "system-ui,sans-serif", fill: isSelected ? "var(--ink-900)" : isHovered ? "var(--ink-800)" : "var(--ink-800)", letterSpacing: 0, transition: "fill 0.15s" }}>
+                      {actor.label}
+                    </text>
+                    <text x={x + 37} y={y + 46} dominantBaseline="central" style={{ fontSize: 8.5, fontFamily: "ui-monospace,monospace", fill: isSelected ? "var(--ink-500)" : "var(--ink-400)", letterSpacing: "0.01em", transition: "fill 0.15s" }}>
+                      {actor.sub}
+                    </text>
+                    {!selected && (
+                      <circle cx={x + NODE_W - 13} cy={y + NODE_H / 2} r={3} fill={accent} opacity={isHovered ? 0.6 : 0.18} style={{ transition: "opacity 0.15s" }} />
+                    )}
+                  </g>
+                )
+              })}
+            </svg>
+          </div>
+        )}
+
+        {!isMobile && (
+          <div style={{ width: 236, borderLeft: "1px solid var(--ink-200)", background: "var(--ink-100)", padding: "20px 18px", flexShrink: 0 }}>
+            {detail && selActor ? (
+              <div style={{ animation: "fadeUp 0.2s ease" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <div style={{ width: 3, height: 28, background: selAccent, borderRadius: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-900)", lineHeight: 1.2 }}>{selActor.label}</div>
+                    <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)", marginTop: 2 }}>{selActor.sub}</div>
+                  </div>
+                </div>
+                <p style={{ fontSize: 12, color: "var(--ink-700)", lineHeight: 1.75, margin: "0 0 16px" }}>
+                  {detail.body}
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {detail.facts.map((fact, index) => (
+                    <div key={index} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: selAccent, flexShrink: 0, marginTop: 4 }} />
+                      <div style={{ fontSize: 10.5, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)", lineHeight: 1.55 }}>{fact}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--ink-200)" }}>
+                  <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>Connections</div>
+                  {connections.filter((connection) => connection.from === selected || connection.to === selected).map((connection, index) => {
+                    const edgeStyle = EDGE_STYLE[connection.type]
+                    const other = connection.from === selected ? connection.to : connection.from
+                    const direction = connection.from === selected ? "→" : "←"
+                    return (
+                      <div key={index} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+                        <div style={{ width: 18, height: 1.5, background: edgeStyle.stroke, borderRadius: 1, flexShrink: 0 }} />
+                        <span style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)" }}>
+                          {direction} {actors[other].label}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <button
+                  onClick={() => setSelected(null)}
+                  style={{
+                    marginTop: 14,
+                    fontSize: 10,
+                    fontFamily: "ui-monospace,monospace",
+                    color: "var(--ink-500)",
+                    border: "1px solid var(--ink-300)",
+                    background: "transparent",
+                    borderRadius: 6,
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                    letterSpacing: "0.04em",
+                    width: "100%",
+                  }}
+                  onMouseEnter={(event) => {
+                    event.target.style.borderColor = "var(--ink-400)"
+                    event.target.style.color = "var(--ink-700)"
+                  }}
+                  onMouseLeave={(event) => {
+                    event.target.style.borderColor = "var(--ink-300)"
+                    event.target.style.color = "var(--ink-500)"
+                  }}
+                >
+                  ← deselect
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 11, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", marginBottom: 18, lineHeight: 1.65 }}>
+                  Click any node to inspect its role and connections.
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  {ACTOR_ORDER.map((id) => {
+                    const actor = actors[id]
+                    return (
+                      <div
+                        key={actor.id}
+                        onClick={() => setSelected(actor.id)}
+                        onMouseEnter={(event) => { event.currentTarget.style.background = "var(--ink-100)" }}
+                        onMouseLeave={(event) => { event.currentTarget.style.background = "transparent" }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "5px 6px",
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          transition: "background 0.12s",
+                        }}
+                      >
+                        <div style={{ width: 3, height: 22, background: NODE_ACCENT[actor.id], borderRadius: 2, flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-800)" }}>{actor.label}</div>
+                          <div style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {actor.sub}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--ink-200)" }}>
+                  {[
+                    [diagram.metadata?.totalLatency ?? "timing varies", "end to end"],
+                    [diagram.settlementCycle ?? "T+1", "settlement"],
+                    ["trust context", "agent signal"],
+                    [getNode(diagram, "n-tap")?.data?.properties?.algorithm?.split(" ")[0] ?? "Ed25519", "local signing"],
+                    ["policy-based", "consumer friction"],
+                  ].map(([value, label]) => (
+                    <div key={`${value}-${label}`} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 10, fontFamily: "ui-monospace,monospace", color: "var(--ink-500)" }}>{value}</span>
+                      <span style={{ fontSize: 9, fontFamily: "ui-monospace,monospace", color: "var(--ink-400)" }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-
-      <div className="vic-sequence__canvas" tabIndex="0">
-        <svg
-          key={`${animationKey}-${speed}`}
-          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-          role="img"
-          aria-labelledby="vic-sequence-title vic-sequence-desc"
-          preserveAspectRatio="xMidYMin meet"
-        >
-          <title id="vic-sequence-title">VIC agentic checkout sequence</title>
-          <desc id="vic-sequence-desc">
-            Sequence diagram showing one-time enrollment, shopping intent capture, TAP trust verification, scoped credential retrieval and card authorization through merchant, acquirer, VIC and issuer.
-          </desc>
-
-          <defs>
-            <marker
-              id={MARKER_ID}
-              viewBox="0 0 10 10"
-              refX="8"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path
-                d="M2 1L8 5L2 9"
-                fill="none"
-                stroke="context-stroke"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </marker>
-            <filter id="seq-soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="3" stdDeviation="6" floodOpacity="0.08" />
-            </filter>
-          </defs>
-
-          <rect width={SVG_W} height={SVG_H} fill="var(--paper)" />
-
-          {PHASES.map((phase) => (
-            <PhaseBand key={phase.id} phase={phase} activePhase={activePhase} speed={speed} />
-          ))}
-
-          <g filter="url(#seq-soft-shadow)">
-            {ACTORS.map((actor) => (
-              <Actor key={actor.id} actor={actor} />
-            ))}
-          </g>
-
-          {MESSAGES.map((message) => (
-            <Message
-              key={`${message.phase}-${message.y}`}
-              message={message}
-              actorsById={actorsById}
-              phasesById={phasesById}
-              activePhase={activePhase}
-              speed={speed}
-            />
-          ))}
-
-          <g className="seq-footer">
-            <line x1="44" y1="1390" x2="96" y2="1390" stroke="var(--diagram-1)" strokeWidth="1.35" />
-            <text x="106" y="1394">solid = request</text>
-            <line x1="226" y1="1390" x2="278" y2="1390" stroke="var(--ink-500)" strokeWidth="1" strokeDasharray="5 4" />
-            <text x="288" y="1394">dashed = response or verification result</text>
-            <text x="574" y="1394">
-              {diagram?.settlementCycle ?? "existing card-clearing cycle"}
-            </text>
-          </g>
-        </svg>
-      </div>
-
-      <figcaption className="vic-sequence__caption">
-        Public architecture view. Field-level ISO 8583 mappings and private VisaNet controls are intentionally left out.
-      </figcaption>
 
       <style>{`
-        .vic-sequence {
-          width: 100vw;
-          max-width: 1040px;
-          position: relative;
-          left: 50%;
-          transform: translateX(-50%);
-          margin: 2.5rem 0;
-          border: 1px solid var(--ink-200);
-          border-radius: 14px;
-          overflow: hidden;
-          background: var(--paper);
-          box-shadow:
-            0 2px 8px color-mix(in srgb, var(--ink-900) 7%, transparent),
-            0 14px 36px color-mix(in srgb, var(--ink-900) 6%, transparent);
-          font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-        }
-
-        .vic-sequence__header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 20px;
-          padding: 18px 28px 14px;
-          border-bottom: 1px solid var(--ink-200);
-          background: var(--ink-100);
-        }
-
-        .vic-sequence__eyebrow {
-          margin-bottom: 5px;
-          color: var(--ink-500);
-          font-family: ui-monospace, "Courier New", monospace;
-          font-size: 10px;
-          letter-spacing: 0.09em;
-          text-transform: uppercase;
-        }
-
-        .vic-sequence__title {
-          margin: 0;
-          color: var(--ink-900);
-          font-size: 19px;
-          font-weight: 650;
-          line-height: 1.2;
-          letter-spacing: 0;
-        }
-
-        .vic-sequence__subtitle {
-          max-width: 660px;
-          margin: 7px 0 0;
-          color: var(--ink-700);
-          font-size: 13px;
-          line-height: 1.55;
-        }
-
-        .vic-sequence__meta {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          align-items: flex-end;
-          color: var(--ink-500);
-          font-family: ui-monospace, "Courier New", monospace;
-          font-size: 10px;
-          white-space: nowrap;
-        }
-
-        .vic-sequence__toolbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 10px 28px;
-          border-bottom: 1px solid var(--ink-200);
-          background: var(--paper-pure);
-        }
-
-        .vic-sequence__segments {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 5px;
-        }
-
-        .vic-sequence button {
-          min-height: 28px;
-          border: 1px solid var(--ink-200);
-          border-radius: 6px;
-          background: transparent;
-          color: var(--ink-500);
-          font: 500 10px/1 ui-monospace, "Courier New", monospace;
-          letter-spacing: 0.04em;
-          cursor: pointer;
-          transition: border-color 0.15s, background 0.15s, color 0.15s;
-        }
-
-        .vic-sequence button:hover {
-          border-color: var(--ink-300);
-          color: var(--ink-700);
-        }
-
-        .vic-sequence button.is-active {
-          border-color: var(--diagram-1);
-          background: color-mix(in srgb, var(--diagram-1) 11%, var(--paper-pure));
-          color: var(--diagram-1);
-        }
-
-        .vic-sequence__segments button {
-          padding: 5px 10px;
-        }
-
-        .vic-sequence__segments--speed button.is-active {
-          border-color: var(--diagram-4);
-          background: color-mix(in srgb, var(--diagram-4) 11%, var(--paper-pure));
-          color: var(--diagram-4);
-        }
-
-        .vic-sequence__replay {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 11px;
-          flex-shrink: 0;
-        }
-
-        .vic-sequence__canvas {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-          background: var(--paper);
-        }
-
-        .vic-sequence__canvas svg {
-          display: block;
-          width: 100%;
-          min-width: 860px;
-          height: auto;
-        }
-
-        .seq-actor-label {
-          fill: var(--ink-900);
-          font: 650 12px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
-          letter-spacing: 0;
-        }
-
-        .seq-actor-sub {
-          fill: var(--ink-500);
-          font: 500 8.5px/1 ui-monospace, "Courier New", monospace;
-          letter-spacing: 0.01em;
-        }
-
-        .seq-phase {
-          opacity: 0;
-          animation-name: seqFadeUp;
-          animation-timing-function: ease-out;
-          animation-fill-mode: forwards;
-        }
-
-        .seq-phase-label {
-          font: 650 11px/1 ui-monospace, "Courier New", monospace;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-        }
-
-        .seq-item {
-          opacity: 0;
-          animation-name: seqFadeUp;
-          animation-timing-function: ease-out;
-          animation-fill-mode: forwards;
-        }
-
-        .seq-line {
-          fill: none;
-          stroke-linecap: round;
-        }
-
-        .seq-message-label {
-          fill: var(--ink-700);
-          font: 500 10px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif;
-          letter-spacing: 0;
-        }
-
-        .seq-footer text {
-          fill: var(--ink-500);
-          font: 500 10px/1 ui-monospace, "Courier New", monospace;
-          letter-spacing: 0.01em;
-        }
-
-        .vic-sequence__caption {
-          margin: 0;
-          padding: 10px 28px 12px;
-          border-top: 1px solid var(--ink-200);
-          color: var(--ink-500);
-          background: var(--paper-pure);
-          font-family: ui-monospace, "Courier New", monospace;
-          font-size: 10px;
-          line-height: 1.55;
-        }
-
-        @keyframes seqFadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(-5px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .seq-item,
-          .seq-phase {
-            opacity: 1;
-            animation: none !important;
-          }
-
-          .seq-item circle {
-            display: none;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .vic-sequence {
-            width: 100%;
-            left: auto;
-            transform: none;
-            margin: 2rem 0;
-            border-radius: 10px;
-          }
-
-          .vic-sequence__header,
-          .vic-sequence__toolbar {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
-
-          .vic-sequence__header {
-            flex-direction: column;
-            gap: 10px;
-          }
-
-          .vic-sequence__title {
-            font-size: 16px;
-          }
-
-          .vic-sequence__subtitle {
-            font-size: 12px;
-          }
-
-          .vic-sequence__meta {
-            flex-direction: row;
-            align-items: center;
-          }
-
-          .vic-sequence__toolbar {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .vic-sequence__segments--speed {
-            display: none;
-          }
-
-          .vic-sequence__replay {
-            align-self: stretch;
-            justify-content: center;
-          }
-
-          .vic-sequence__canvas svg {
-            min-width: 860px;
-          }
-
-          .vic-sequence__caption {
-            padding-left: 16px;
-            padding-right: 16px;
-          }
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(5px); }
+          to   { opacity:1; transform:translateY(0);   }
         }
       `}</style>
-    </figure>
+    </div>
   )
 }
