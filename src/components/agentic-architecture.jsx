@@ -3,11 +3,11 @@ import { RotateCcw } from "lucide-react"
 import { agenticCheckoutE2E } from "../lib/core"
 
 const SVG_W = 900
-const SVG_H = 1190
+const SVG_H = 1424
 const ACTOR_HEAD_W = 118
 const ACTOR_HEAD_H = 50
 const LIFELINE_TOP = 118
-const LIFELINE_BOTTOM = 1098
+const LIFELINE_BOTTOM = 1346
 const MARKER_ID = "vic-sequence-arrow"
 
 const ACTORS = [
@@ -67,7 +67,7 @@ const PHASES = [
     shortLabel: "Enrollment",
     label: "Phase 1 - one-time enrollment",
     y: 130,
-    h: 126,
+    h: 158,
     accent: "var(--diagram-3)",
     fill: "color-mix(in srgb, var(--diagram-3) 9%, var(--paper-pure))",
     delay: 0.08,
@@ -76,8 +76,8 @@ const PHASES = [
     id: "intent",
     shortLabel: "Intent",
     label: "Phase 2 - shopping and instruction capture",
-    y: 284,
-    h: 274,
+    y: 320,
+    h: 338,
     accent: "var(--diagram-4)",
     fill: "color-mix(in srgb, var(--diagram-4) 9%, var(--paper-pure))",
     delay: 1.12,
@@ -86,8 +86,8 @@ const PHASES = [
     id: "trust",
     shortLabel: "Trust",
     label: "Phase 3 - checkout trust and credential retrieval",
-    y: 586,
-    h: 252,
+    y: 690,
+    h: 294,
     accent: "var(--diagram-1)",
     fill: "color-mix(in srgb, var(--diagram-1) 9%, var(--paper-pure))",
     delay: 4.12,
@@ -96,8 +96,8 @@ const PHASES = [
     id: "rails",
     shortLabel: "Rails",
     label: "Phase 4 - authorization on existing card rails",
-    y: 866,
-    h: 248,
+    y: 1016,
+    h: 340,
     accent: "var(--success)",
     fill: "color-mix(in srgb, var(--success) 9%, var(--paper-pure))",
     delay: 6.56,
@@ -109,7 +109,7 @@ const MESSAGES = [
     phase: "setup",
     from: "consumer",
     to: "agent",
-    y: 176,
+    y: 198,
     label: ["Passkey + spending policy"],
     width: 168,
     delay: 0.32,
@@ -118,7 +118,7 @@ const MESSAGES = [
     phase: "setup",
     from: "agent",
     to: "vic",
-    y: 212,
+    y: 236,
     label: ["Register agent", "and enroll card"],
     width: 142,
     delay: 0.64,
@@ -127,7 +127,7 @@ const MESSAGES = [
     phase: "setup",
     from: "vic",
     to: "agent",
-    y: 248,
+    y: 274,
     label: ["Agent token + registry entry"],
     width: 180,
     response: true,
@@ -137,7 +137,7 @@ const MESSAGES = [
     phase: "intent",
     from: "consumer",
     to: "agent",
-    y: 330,
+    y: 398,
     label: ["Buy a padel racket", "under $250"],
     width: 144,
     delay: 1.42,
@@ -146,7 +146,7 @@ const MESSAGES = [
     phase: "intent",
     from: "agent",
     to: "merchant",
-    y: 368,
+    y: 440,
     label: ["Browse merchant catalog"],
     width: 172,
     delay: 1.72,
@@ -155,7 +155,7 @@ const MESSAGES = [
     phase: "intent",
     from: "merchant",
     to: "agent",
-    y: 406,
+    y: 482,
     label: ["Product + final price"],
     width: 152,
     response: true,
@@ -165,7 +165,7 @@ const MESSAGES = [
     phase: "intent",
     from: "agent",
     to: "consumer",
-    y: 444,
+    y: 524,
     label: ["Confirm purchase intent"],
     width: 162,
     response: true,
@@ -175,7 +175,7 @@ const MESSAGES = [
     phase: "intent",
     from: "consumer",
     to: "agent",
-    y: 482,
+    y: 566,
     label: ["Passkey assertion"],
     width: 132,
     delay: 2.66,
@@ -184,7 +184,7 @@ const MESSAGES = [
     phase: "intent",
     from: "agent",
     to: "vic",
-    y: 520,
+    y: 608,
     label: ["Create payment instruction"],
     width: 176,
     delay: 2.98,
@@ -193,7 +193,7 @@ const MESSAGES = [
     phase: "intent",
     from: "vic",
     to: "agent",
-    y: 552,
+    y: 646,
     label: ["Instruction reference"],
     width: 150,
     response: true,
@@ -203,7 +203,7 @@ const MESSAGES = [
     phase: "trust",
     from: "agent",
     to: "merchant",
-    y: 632,
+    y: 768,
     label: ["Signed checkout request", "(RFC 9421)"],
     width: 180,
     delay: 4.42,
@@ -212,7 +212,7 @@ const MESSAGES = [
     phase: "trust",
     from: "merchant",
     to: "vic",
-    y: 672,
+    y: 812,
     label: ["Verify TAP signature"],
     width: 154,
     delay: 4.76,
@@ -221,7 +221,7 @@ const MESSAGES = [
     phase: "trust",
     from: "vic",
     to: "merchant",
-    y: 712,
+    y: 856,
     label: ["Agent identity verified"],
     width: 164,
     response: true,
@@ -231,7 +231,7 @@ const MESSAGES = [
     phase: "trust",
     from: "agent",
     to: "vic",
-    y: 752,
+    y: 900,
     label: ["Request scoped credential"],
     width: 178,
     delay: 5.44,
@@ -240,7 +240,7 @@ const MESSAGES = [
     phase: "trust",
     from: "vic",
     to: "agent",
-    y: 792,
+    y: 940,
     label: ["Agent-bound network token"],
     width: 178,
     response: true,
@@ -250,7 +250,7 @@ const MESSAGES = [
     phase: "trust",
     from: "agent",
     to: "merchant",
-    y: 828,
+    y: 974,
     label: ["Submit token at checkout"],
     width: 172,
     delay: 6.12,
@@ -259,7 +259,7 @@ const MESSAGES = [
     phase: "rails",
     from: "merchant",
     to: "acquirer",
-    y: 912,
+    y: 1094,
     label: ["ISO 8583 auth request"],
     width: 168,
     delay: 6.86,
@@ -268,7 +268,7 @@ const MESSAGES = [
     phase: "rails",
     from: "acquirer",
     to: "vic",
-    y: 950,
+    y: 1136,
     label: ["Route through VisaNet"],
     width: 158,
     delay: 7.18,
@@ -277,7 +277,7 @@ const MESSAGES = [
     phase: "rails",
     from: "vic",
     to: "issuer",
-    y: 988,
+    y: 1178,
     label: ["Token + policy context"],
     width: 170,
     delay: 7.5,
@@ -286,7 +286,7 @@ const MESSAGES = [
     phase: "rails",
     from: "issuer",
     to: "vic",
-    y: 1026,
+    y: 1220,
     label: ["Approval response"],
     width: 142,
     response: true,
@@ -296,7 +296,7 @@ const MESSAGES = [
     phase: "rails",
     from: "vic",
     to: "acquirer",
-    y: 1064,
+    y: 1262,
     label: ["Network response"],
     width: 138,
     response: true,
@@ -306,7 +306,7 @@ const MESSAGES = [
     phase: "rails",
     from: "acquirer",
     to: "merchant",
-    y: 1102,
+    y: 1304,
     label: ["Approval to merchant"],
     width: 150,
     response: true,
@@ -316,7 +316,7 @@ const MESSAGES = [
     phase: "rails",
     from: "merchant",
     to: "consumer",
-    y: 1140,
+    y: 1342,
     label: ["Order confirmation"],
     width: 148,
     response: true,
@@ -654,11 +654,11 @@ export default function AgenticArchitecture({ diagram = agenticCheckoutE2E }) {
           ))}
 
           <g className="seq-footer">
-            <line x1="44" y1="1164" x2="96" y2="1164" stroke="var(--diagram-1)" strokeWidth="1.35" />
-            <text x="106" y="1168">solid = request</text>
-            <line x1="226" y1="1164" x2="278" y2="1164" stroke="var(--ink-500)" strokeWidth="1" strokeDasharray="5 4" />
-            <text x="288" y="1168">dashed = response or verification result</text>
-            <text x="574" y="1168">
+            <line x1="44" y1="1390" x2="96" y2="1390" stroke="var(--diagram-1)" strokeWidth="1.35" />
+            <text x="106" y="1394">solid = request</text>
+            <line x1="226" y1="1390" x2="278" y2="1390" stroke="var(--ink-500)" strokeWidth="1" strokeDasharray="5 4" />
+            <text x="288" y="1394">dashed = response or verification result</text>
+            <text x="574" y="1394">
               {diagram?.settlementCycle ?? "existing card-clearing cycle"}
             </text>
           </g>
